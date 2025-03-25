@@ -5,11 +5,15 @@
 commons-math3 = "3.6.1"
 guava = "33.3.1-jre"
 junit-jupiter-engine = "5.11.1"
+smithy = "1.55.0"
 
 [libraries]
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-engine" }
+smithy-codegen-core = { module = "software.amazon.smithy:smithy-codegen-core", version.ref = "smithy" }
+smithy-model = { module = "software.amazon.smithy:smithy-model", version.ref = "smithy" }
+smithy-protocol-traits = { module = "software.amazon.smithy:smithy-protocol-traits", version.ref = "smithy" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.0.21" }
