@@ -1,3 +1,5 @@
+package io.superposition.smithy.haskell.codegen
+
 import software.amazon.smithy.model.shapes.ShapeId
 
 public data class HaskellSettings(

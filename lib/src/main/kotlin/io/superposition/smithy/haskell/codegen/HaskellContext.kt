@@ -1,3 +1,5 @@
+package io.superposition.smithy.haskell.codegen
+
 import software.amazon.smithy.build.FileManifest
 import software.amazon.smithy.codegen.core.CodegenContext
 import software.amazon.smithy.codegen.core.SymbolProvider
@@ -9,9 +11,11 @@ public data class HaskellContext(
         val settings: HaskellSettings,
         val symbolProvider: SymbolProvider,
         val fileManifest: FileManifest,
-        val writerDeligator: WriterDelegator<HaskellWriter>,
         val integrations: List<HaskellIntegration>
 ) : CodegenContext<HaskellSettings, HaskellWriter, HaskellIntegration> {
+
+    val writerDeligator =
+            WriterDelegator(fileManifest, symbolProvider, HaskellWriter.Factory(settings))
 
     override fun model(): Model {
         return model
