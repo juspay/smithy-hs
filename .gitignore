@@ -9,4 +9,12 @@ gradle/wrapper/gradle-wrapper.jar
 
 # Ignore Gradle build output directory
 build
+
 gradlew
+
+.aider*
+
+# Emacs backup files
+*~
+\#*\#
+.#*

@@ -1,5 +1,4 @@
-package io.superposition.smithy.haskell.codegen
-
+package io.superposition.smithy.haskell.client.codegen
 import software.amazon.smithy.codegen.core.SymbolWriter
 
 public class HaskellWriter(val modName: String) :
