@@ -4,13 +4,14 @@ import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.ServiceShape
+import software.amazon.smithy.model.shapes.Shape
 
-sealed class HaskellSymbolProvider(
+class HaskellSymbolProvider(
         val model: Model,
         val serviceShape: ServiceShape,
         val pkgName: String
 ) : SymbolProvider {
-        override fun toSymbol(shape: Shape) {
-                return Symbol.Builder().build()
-        }
+    override fun toSymbol(shape: Shape): Symbol {
+        return Symbol.Builder().build()
+    }
 }

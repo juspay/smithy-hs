@@ -1,4 +1,4 @@
-package io.superposition.smithy.haskell.codegen
+package io.superposition.smithy.haskell.client.codegen
 
 import software.amazon.smithy.codegen.core.ImportContainer
 import software.amazon.smithy.codegen.core.Symbol

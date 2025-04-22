@@ -31,7 +31,7 @@ public data class HaskellContext(
                 return fileManifest
         }
 
-        override fun writerDelegator(): WriterDelegator<HaskellWriter> {
+        override fun writerDelegator() : WriterDelegator<HaskellWriter> {
                 return writerDeligator
         }
 
