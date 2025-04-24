@@ -9,9 +9,9 @@ import software.amazon.smithy.model.shapes.*
 // Handle nullability.
 
 class HaskellSymbolProvider(
-        val model: Model,
-        val serviceShape: ServiceShape,
-        val pkgName: String
+    val model: Model,
+    val serviceShape: ServiceShape,
+    val pkgName: String
 ) : SymbolProvider {
     override fun toSymbol(shape: Shape): Symbol {
         val builder = Symbol.Builder()
@@ -44,7 +44,7 @@ class HaskellSymbolProvider(
             is ListShape -> "List"
             is MapShape -> "Map"
             is StructureShape, is UnionShape -> shape.id.name
-            else -> throw RuntimeException("Unknown shape type $shape")
+            else -> error("Unknown shape type $shape encountered while creating a symbol.")
         }
     }
 
@@ -63,7 +63,7 @@ class HaskellSymbolProvider(
     private fun getDefinitionFile(shape: Shape): String {
         // Convert shape name to file path
         val typeName = toHaskellTypeName(shape)
-        return "${typeName}.hs"
+        return "$typeName.hs"
     }
 
     private fun addReferences(builder: Symbol.Builder, shape: Shape) {

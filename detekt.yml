@@ -1,0 +1,89 @@
+build:
+  maxIssues: 10 # Maximum number of issues before build fails
+  weights:
+    complexity: 2
+    formatting: 1
+    style: 1
+    comments: 1
+
+comments:
+  CommentOverPrivateProperty:
+    active: true
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+
+complexity:
+  LongMethod:
+    threshold: 60
+  TooManyFunctions:
+    thresholdInFiles: 15
+  LargeClass:
+    threshold: 200
+  CyclomaticComplexMethod:
+    threshold: 15
+  StringLiteralDuplication:
+    active: true
+    threshold: 5
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+  ExceptionRaisedInUnexpectedLocation:
+    active: true
+  SwallowedException:
+    active: true
+
+formatting:
+  active: true
+  android: false
+  autoCorrect: true
+  MaximumLineLength:
+    active: true
+    maxLineLength: 120
+  NoWildcardImports:
+      active: false
+
+naming:
+  active: true
+  ClassNaming:
+    active: true
+  ConstructorParameterNaming:
+    active: true
+  EnumNaming:
+    active: true
+  FunctionNaming:
+    active: true
+  PackageNaming:
+    active: true
+  TopLevelPropertyNaming:
+    active: true
+  VariableNaming:
+    active: true
+
+style:
+  active: true
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2']
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  ReturnCount:
+    active: true
+    max: 3
+  WildcardImport:
+    active: true
+    excludeImports:
+      - 'java.util.*'
+      - 'software.amazon.smithy.model.shapes.*'
+
+potential-bugs:
+  active: true
+  Deprecation:
+    active: true
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+  UselessPostfixExpression:
+    active: true

@@ -54,7 +54,7 @@ public class DirectedCodegenImpl :
         val settings = directive.settings()
 
         // Generate service client code
-        val symbol = context.symbolProvider().toSymbol(service)
+        context.symbolProvider().toSymbol(service)
         context.writerDelegator().useShapeWriter(service) { writer ->
             // Write service client implementation
             writer.write("-- Service client for ${service.id.name}")
@@ -144,7 +144,7 @@ public class DirectedCodegenImpl :
             enum.members().forEachIndexed { index, member ->
                 val prefix = if (index == 0) "" else "  | "
                 val enumName = member.memberName.replaceFirstChar { it.uppercase() }
-                writer.write("${prefix}${enumName}")
+                writer.write("${prefix}$enumName")
             }
 
             writer.write("  deriving (Show, Eq, Enum)")
@@ -165,7 +165,7 @@ public class DirectedCodegenImpl :
             writer.write(" = ")
 
             // Add int enum members
-            intEnum.enumValues.entries.toList().forEachIndexed() { i, (name, value) ->
+            intEnum.enumValues.entries.toList().forEachIndexed { i, (name, value) ->
                 val prefix = if (i == 0) "" else "  | "
                 val n = name.replaceFirstChar { it.uppercase() }
                 writer.write("$prefix$n -- $value")
