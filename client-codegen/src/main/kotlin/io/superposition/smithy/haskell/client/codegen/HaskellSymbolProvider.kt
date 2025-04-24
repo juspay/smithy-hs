@@ -28,13 +28,8 @@ class HaskellSymbolProvider(
     private fun toHaskellTypeName(shape: Shape): String {
         // Convert shape name to PascalCase for Haskell type names
         return when (shape) {
-            is StringShape -> {
-                if (shape is EnumShape) {
-                    shape.id.name
-                } else {
-                    "Text"
-                }
-            }
+            is StructureShape, is UnionShape, is EnumShape -> shape.id.name
+            is StringShape -> "Text"
             is BooleanShape -> "Bool"
             is ByteShape, is ShortShape, is IntegerShape -> "Int"
             is LongShape, is BigIntegerShape -> "Integer"
@@ -43,7 +38,6 @@ class HaskellSymbolProvider(
             is TimestampShape -> "UTCTime"
             is ListShape -> "List"
             is MapShape -> "Map"
-            is StructureShape, is UnionShape -> shape.id.name
             else -> error("Unknown shape type $shape encountered while creating a symbol.")
         }
     }

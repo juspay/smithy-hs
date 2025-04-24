@@ -11,6 +11,7 @@ import software.amazon.smithy.codegen.core.directed.GenerateIntEnumDirective
 import software.amazon.smithy.codegen.core.directed.GenerateServiceDirective
 import software.amazon.smithy.codegen.core.directed.GenerateStructureDirective
 import software.amazon.smithy.codegen.core.directed.GenerateUnionDirective
+import software.amazon.smithy.codegen.core.directed.CustomizeDirective
 
 public class DirectedCodegenImpl :
     DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> {
@@ -54,7 +55,6 @@ public class DirectedCodegenImpl :
         val settings = directive.settings()
 
         // Generate service client code
-        context.symbolProvider().toSymbol(service)
         context.writerDelegator().useShapeWriter(service) { writer ->
             // Write service client implementation
             writer.write("-- Service client for ${service.id.name}")
@@ -189,5 +189,10 @@ public class DirectedCodegenImpl :
             }
             writer.write("fromInt _ = Nothing")
         }
+    }
+
+    // This where we are supposed to generate things like dependency manifests and READMEs.
+    override fun customizeAfterIntegrations(directive: CustomizeDirective<HaskellContext, HaskellSettings>?) {
+        super.customizeAfterIntegrations(directive)
     }
 }
