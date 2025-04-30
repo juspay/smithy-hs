@@ -19,9 +19,11 @@ class HaskellClientCodegenPlugin : SmithyBuildPlugin {
         // Use CodegenDirector to execute the code generation
         val codegenDirector: CodegenDirector<HaskellWriter, HaskellIntegration, HaskellContext, HaskellSettings> =
             CodegenDirector()
+        val settings = HaskellSettings.fromNode(pluginContext.settings)
         codegenDirector.model(model)
         codegenDirector.fileManifest(pluginContext.fileManifest)
-        codegenDirector.settings(HaskellSettings.fromNode(pluginContext.settings))
+        codegenDirector.settings(settings)
+        codegenDirector.service(settings.service)
         codegenDirector.integrationClass(HaskellIntegration::class.java)
         // REVIEW What does this mean?
         codegenDirector.changeStringEnumsToEnumShapes(true)
