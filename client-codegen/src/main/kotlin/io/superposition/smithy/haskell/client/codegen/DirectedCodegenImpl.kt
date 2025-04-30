@@ -1,5 +1,6 @@
 package io.superposition.smithy.haskell.client.codegen
 
+import io.superposition.smithy.haskell.client.codegen.generators.StructureGenerator
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.WriterDelegator
 import software.amazon.smithy.codegen.core.directed.CreateContextDirective
@@ -67,23 +68,7 @@ public class DirectedCodegenImpl :
     override fun generateStructure(
         directive: GenerateStructureDirective<HaskellContext, HaskellSettings>
     ) {
-        val context = directive.context()
-        val structure = directive.shape()
-
-        // Generate structure code
-        context.writerDelegator().useShapeWriter(structure) { writer ->
-            // Write structure implementation
-            writer.write("data ${structure.id.name} = ${structure.id.name}")
-            writer.write("  { ")
-
-            // Add structure members
-            structure.members().forEach { member ->
-                val s = context.symbolProvider().toSymbol(member)
-                writer.write("  ${member.memberName} :: ${s.name}")
-            }
-
-            writer.write("  } deriving (Show, Eq)")
-        }
+        StructureGenerator.accept(directive)
     }
 
     override fun generateError(directive: GenerateErrorDirective<HaskellContext, HaskellSettings>) {

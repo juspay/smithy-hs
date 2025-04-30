@@ -30,7 +30,7 @@ class HaskellSymbolProvider(
 
         when (shape) {
             is StructureShape, is UnionShape, is EnumShape -> {
-                builder.definitionFile("src/Lib.hs")
+                builder.definitionFile("src/Models.hs")
             }
         }
 
