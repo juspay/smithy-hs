@@ -4,6 +4,7 @@ import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.WriterDelegator
 import software.amazon.smithy.codegen.core.directed.CreateContextDirective
 import software.amazon.smithy.codegen.core.directed.CreateSymbolProviderDirective
+import software.amazon.smithy.codegen.core.directed.CustomizeDirective
 import software.amazon.smithy.codegen.core.directed.DirectedCodegen
 import software.amazon.smithy.codegen.core.directed.GenerateEnumDirective
 import software.amazon.smithy.codegen.core.directed.GenerateErrorDirective
@@ -11,7 +12,6 @@ import software.amazon.smithy.codegen.core.directed.GenerateIntEnumDirective
 import software.amazon.smithy.codegen.core.directed.GenerateServiceDirective
 import software.amazon.smithy.codegen.core.directed.GenerateStructureDirective
 import software.amazon.smithy.codegen.core.directed.GenerateUnionDirective
-import software.amazon.smithy.codegen.core.directed.CustomizeDirective
 
 public class DirectedCodegenImpl :
     DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> {
