@@ -12,3 +12,4 @@ plugins {
 
 rootProject.name = "smithy-hs"
 include("client-codegen")
+include("client-codegen-test")

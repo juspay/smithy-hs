@@ -14,6 +14,9 @@ gradlew
 
 .aider*
 
+# Ignore smithy output
+*/output/
+
 # Intellij
 .idea
 

@@ -1,0 +1,16 @@
+{
+  "version": "0.1",
+  "sources": ["model/"],
+  "outputDirectory": "output",
+  "maven": {
+    "dependencies": [
+    ]
+  },
+  "plugins": {
+    "haskell-client-codegen": {
+      "packageName": "test-client-sdk",
+      "edition": "9",
+      "service": "com.example#ExampleService"
+    }
+  }
+}

@@ -4,7 +4,7 @@ import software.amazon.smithy.model.node.ObjectNode
 import software.amazon.smithy.model.shapes.ShapeId
 
 data class HaskellSettings(
-    val serviceShapeId: ShapeId,
+    val service: ShapeId,
     val packageName: String,
     val edition: String
 ) {
