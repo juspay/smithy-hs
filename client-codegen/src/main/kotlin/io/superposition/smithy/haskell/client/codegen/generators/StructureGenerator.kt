@@ -19,6 +19,7 @@ class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, Hask
 
             writer.write("data ${structure.id.name} = ${structure.id.name} {")
             for (member in shape.members()) {
+                // TODO check for string symbols
                 val memberName = member.memberName
                 val memberType = directive.context().symbolProvider().toSymbol(member.target)
                 writer.write("  $memberName :: ${memberType.name},")

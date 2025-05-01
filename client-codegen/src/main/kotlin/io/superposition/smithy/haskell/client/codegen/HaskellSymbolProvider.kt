@@ -1,10 +1,12 @@
 package io.superposition.smithy.haskell.client.codegen
 
+import software.amazon.smithy.codegen.core.CodegenException
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolDependency
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.*
+import java.lang.String.format
 import java.util.logging.Logger
 
 // TODO
@@ -13,30 +15,123 @@ import java.util.logging.Logger
 // Handle trait based validation on primitives.
 
 class HaskellSymbolProvider(
-    val model: Model,
-    val serviceShape: ServiceShape,
-    val pkgName: String
-) : SymbolProvider {
-    val logger = Logger.getLogger(this.javaClass.name)
+    private val model: Model,
+    private val service: ServiceShape,
+    private val namespace: String,
+) : SymbolProvider, ShapeVisitor<Symbol> {
+    private val logger: Logger = Logger.getLogger(this.javaClass.name)
 
     override fun toSymbol(shape: Shape): Symbol {
-        val builder = Symbol.Builder()
-            .name(toHaskellTypeName(shape))
-            .namespace(getNamespace(shape), ".")
-        // Add dependencies for primitives.
-        addDependencies(builder, shape)
-        // Add references to other shapes if needed.
-        addReferences(builder, shape)
+        val symbol: Symbol = shape.accept(this);
+        logger.trace("Creating symbol from {}:{}", shape, symbol);
+        return symbol;
+    }
 
-        when (shape) {
-            is StructureShape, is UnionShape, is EnumShape -> {
-                builder.definitionFile("src/Models.hs")
-            }
-        }
+    override fun structureShape(shape: StructureShape): Symbol {
+        // TODO What to do with the unit type trait?
 
-        logger.info("Building symbol for shape: ${shape.id.name}")
+        val name = CodegenUtils.getDefaultName(shape, service);
+        return Symbol.builder()
+            .name(name)
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
+            .namespace(format("%s.model", namespace), ".")
+            .definitionFile(format("./%s/model/%s.hs", namespace.replace(".", "/"), name))
+            .build()
+    }
 
-        return builder.build()
+    override fun memberShape(shape: MemberShape): Symbol {
+        val target = model.getShape(shape.target)
+            .orElseThrow<CodegenException> {
+                CodegenException(
+                    ("Could not find shape " + shape.target + " targeted by "
+                        + shape)
+                )
+            };
+
+        return toSymbol(target);
+    }
+
+    override fun booleanShape(shape: BooleanShape): Symbol {
+        return Symbol.builder().name("Bool").putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
+    }
+
+    override fun integerShape(shape: IntegerShape): Symbol {
+        return Symbol.builder().name("Integer").putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
+    }
+
+    override fun stringShape(shape: StringShape): Symbol {
+        return Symbol.builder()
+            .name("Text")
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
+            .build()
+    }
+
+    override fun doubleShape(shape: DoubleShape): Symbol {
+        return Symbol.builder().name("Double").putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
+    }
+
+    override fun floatShape(shape: FloatShape?): Symbol {
+        return Symbol.builder().name("Float").putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
+    }
+
+    override fun longShape(shape: LongShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun shortShape(shape: ShortShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun byteShape(shape: ByteShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun bigDecimalShape(shape: BigDecimalShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun bigIntegerShape(shape: BigIntegerShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun timestampShape(shape: TimestampShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun documentShape(shape: DocumentShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun mapShape(shape: MapShape?): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun blobShape(shape: BlobShape): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun serviceShape(shape: ServiceShape): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun resourceShape(shape: ResourceShape): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun operationShape(shape: OperationShape): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun enumShape(shape: EnumShape): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun unionShape(shape: UnionShape): Symbol {
+        TODO("Not yet implemented")
+    }
+
+    override fun listShape(shape: ListShape?): Symbol {
+        TODO("Not yet implemented")
     }
 
     private fun addDependencies(builder: Symbol.Builder, shape: Shape) {

@@ -23,7 +23,7 @@ public class DirectedCodegenImpl :
         return HaskellSymbolProvider(
             directive.model(),
             directive.service(),
-            directive.settings().packageName
+            directive.service().id.namespace,
         )
     }
 
