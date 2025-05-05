@@ -11,22 +11,21 @@ import java.util.function.Consumer
 class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>> : Consumer<T> {
     override fun accept(directive: T) {
         val shape = directive.shape()
+        val symbolProvider = directive.symbolProvider()
 
         // Generate structure code
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
             // Write structure implementation
-            writer.write("-- Structure implementation for ${structure.id.name}")
+            writer.write("-- Structure implementation for ${shape.id.name}")
 
-            writer.write("data ${structure.id.name} = ${structure.id.name} {")
+            writer.write("data ${shape.id.name} = ${shape.id.name} {")
             for (member in shape.members()) {
                 // TODO check for string symbols
-                val memberName = member.memberName
-                val memberType = directive.context().symbolProvider().toSymbol(member.target)
-                writer.write("  $memberName :: ${memberType.name},")
+                val memberName = symbolProvider.toMemberName(member)
+                val memberType = symbolProvider.toSymbol(member)
+                writer.write("  $memberName :: #T,", memberType)
             }
             writer.write("}")
         }
     }
 }
-
-
