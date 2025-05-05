@@ -22,6 +22,9 @@
             (writeShellScriptBin "gradle" "${pkgs.gradle_8}/bin/gradle -Porg.gradle.java.installations.paths=${pkgs.jdk17}/lib/openjdk \${@}")
             jdk17
           ];
+          shellHook = ''
+            export JAVA_HOME=${pkgs.jdk17}
+          '';
         };
       }
     );

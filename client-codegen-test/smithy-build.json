@@ -9,8 +9,9 @@
   "plugins": {
     "haskell-client-codegen": {
       "packageName": "test-client-sdk",
-      "edition": "9",
-      "service": "com.example#ExampleService"
+       "edition": "9",
+       "service": "com.example#ExampleService",
+       "version": "0.0.1"
     }
   }
 }
