@@ -1,15 +1,20 @@
 package io.superposition.smithy.haskell.client.codegen
 
+import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolDependency
 import software.amazon.smithy.codegen.core.SymbolWriter
+import java.util.logging.Logger
 
-public class HaskellWriter(val fileName: String, val modName: String) :
-    SymbolWriter<HaskellWriter, HaskellImportContainer>(HaskellImportContainer(modName)) {
+@Suppress("MaxLineLength")
+class HaskellWriter(val fileName: String, val modName: String) : SymbolWriter<HaskellWriter, HaskellImportContainer>(
+    HaskellImportContainer(modName)
+) {
+    private val logger: Logger = Logger.getLogger(this.javaClass.name)
 
     init {
-        super.setRelativizeSymbols(modName)
         setExpressionStart('#')
         putFormatter('D', this::dependencyFormatter)
+        putFormatter('T', this::haskellTypeFormatter)
     }
 
     override fun toString(): String {
@@ -30,6 +35,24 @@ public class HaskellWriter(val fileName: String, val modName: String) :
         require(type is SymbolDependency)
         // TODO Handle rendering ranges.
         return "${type.packageName} ${type.version}"
+    }
+
+    private fun haskellTypeFormatter(sym: Any, indent: String): String {
+        when (sym) {
+            is Symbol -> {
+                for (s in sym.symbols) {
+                    importContainer.importSymbol(s, null)
+                }
+
+                val sb = (listOf(sym.toReference("")) + sym.references).fold(StringBuilder()) {
+                        sb, s ->
+                    sb.append("${s.symbol.name} ")
+                }
+
+                return sb.toString().trim()
+            }
+            else -> error("$sym is not a Symbol.")
+        }
     }
 
     class Factory(val settings: HaskellSettings) : SymbolWriter.Factory<HaskellWriter> {

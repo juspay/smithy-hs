@@ -4,6 +4,8 @@ package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol
+import io.superposition.smithy.haskell.client.codegen.wrap
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
 import java.util.function.Consumer
