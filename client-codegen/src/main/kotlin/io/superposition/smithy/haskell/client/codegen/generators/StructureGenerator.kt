@@ -8,6 +8,7 @@ import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
 import java.util.function.Consumer
 
+@Suppress("MaxLineLength")
 class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>> : Consumer<T> {
     override fun accept(directive: T) {
         val shape = directive.shape()

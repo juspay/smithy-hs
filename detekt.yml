@@ -2,7 +2,7 @@ build:
   maxIssues: 10 # Maximum number of issues before build fails
   weights:
     complexity: 2
-    formatting: 1
+    formatting: 2
     style: 1
     comments: 1
 
@@ -41,9 +41,13 @@ formatting:
   autoCorrect: true
   MaximumLineLength:
     active: true
-    maxLineLength: 120
+    maxLineLength: 105
+  Wrapping:
+    active: true
   NoWildcardImports:
-      active: false
+    active: false
+  IfElseBracing:
+    active: true
 
 naming:
   active: true
@@ -66,10 +70,7 @@ style:
   active: true
   MagicNumber:
     active: true
-    ignoreNumbers: ['-1', '0', '1', '2']
-  MaxLineLength:
-    active: true
-    maxLineLength: 120
+    ignoreNumbers: ['-1', '0', '1', '2', '4', '8']
   ReturnCount:
     active: true
     max: 3
