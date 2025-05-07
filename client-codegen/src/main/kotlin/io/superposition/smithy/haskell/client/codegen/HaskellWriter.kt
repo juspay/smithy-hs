@@ -40,18 +40,28 @@ class HaskellWriter(val fileName: String, val modName: String) : SymbolWriter<Ha
     private fun haskellTypeFormatter(sym: Any, indent: String): String {
         when (sym) {
             is Symbol -> {
-                for (s in sym.symbols) {
-                    importContainer.importSymbol(s, null)
-                }
-
-                val sb = (listOf(sym.toReference("")) + sym.references).fold(StringBuilder()) {
-                        sb, s ->
-                    sb.append("${s.symbol.name} ")
-                }
-
-                return sb.toString().trim()
+                return renderSymbol(sym).joinToString(" ")
             }
             else -> error("$sym is not a Symbol.")
+        }
+    }
+
+    private fun renderSymbol(sym: Symbol): List<String> {
+        importContainer.importSymbol(sym, null)
+        return when (sym.references.size) {
+            0 -> listOf(sym.name)
+            else -> {
+                val refs = sym.references
+                    .map {
+                        var rendered = renderSymbol(it.symbol)
+                        if (rendered.size > 1) {
+                            return@map "(" + rendered.joinToString(" ") + ")"
+                        } else {
+                            return@map rendered.joinToString(" ")
+                        }
+                    }
+                listOf(sym.name) + refs
+            }
         }
     }
 
