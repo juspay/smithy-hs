@@ -7,6 +7,7 @@ import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.*
+import software.amazon.smithy.model.traits.Trait
 import java.util.logging.Logger
 
 // TODO
@@ -40,13 +41,23 @@ class HaskellSymbolProvider(
 
     override fun structureShape(shape: StructureShape): Symbol {
         // TODO What to do with the unit type trait?
+        val isIShape = shape.findTrait("input").isPresent
+        val isOShape = shape.findTrait("output").isPresent
 
         val name = CodegenUtils.getDefaultName(shape, service)
-        return Symbol.builder()
+        val symbol = Symbol.builder()
             .name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name")
-            .build()
+
+        if (isIShape) {
+            symbol.putProperty(SymbolProperties.SERIALIZABLE, true)
+        }
+        if (isOShape) {
+            symbol.putProperty(SymbolProperties.DESERIALIZABLE, true)
+        }
+
+        return symbol.build()
     }
 
     override fun memberShape(shape: MemberShape): Symbol {
@@ -179,126 +190,8 @@ class HaskellSymbolProvider(
 
     override fun listShape(shape: ListShape): Symbol {
         return Symbol.builder()
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true)
-            .name("[]").addReference(shape.member.accept(this)).build()
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
+            .namespace("Data.List", ".")
+            .name("List").addReference(shape.member.accept(this)).build()
     }
-
-//    private fun addDependencies(builder: Symbol.Builder, shape: Shape) {
-//        // REVIEW Should the Hat(^) be in the version? Can use an ADT instead.
-//        when (shape) {
-//            is StringShape -> {
-//                builder.addDependency(
-//                    SymbolDependency.builder()
-//                        .packageName("text")
-//                        .version("^1.2")
-//                        .build()
-//                )
-//            }
-//
-//            is BlobShape -> {
-//                builder.addDependency(
-//                    SymbolDependency.builder()
-//                        .packageName("bytestring")
-//                        .version("^0.11")
-//                        .build()
-//                )
-//            }
-//
-//            is TimestampShape -> {
-//                builder.addDependency(
-//                    SymbolDependency.builder()
-//                        .packageName("time")
-//                        .version("^1.9")
-//                        .build()
-//                )
-//            }
-//
-//            is MapShape -> {
-//                builder.addDependency(
-//                    SymbolDependency.builder()
-//                        .packageName("containers")
-//                        .version("^0.6")
-//                        .build()
-//                )
-//            }
-//
-//            is ListShape -> {
-//                builder.addDependency(
-//                    SymbolDependency.builder()
-//                        .packageName("base")
-//                        .version("^4.12")
-//                        .build()
-//                )
-//            }
-//        }
-//    }
-//
-//    private fun toHaskellTypeName(shape: Shape): String {
-//        // Convert shape name to PascalCase for Haskell type names
-//        return when (shape) {
-//            is StructureShape, is UnionShape, is EnumShape -> shape.id.name
-//            is StringShape -> "Text"
-//            is BooleanShape -> "Bool"
-//            is ByteShape, is ShortShape, is IntegerShape -> "Int"
-//            is LongShape, is BigIntegerShape -> "Integer"
-//            is FloatShape, is DoubleShape, is BigDecimalShape -> "Double"
-//            is BlobShape -> "ByteString"
-//            is TimestampShape -> "UTCTime"
-//            is ListShape -> "List"
-//            is MapShape -> "Map"
-//            else -> error("Unknown shape type $shape encountered while creating a symbol.")
-//        }
-//    }
-//
-//    private fun getNamespace(shape: Shape): String {
-//        // Create appropriate module namespace based on shape's namespace
-//        val namespace = shape.id.namespace
-//
-//        // Convert namespace to Haskell module path
-//        return if (namespace.isEmpty()) {
-//            pkgName
-//        } else {
-//            "$pkgName.$namespace"
-//        }
-//    }
-//
-//    private fun getDefinitionFile(shape: Shape): String {
-//        // Convert shape name to file path
-//        val typeName = toHaskellTypeName(shape)
-//        return "$typeName.hs"
-//    }
-//
-//    private fun addReferences(builder: Symbol.Builder, shape: Shape) {
-//        when (shape) {
-//            is ListShape -> {
-//                // Add reference to member type
-//                val memberTarget = model.expectShape(shape.member.target)
-//                builder.addReference(toSymbol(memberTarget))
-//            }
-//
-//            is MapShape -> {
-//                // Add references to key and value types
-//                val keyTarget = model.expectShape(shape.key.target)
-//                val valueTarget = model.expectShape(shape.value.target)
-//                builder.addReference(toSymbol(keyTarget))
-//                builder.addReference(toSymbol(valueTarget))
-//            }
-//
-//            is StructureShape -> {
-//                // Add references to all member types
-//                shape.members().forEach { member ->
-//                    val memberTarget = model.expectShape(member.target)
-//                    builder.addReference(toSymbol(memberTarget))
-//                }
-//            }
-//
-//            is UnionShape -> {
-//                // Add references to all member types
-//                shape.members().forEach { member ->
-//                    val memberTarget = model.expectShape(member.target)
-//                    builder.addReference(toSymbol(memberTarget))
-//                }
-//            }
-//        }
-//    }
 }

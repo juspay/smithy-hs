@@ -5,6 +5,8 @@ import software.amazon.smithy.codegen.core.Symbol
 
 object SymbolProperties {
     val IS_PRIMITIVE: Property<Boolean> = Property.named("is-primitive")
+    val SERIALIZABLE: Property<Boolean> = Property.named("serializable")
+    val DESERIALIZABLE: Property<Boolean> = Property.named("deserializable")
 }
 
 object HaskellSymbol {
