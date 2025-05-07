@@ -6,6 +6,7 @@ import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.*
 import software.amazon.smithy.model.traits.RequiredTrait
+import software.amazon.smithy.model.traits.Trait
 import java.util.logging.Logger
 
 // TODO
@@ -38,14 +39,13 @@ class HaskellSymbolProvider(
     }
 
     override fun structureShape(shape: StructureShape): Symbol {
-        // TODO What to do with the unit type trait?
-
         val name = CodegenUtils.getDefaultName(shape, service)
-        return Symbol.builder()
+        val symbol = Symbol.builder()
             .name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name")
-            .build()
+
+        return symbol.build()
     }
 
     override fun memberShape(shape: MemberShape): Symbol {
@@ -187,7 +187,8 @@ class HaskellSymbolProvider(
 
     override fun listShape(shape: ListShape): Symbol {
         return Symbol.builder()
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true)
-            .name("[]").addReference(shape.member.accept(this)).build()
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
+            .namespace("Data.List", ".")
+            .name("List").addReference(shape.member.accept(this)).build()
     }
 }

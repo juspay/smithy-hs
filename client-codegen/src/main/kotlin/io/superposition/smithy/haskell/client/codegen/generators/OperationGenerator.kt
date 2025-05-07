@@ -15,6 +15,7 @@ class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, Hask
 
         // Generate operation code
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
+            HttpPayloadGenerator(directive).generateRequestPayload()
             // Write operation implementation
             val input = directive.symbolProvider().toSymbol(
                 directive.model().expectShape(shape.inputShape)

@@ -6,29 +6,43 @@ import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
 import io.superposition.smithy.haskell.client.codegen.language.Record
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
+import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.StructureShape
 
 @Suppress("MaxLineLength")
 class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>>(
     private val directive: T
 ) : Runnable {
-
     override fun run() {
-        val symbolProvider = directive.symbolProvider()
         val shape = directive.shape()
         val symbol = directive.symbol()
+        val symbolProvider = directive.symbolProvider()
+
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
+            val template = """
+            {record:C|}
+
+            #{serializer:C|}
+
+            #{builder:C|}
+            """.trimIndent()
+
             val record = Record(
                 symbol.name,
                 shape.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) }
             )
-            writer.writeRecord(record)
+
+            writer.pushState()
+            writer.putContext("record", Runnable { writer.writeRecord(record) })
+            writer.putContext("serializer", StructureSerializerGenerator(directive.context(), shape))
+            writer.write("#C", BuilderGenerator(record, symbol, writer))
+            writer.write(template)
             writer.addExport(symbol.name)
             shape.members().forEach {
                 writer.addExport(it.memberName)
             }
             writer.exposeModule()
-            writer.write("#C", BuilderGenerator(record, symbol, writer))
+            writer.popState()
         }
     }
 }

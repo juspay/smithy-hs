@@ -60,6 +60,11 @@ object HaskellSymbol {
         )
         .build()
 
+    val Generic: Symbol = Symbol.builder()
+        .name("Generic")
+        .namespace("GHC.Generics", ".")
+        .build()
+
     object Http {
         val Manager = Symbol.builder()
             .name("Manager")

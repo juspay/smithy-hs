@@ -11,6 +11,7 @@ service ExampleService {
     version: "2025-30-05"
     operations: [
         GetMenu
+        PostMenu
     ]
     errors: [
         InternalServerError
@@ -43,6 +44,19 @@ list CoffeeItems {
 @http(method: "GET", uri: "/menu")
 @readonly
 operation GetMenu {
+    output := {
+        items: CoffeeItems
+    }
+}
+
+// Post the menu
+@http(method: "POST", uri: "/menu")
+operation PostMenu {
+    input := {
+        @httpPayload
+        item: CoffeeItem
+    }
+
     output := {
         items: CoffeeItems
     }

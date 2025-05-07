@@ -10,6 +10,7 @@ data class Record(
     val name: String,
     val fields: List<Field>,
 ) {
+    val defaultDerives = listOf(HaskellSymbol.Generic)
     data class Field(val name: String, val symbol: Symbol)
 }
 

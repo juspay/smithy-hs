@@ -17,6 +17,21 @@ class HaskellWriter(
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val exports: MutableList<String> = ArrayList()
     private val isSourceFile = fileName.endsWith(".hs")
+    private val languageExts: List<String> = listOf(
+        "DeriveGeneric",
+        // "DeriveAnyClass",
+        // "OverloadedStrings",
+        // "DuplicateRecordFields",
+        // "RecordWildCards",
+        // "NamedFieldPuns",
+        // "TypeApplications",
+        // "FlexibleContexts",
+        // "MultiParamTypeClasses",
+        // "FunctionalDependencies",
+        // "TypeFamilies",
+        // "GADTs",
+        // "GeneralizedNewtypeDeriving",
+    )
 
     init {
         setExpressionStart('#')
@@ -35,9 +50,16 @@ class HaskellWriter(
 
         val sb = StringBuilder()
 
+        for (langExt in languageExts) {
+            sb.appendLine("{-# LANGUAGE $langExt #-}")
+        }
+        sb.appendLine()
+
         sb.appendLine("module $modName (")
         sb.appendLine(exports.map { "    " + it }.joinToString(",\n"))
         sb.appendLine(") where")
+
+        sb.appendLine("module $modName where")
         sb.appendLine()
         sb.appendLine(this.importContainer.toString())
         sb.appendLine()
@@ -123,8 +145,15 @@ class HaskellWriter(
         }
     }
 
+    private fun writeDerives(derives: List<Symbol>) {
+        write("deriving (")
+        writeList(derives) { super.format("#T", it) }
+        write(")")
+    }
+
     fun writeRecord(record: Record) {
-        openBlock("data ${record.name} = ${record.name} {", "}") {
+        putContext("derives", Runnable { writeDerives(record.defaultDerives) })
+        openBlock("data ${record.name} = ${record.name} {", "} #{derives:C|}") {
             writeList(record.fields) { super.format("${it.name} :: #T", it.symbol) }
         }
     }
