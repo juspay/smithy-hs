@@ -8,31 +8,39 @@ import software.amazon.smithy.utils.CaseUtils
 import software.amazon.smithy.utils.StringUtils
 import java.net.URL
 
-class CodegenUtils {
-    companion object {
-        // TODO Refer smithy-java for resource loading
-        private final val RESERVED_WORDS_FILE: URL = this.javaClass.getResource("/reserved-words.txt")!!
-        private final val SHAPE_ESCAPER: ReservedWords = ReservedWordsBuilder()
-            .loadCaseInsensitiveWords(RESERVED_WORDS_FILE) { word -> word + "Shape" }
-            .build()
+object CodegenUtils {
+    // TODO Refer smithy-java for resource loading
+    private final val RESERVED_WORDS_FILE: URL = this.javaClass.getResource("/reserved-words.txt")!!
+    private final val SHAPE_ESCAPER: ReservedWords = ReservedWordsBuilder()
+        .loadCaseInsensitiveWords(RESERVED_WORDS_FILE) { word -> word + "Shape" }
+        .build()
 
-        fun getDefaultName(shape: Shape, service: ServiceShape): String {
-            val baseName: String = shape.id.getName(service)
+    fun getDefaultName(shape: Shape, service: ServiceShape): String {
+        val baseName: String = shape.id.getName(service)
 
-            val unescaped: String = if (baseName.contains("_")) {
-                CaseUtils.toPascalCase(shape.id.name)
-            } else {
-                StringUtils.capitalize(baseName)
-            }
-
-            return SHAPE_ESCAPER.escape(unescaped)
+        val unescaped: String = if (baseName.contains("_")) {
+            CaseUtils.toPascalCase(shape.id.name)
+        } else {
+            StringUtils.capitalize(baseName)
         }
 
-        fun toModName(s: String): String {
-            // split on . and then convert to pascal case and then join with .
-            return s.split('.').joinToString(".") { part ->
-                CaseUtils.toPascalCase(part)
-            }
+        return SHAPE_ESCAPER.escape(unescaped)
+    }
+
+    /**
+     * Checks if the provided shape has the input trait.
+     *
+     * @param shape The shape to check
+     * @return true if the shape has the input trait, false otherwise
+     */
+    fun isInputShape(shape: Shape): Boolean {
+        return shape.hasTrait("smithy.api#input")
+    }
+
+    fun toModName(s: String): String {
+        // split on . and then convert to pascal case and then join with .
+        return s.split('.').joinToString(".") { part ->
+            CaseUtils.toPascalCase(part)
         }
     }
 }

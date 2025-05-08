@@ -4,29 +4,37 @@ package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
+import io.superposition.smithy.haskell.client.codegen.toMaybe
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
-import java.util.function.Consumer
+import software.amazon.smithy.model.traits.RequiredTrait
 
 @Suppress("MaxLineLength")
-class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>> : Consumer<T> {
-    override fun accept(directive: T) {
-        val shape = directive.shape()
+class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>>(
+    private val directive: T
+) : Runnable {
+
+    override fun run() {
         val symbolProvider = directive.symbolProvider()
-
-        // Generate structure code
+        val shape = directive.shape()
+        val symbol = directive.symbol()
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
-            // Write structure implementation
-            writer.write("-- Structure implementation for ${shape.id.name}")
-
-            writer.write("data ${shape.id.name} = ${shape.id.name} {")
-            for (member in shape.members()) {
-                // TODO check for string symbols
-                val memberName = symbolProvider.toMemberName(member)
-                val memberType = symbolProvider.toSymbol(member)
-                writer.write("  $memberName :: #T,", memberType)
+            writer.openBlock("data #T = #T {", "}", symbol, symbol) {
+                shape.members().map {
+                    val mName = symbolProvider.toMemberName(it)
+                    var mSymbol = symbolProvider.toSymbol(it)
+                    if (!it.hasTrait(RequiredTrait.ID)) {
+                        mSymbol = mSymbol.toMaybe()
+                    }
+                    writer.write("$mName :: #T,", mSymbol)
+                }
             }
-            writer.write("}")
+            writer.addExport(symbol.name)
+            shape.members().forEach {
+                writer.addExport(it.memberName)
+            }
+            writer.exposeModule()
+            writer.write("#C", BuilderGenerator(shape, symbol, symbolProvider, writer))
         }
     }
 }

@@ -17,7 +17,7 @@ class DirectedCodegenImpl :
         return HaskellSymbolProvider(
             directive.model(),
             directive.service(),
-            directive.service().id.namespace,
+            directive.service().id.namespace
         )
     }
 
@@ -45,17 +45,23 @@ class DirectedCodegenImpl :
     override fun generateService(
         directive: GenerateServiceDirective<HaskellContext, HaskellSettings>
     ) {
-        ServiceGenerator<GenerateServiceDirective<HaskellContext, HaskellSettings>>().accept(directive)
+        ServiceGenerator<GenerateServiceDirective<HaskellContext, HaskellSettings>>().accept(
+            directive
+        )
     }
 
     override fun generateStructure(
         directive: GenerateStructureDirective<HaskellContext, HaskellSettings>
     ) {
-        StructureGenerator<GenerateStructureDirective<HaskellContext, HaskellSettings>>().accept(directive)
+        StructureGenerator<GenerateStructureDirective<HaskellContext, HaskellSettings>>(directive).run()
     }
 
-    override fun generateOperation(directive: GenerateOperationDirective<HaskellContext, HaskellSettings>) {
-        OperationGenerator<GenerateOperationDirective<HaskellContext, HaskellSettings>>().accept(directive)
+    override fun generateOperation(
+        directive: GenerateOperationDirective<HaskellContext, HaskellSettings>
+    ) {
+        OperationGenerator<GenerateOperationDirective<HaskellContext, HaskellSettings>>().accept(
+            directive
+        )
     }
 
     override fun generateEnumShape(
@@ -75,7 +81,9 @@ class DirectedCodegenImpl :
     override fun generateIntEnumShape(
         directive: GenerateIntEnumDirective<HaskellContext, HaskellSettings>
     ) {
-        IntEnumGenerator<GenerateIntEnumDirective<HaskellContext, HaskellSettings>>().accept(directive)
+        IntEnumGenerator<GenerateIntEnumDirective<HaskellContext, HaskellSettings>>().accept(
+            directive
+        )
     }
 
     // This where we are supposed to generate things like dependency manifests and README.
