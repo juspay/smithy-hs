@@ -65,6 +65,16 @@ object HaskellSymbol {
         .namespace("GHC.Generics", ".")
         .build()
 
+    val Eq = Symbol.builder().name("Eq").build()
+
+    val FromJSON = Symbol.builder().name("FromJSON").namespace("Data.Aeson", ".").build()
+
+    val ToJSON = Symbol.builder().name("ToJSON").namespace("Data.Aeson", ".").build()
+
+    val JsonString = Symbol.builder().name("String").namespace("Data.Aeson", ".").build()
+
+    val TextPack = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
+
     object Http {
         val Manager = Symbol.builder()
             .name("Manager")

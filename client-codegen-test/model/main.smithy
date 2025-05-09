@@ -29,10 +29,17 @@ enum CoffeeType {
 /// A structure which defines a coffee item which can be ordered
 structure CoffeeItem {
     @required
+    @jsonName("coffeeType")
     ctype: CoffeeType
 
     @required
     description: String
+}
+
+union SomeUnion {
+    label1: String
+    label2: CoffeeType
+    label3: CoffeeItem
 }
 
 /// A list of coffee items
@@ -53,10 +60,9 @@ operation GetMenu {
 @http(method: "POST", uri: "/menu")
 operation PostMenu {
     input := {
-        @httpPayload
         item: CoffeeItem
+        unionItem: SomeUnion
     }
-
     output := {
         items: CoffeeItems
     }
