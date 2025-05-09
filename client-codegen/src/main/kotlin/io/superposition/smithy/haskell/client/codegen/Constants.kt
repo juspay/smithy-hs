@@ -74,6 +74,7 @@ object HaskellSymbol {
     val JsonString = Symbol.builder().name("String").namespace("Data.Aeson", ".").build()
 
     val TextPack = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
+    val JsonObjectBuilder = Symbol.builder().name("object").namespace("Data.Aeson", ".").build()
 
     object Http {
         val Manager = Symbol.builder()
