@@ -20,9 +20,13 @@ service ExampleService {
 
 /// An enum describing the types of coffees available
 enum CoffeeType {
+    @enumValue("Drip")
     DRIP
+
     POUR_OVER
+
     LATTE
+
     ESPRESSO
 }
 
@@ -37,8 +41,11 @@ structure CoffeeItem {
 }
 
 union SomeUnion {
+    @jsonName("stringType")
     label1: String
+
     label2: CoffeeType
+
     label3: CoffeeItem
 }
 
