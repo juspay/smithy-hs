@@ -26,4 +26,10 @@ object HaskellSymbol {
         .name("Either")
         .namespace("Data.Either", ".")
         .build()
+    val Eq = Symbol.builder().name("Eq").build()
+    val Generic = Symbol.builder().name("Generic").namespace("GHC.Generics", ".").build()
+    val FromJSON = Symbol.builder().name("FromJSON").namespace("Data.Aeson", ".").build()
+    val ToJSON = Symbol.builder().name("ToJSON").namespace("Data.Aeson", ".").build()
+    val JsonString = Symbol.builder().name("String").namespace("Data.Aeson", ".").build()
+    val TextPack = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
 }
