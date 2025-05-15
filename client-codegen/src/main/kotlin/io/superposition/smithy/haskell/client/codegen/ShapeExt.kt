@@ -28,6 +28,7 @@ fun Shape.isInputShape(): Boolean = this.hasTrait(InputTrait.ID)
 fun OperationShape.inputShape(model: Model): StructureShape {
     return model.expectShape(this.input.get(), StructureShape::class.java)
 }
+
 fun StructureShape.expectMember(member: String): MemberShape {
     return this.getMember(member).orElseThrow { CodegenException("$member did not exist on $this") }
 }

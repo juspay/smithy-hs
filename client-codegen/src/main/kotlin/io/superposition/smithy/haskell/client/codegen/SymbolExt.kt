@@ -29,6 +29,6 @@ fun Symbol.toEither(right: Symbol) = this.wrap(HaskellSymbol.Either)
 fun Symbol.inIO() = this.wrap(HaskellSymbol.IO)
 
 fun SymbolReference.isDeclare() =
-    this.getOptions().any { it == SymbolReference.ContextOption.DECLARE }
+    this.options.any { it == SymbolReference.ContextOption.DECLARE }
 
-fun SymbolReference.isUse() = this.getOptions().any { it == SymbolReference.ContextOption.USE }
+fun SymbolReference.isUse() = this.options.any { it == SymbolReference.ContextOption.USE }

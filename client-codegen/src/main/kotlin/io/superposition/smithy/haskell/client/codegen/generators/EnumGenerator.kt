@@ -17,6 +17,7 @@ import software.amazon.smithy.model.shapes.Shape
 import software.amazon.smithy.model.traits.EnumValueTrait
 import java.util.function.Consumer
 
+@Suppress("MaxLineLength")
 class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> : Consumer<T> {
     override fun accept(directive: T) {
         val shape = directive.shape()
@@ -49,8 +50,11 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
     ) : Runnable {
         override fun run() {
             for ((i, member) in shape.members().withIndex()) {
-                if (i == 0) writer.write(member.memberName)
-                else writer.write("| ${member.memberName}")
+                if (i == 0) {
+                    writer.write(member.memberName)
+                } else {
+                    writer.write("| ${member.memberName}")
+                }
             }
         }
     }
@@ -94,8 +98,11 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
         override fun run() {
             writer.writeInline("deriving (")
             for ((i, derive) in defaultDerives.withIndex()) {
-                if (i == 0) writer.writeInline("#T", derive)
-                else writer.writeInline(", #T", derive)
+                if (i == 0) {
+                    writer.writeInline("#T", derive)
+                } else {
+                    writer.writeInline(", #T", derive)
+                }
             }
             writer.writeInline(")")
         }
