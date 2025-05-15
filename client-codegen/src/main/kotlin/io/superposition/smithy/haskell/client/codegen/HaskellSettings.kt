@@ -7,7 +7,7 @@ data class HaskellSettings(
     val service: ShapeId,
     val packageName: String,
     val edition: String,
-    val version: String
+    val version: String,
 ) {
     companion object {
         fun fromNode(settings: ObjectNode): HaskellSettings {

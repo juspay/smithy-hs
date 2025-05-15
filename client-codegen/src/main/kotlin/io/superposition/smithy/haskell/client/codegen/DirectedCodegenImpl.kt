@@ -55,7 +55,7 @@ class DirectedCodegenImpl :
     }
 
     override fun generateOperation(directive: GenerateOperationDirective<HaskellContext, HaskellSettings>) {
-        OperationGenerator<GenerateOperationDirective<HaskellContext, HaskellSettings>>().accept(directive)
+        OperationGenerator(directive).generate()
     }
 
     override fun generateEnumShape(

@@ -11,6 +11,7 @@ service ExampleService {
     version: "2025-30-05"
     operations: [
         GetMenu
+        PostMenu
     ]
     errors: [
         InternalServerError
@@ -19,19 +20,33 @@ service ExampleService {
 
 /// An enum describing the types of coffees available
 enum CoffeeType {
+    @enumValue("Drip")
     DRIP
+
     POUR_OVER
+
     LATTE
+
     ESPRESSO
 }
 
 /// A structure which defines a coffee item which can be ordered
 structure CoffeeItem {
     @required
+    @jsonName("coffeeType")
     type: CoffeeType
 
     @required
     description: String
+}
+
+union SomeUnion {
+    @jsonName("stringType")
+    label1: String
+
+    label2: CoffeeType
+
+    label3: CoffeeItem
 }
 
 /// A list of coffee items
@@ -43,6 +58,18 @@ list CoffeeItems {
 @http(method: "GET", uri: "/menu")
 @readonly
 operation GetMenu {
+    output := {
+        items: CoffeeItems
+    }
+}
+
+// Post the menu
+@http(method: "POST", uri: "/menu")
+operation PostMenu {
+    input := {
+        item: CoffeeItem
+        unionItem: SomeUnion
+    }
     output := {
         items: CoffeeItems
     }
