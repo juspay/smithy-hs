@@ -13,11 +13,11 @@ import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.shapes.Shape
 import software.amazon.smithy.model.shapes.UnionShape
-import software.amazon.smithy.model.traits.EnumValueTrait
 import software.amazon.smithy.model.traits.JsonNameTrait
 import software.amazon.smithy.utils.CaseUtils
 import java.util.function.Consumer
 
+@Suppress("MaxLineLength")
 class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSettings>> : Consumer<T> {
     companion object {
         private fun getConstructorName(
@@ -33,9 +33,9 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
         directive.context().writerDelegator().useShapeWriter(union) { writer ->
             val template = """
             -- Union implementation for #{shape:T}
-            data #{shape:T} = 
+            data #{shape:T} =
                 #{constructors:C|}
-             
+
             #{serializer:C|}
             """.trimIndent()
 
@@ -61,8 +61,11 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
                     getConstructorName(member)
                 )
                 writer.putContext("type", symbolProvider.toSymbol(member))
-                if (i == 0) writer.write("#{constructor:L} #{type:T}")
-                else writer.write("| #{constructor:L} #{type:T}")
+                if (i == 0) {
+                    writer.write("#{constructor:L} #{type:T}")
+                } else {
+                    writer.write("| #{constructor:L} #{type:T}")
+                }
                 writer.popState()
             }
         }

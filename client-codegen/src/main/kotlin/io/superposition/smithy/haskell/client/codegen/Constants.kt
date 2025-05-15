@@ -33,4 +33,9 @@ object HaskellSymbol {
     val JsonString = Symbol.builder().name("String").namespace("Data.Aeson", ".").build()
     val TextPack = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
     val JsonObjectBuilder = Symbol.builder().name("object").namespace("Data.Aeson", ".").build()
+    val ByteString = Symbol.builder().name("ByteString").namespace("Data.ByteString.Lazy", ".").build()
+    val JsonEncode = Symbol.builder()
+        .name("encode")
+        .namespace("Data.Aeson", ".")
+        .build()
 }

@@ -59,8 +59,11 @@ class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, Hask
         override fun run() {
             writer.writeInline("deriving (")
             for ((i, derive) in defaultDerives.withIndex()) {
-                if (i == 0) writer.writeInline("#T", derive)
-                else writer.writeInline(", #T", derive)
+                if (i == 0) {
+                    writer.writeInline("#T", derive)
+                } else {
+                    writer.writeInline(", #T", derive)
+                }
             }
             writer.writeInline(")")
         }

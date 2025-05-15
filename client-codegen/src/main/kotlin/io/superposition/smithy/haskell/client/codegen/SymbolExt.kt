@@ -17,3 +17,4 @@ fun Symbol.toEither(right: Symbol) = right.wrap(HaskellSymbol.Either)
     .build()
 
 fun Symbol.inIO() = this.wrap(HaskellSymbol.IO)
+
