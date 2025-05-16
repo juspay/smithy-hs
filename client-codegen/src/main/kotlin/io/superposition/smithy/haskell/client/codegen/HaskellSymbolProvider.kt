@@ -78,11 +78,7 @@ class HaskellSymbolProvider(
     }
 
     override fun stringShape(shape: StringShape): Symbol {
-        return Symbol.builder()
-            .name("Text")
-            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
-            .namespace("Data.Text", ".")
-            .build()
+        return HaskellSymbol.Text
     }
 
     override fun doubleShape(shape: DoubleShape): Symbol {

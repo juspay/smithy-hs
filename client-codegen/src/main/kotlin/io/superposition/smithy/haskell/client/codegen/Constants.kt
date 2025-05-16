@@ -2,6 +2,7 @@ package io.superposition.smithy.haskell.client.codegen
 
 import software.amazon.smithy.codegen.core.Property
 import software.amazon.smithy.codegen.core.Symbol
+import software.amazon.smithy.codegen.core.SymbolDependency
 
 object SymbolProperties {
     val IS_PRIMITIVE: Property<Boolean> = Property.named("is-primitive")
@@ -37,9 +38,14 @@ object HaskellSymbol {
         .namespace("Control.Monad", ".")
         .build()
 
-    // TODO Add dependency.
     val Text = Symbol.builder()
         .name("Text")
         .namespace("Data.Text", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("text")
+                .version(CodegenUtils.depRange("1.2.3", "2.0"))
+                .build()
+        )
         .build()
 }

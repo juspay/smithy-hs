@@ -43,4 +43,6 @@ object CodegenUtils {
             CaseUtils.toPascalCase(part)
         }
     }
+
+    fun depRange(begin: String, end: String) = ">= $begin && < $end"
 }

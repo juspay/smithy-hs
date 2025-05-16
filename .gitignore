@@ -1,6 +1,7 @@
 # Nix
 .direnv/
 .envrc
+**/result
 
 # Ignore Gradle project-specific cache directory
 .gradle
