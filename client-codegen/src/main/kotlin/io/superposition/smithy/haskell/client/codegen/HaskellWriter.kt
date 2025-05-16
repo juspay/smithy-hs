@@ -15,16 +15,20 @@ class HaskellWriter(
 ) {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val exports: MutableList<String> = ArrayList()
+    private val isSourceFile = fileName.endsWith(".hs")
 
     init {
         setExpressionStart('#')
         putFormatter('D', this::dependencyFormatter)
         putFormatter('T', this::haskellTypeFormatter)
         putDefaultContext()
+        if (isSourceFile) {
+            MODULES.set(modName, false)
+        }
     }
 
     override fun toString(): String {
-        if (!fileName.endsWith(".hs")) {
+        if (!isSourceFile) {
             return super.toString()
         }
 
@@ -50,7 +54,7 @@ class HaskellWriter(
     }
 
     fun exposeModule() {
-        EXPOSED_MODULES.add(modName)
+        MODULES.set(modName, true)
     }
 
     fun addExport(export: String) {
@@ -94,6 +98,7 @@ class HaskellWriter(
     }
 
     private fun renderSymbol(sym: Symbol): List<String> {
+        addDependency(sym)
         importContainer.importSymbol(sym, null)
         return when (sym.references.size) {
             0 -> listOf(sym.relativize(modName))
@@ -120,6 +125,6 @@ class HaskellWriter(
 
     companion object {
         const val CABAL_FILE = "project.cabal"
-        private val EXPOSED_MODULES: MutableSet<String> = ConcurrentHashMap.newKeySet()
+        val MODULES: MutableMap<String, Boolean> = ConcurrentHashMap()
     }
 }
