@@ -68,11 +68,24 @@ operation GetMenu {
 operation PostMenu {
     input := {
         item: CoffeeItem
+
         unionItem: SomeUnion
+
+        @httpQueryParams
+        queryParams: MapOfString
+
+        @httpQuery("pageQuery")
+        page: Integer
     }
+
     output := {
         items: CoffeeItems
     }
+}
+
+map MapOfString {
+    key: String
+    value: String
 }
 
 // Errors

@@ -26,7 +26,7 @@ class HttpPayloadGenerator<T : ShapeDirective<OperationShape, HaskellContext, Ha
     fun generateRequestPayload() {
         val operation = directive.shape()
         val inputShape = operation.inputShape(directive.model())
-        StructureSerializerGenerator(directive.context(), inputShape).generate()
+        // StructureSerializerGenerator(directive.context(), inputShape).generate()
 
         // val payloadMemberName = getPayloadMemberName()
         // if (payloadMemberName == null) {

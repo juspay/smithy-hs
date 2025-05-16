@@ -1,3 +1,5 @@
+@file:Suppress("MaxLineLength")
+
 package io.superposition.smithy.haskell.client.codegen
 
 import software.amazon.smithy.codegen.core.Symbol
@@ -17,4 +19,3 @@ fun Symbol.toEither(right: Symbol) = right.wrap(HaskellSymbol.Either)
     .build()
 
 fun Symbol.inIO() = this.wrap(HaskellSymbol.IO)
-
