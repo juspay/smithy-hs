@@ -8,7 +8,7 @@ import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.OperationShape
 import java.util.function.Consumer
 
-@Suppress("MaxLineLength")
+@Suppress("MaxLineLength", "ktlint:standard:max-line-length")
 class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, HaskellSettings>> : Consumer<T> {
     override fun accept(directive: T) {
         val shape = directive.shape()
@@ -16,11 +16,17 @@ class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, Hask
         // Generate operation code
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
             // Write operation implementation
-            val input = directive.symbolProvider().toSymbol(directive.model().expectShape(shape.inputShape))
-            val output = directive.symbolProvider().toSymbol(directive.model().expectShape(shape.outputShape))
+            val input = directive.symbolProvider().toSymbol(
+                directive.model().expectShape(shape.inputShape)
+            )
+            val output = directive.symbolProvider().toSymbol(
+                directive.model().expectShape(shape.outputShape)
+            )
 
-            writer.write("-- Operation implementation for ${shape.id.name}")
-            writer.write("${shape.id.name} :: #T -> #T", input, output)
+            val symbol = directive.symbol()
+            writer.write("#T :: ()", symbol)
+            writer.write("#T = ()", symbol)
+            writer.addExport(symbol.name)
         }
     }
 }

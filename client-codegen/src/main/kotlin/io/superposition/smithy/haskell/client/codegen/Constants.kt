@@ -24,4 +24,22 @@ object HaskellSymbol {
         .name("Either")
         .namespace("Data.Either", ".")
         .build()
+    val Functor = Symbol.builder()
+        .name("Functor")
+        .namespace("Data.Functor", ".")
+        .build()
+    val Applicative = Symbol.builder()
+        .name("Applicative")
+        .namespace("Data.Applicative", ".")
+        .build()
+    val Monad = Symbol.builder()
+        .name("Monad")
+        .namespace("Control.Monad", ".")
+        .build()
+
+    // TODO Add dependency.
+    val Text = Symbol.builder()
+        .name("Text")
+        .namespace("Data.Text", ".")
+        .build()
 }

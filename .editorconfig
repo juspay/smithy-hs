@@ -12,17 +12,17 @@ max_line_length = 80
 [*.kt]
 indent_style = space
 indent_size = 4
-max_line_length = 105
+max_line_length = 100
 
 [*.kts]
 indent_style = space
 indent_size = 4
-max_line_length = 105
+max_line_length = 100
 
 [*.java]
 indent_style = space
 indent_size = 4
-max_line_length = 105
+max_line_length = 100
 
 [*.toml]
 indent_style = space

@@ -20,7 +20,7 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
         val orderedImports = imports.values.filter { s -> s.size == 1 }
             .map { s -> s.first() }
             .filter { s -> s.namespace != modName }
-            .map { s -> "import ${s.namespace}" }
+            .map { s -> "import qualified ${s.namespace}" }
             .sorted()
 
         return orderedImports.joinToString(System.lineSeparator())

@@ -1,17 +1,34 @@
 package io.superposition.smithy.haskell.client.codegen
 
 import software.amazon.smithy.codegen.core.Symbol
+import software.amazon.smithy.codegen.core.SymbolReference
 import kotlin.jvm.optionals.getOrDefault
 
-fun Symbol.isPrimitive(): Boolean = this.getProperty(SymbolProperties.IS_PRIMITIVE).getOrDefault(false)
+fun Symbol.isPrimitive(): Boolean = this.getProperty(SymbolProperties.IS_PRIMITIVE).getOrDefault(
+    false
+)
 
 fun Symbol.wrap(sym: Symbol) = sym.toBuilder().addReference(this).build()
 
-fun Symbol.toMaybe() = this.wrap(HaskellSymbol.Maybe)
+fun Symbol.isMaybe() =
+    this.name == HaskellSymbol.Maybe.name &&
+        this.namespace == HaskellSymbol.Maybe.namespace
 
-fun Symbol.toEither(right: Symbol) = right.wrap(HaskellSymbol.Either)
+fun Symbol.toMaybe(): Symbol {
+    if (this.isMaybe()) {
+        return this
+    }
+    return this.wrap(HaskellSymbol.Maybe)
+}
+
+fun Symbol.toEither(right: Symbol) = this.wrap(HaskellSymbol.Either)
     .toBuilder()
-    .addReference(this)
+    .addReference(right)
     .build()
 
 fun Symbol.inIO() = this.wrap(HaskellSymbol.IO)
+
+fun SymbolReference.isDeclare() =
+    this.getOptions().any { it == SymbolReference.ContextOption.DECLARE }
+
+fun SymbolReference.isUse() = this.getOptions().any { it == SymbolReference.ContextOption.USE }

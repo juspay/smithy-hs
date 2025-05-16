@@ -8,8 +8,9 @@ import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.ServiceShape
 import java.util.function.Consumer
 
-class ServiceGenerator<T : ShapeDirective<ServiceShape, HaskellContext, HaskellSettings>> : Consumer<T> {
-
+class ServiceGenerator<
+    T : ShapeDirective<ServiceShape, HaskellContext, HaskellSettings>
+    > : Consumer<T> {
     override fun accept(directive: T) {
         val context = directive.context()
         val service = directive.service()

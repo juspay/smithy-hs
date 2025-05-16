@@ -41,7 +41,7 @@ formatting:
   autoCorrect: true
   MaximumLineLength:
     active: true
-    maxLineLength: 105
+    maxLineLength: 100
   Wrapping:
     active: true
   NoWildcardImports:

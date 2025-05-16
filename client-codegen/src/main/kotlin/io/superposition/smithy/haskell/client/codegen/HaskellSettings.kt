@@ -12,7 +12,10 @@ data class HaskellSettings(
     companion object {
         fun fromNode(settings: ObjectNode): HaskellSettings {
             val builder = HaskellSettingsBuilder()
-            settings.expectStringMember("service") { id -> builder.serviceShapeId = ShapeId.from(id) }
+            settings.expectStringMember("service", {
+                    id ->
+                builder.serviceShapeId = ShapeId.from(id)
+            })
                 .expectStringMember("packageName") { pname -> builder.packageName = pname }
                 .expectStringMember("edition") { e -> builder.edition = e }
                 .expectStringMember("version") { e -> builder.version = e }
