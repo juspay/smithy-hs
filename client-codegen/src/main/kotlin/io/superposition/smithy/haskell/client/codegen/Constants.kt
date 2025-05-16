@@ -20,19 +20,19 @@ object HaskellDependencies {
 }
 
 object HaskellSymbol {
-    val IO = Symbol.builder()
+    val IO: Symbol = Symbol.builder()
         .name("IO")
         .namespace("Control.Monad.IO", ".")
         .build()
-    val MonadIO = Symbol.builder()
+    val MonadIO: Symbol = Symbol.builder()
         .name("MonadIO")
         .namespace("Control.Monad.IO.Class", ".")
         .build()
-    val Maybe = Symbol.builder()
+    val Maybe: Symbol = Symbol.builder()
         .name("Maybe")
         .namespace("Data.Maybe", ".")
         .build()
-    val Either = Symbol.builder()
+    val Either: Symbol = Symbol.builder()
         .name("Either")
         .namespace("Data.Either", ".")
         .build()
@@ -65,20 +65,29 @@ object HaskellSymbol {
         .namespace("GHC.Generics", ".")
         .build()
 
-    val Eq = Symbol.builder().name("Eq").build()
+    val Eq: Symbol = Symbol.builder().name("Eq").build()
 
-    val FromJSON = Symbol.builder().name("FromJSON").namespace("Data.Aeson", ".").build()
+    val FromJSON: Symbol = Symbol.builder().name("FromJSON").namespace("Data.Aeson", ".").build()
 
-    val ToJSON = Symbol.builder().name("ToJSON").namespace("Data.Aeson", ".").build()
+    val ToJSON: Symbol = Symbol.builder().name("ToJSON").namespace("Data.Aeson", ".").build()
 
-    val JsonString = Symbol.builder().name("String").namespace("Data.Aeson", ".").build()
+    val JsonString: Symbol = Symbol.builder().name("String").namespace("Data.Aeson", ".").build()
 
-    val TextPack = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
-    val JsonObjectBuilder = Symbol.builder().name("object").namespace("Data.Aeson", ".").build()
-    val ByteString = Symbol.builder().name("ByteString").namespace("Data.ByteString.Lazy", ".").build()
-    val JsonEncode = Symbol.builder()
+    val TextPack: Symbol = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
+    val JsonObjectBuilder: Symbol = Symbol.builder().name("object").namespace("Data.Aeson", ".").build()
+    val ByteString: Symbol = Symbol.builder().name("ByteString").namespace("Data.ByteString.Lazy", ".").build()
+    val JsonEncode: Symbol = Symbol.builder()
         .name("encode")
         .namespace("Data.Aeson", ".")
+        .build()
+    val HaskellMap: Symbol = Symbol.builder().name("Map").namespace("Data.Map", ".").build()
+    val QueryString: Symbol = Symbol.builder()
+        .name("QueryString")
+        .namespace("Network.HTTP", ".")
+        .build()
+    val ToQuery: Symbol = Symbol.builder()
+        .name("toQuery")
+        .namespace("Query", ".")
         .build()
 
     object Http {

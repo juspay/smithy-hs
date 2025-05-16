@@ -132,8 +132,13 @@ class HaskellSymbolProvider(
         TODO("Not yet implemented")
     }
 
-    override fun mapShape(shape: MapShape?): Symbol {
-        TODO("Not yet implemented")
+    override fun mapShape(shape: MapShape): Symbol {
+        return Symbol.builder()
+            .name("Map")
+            .namespace("Data.Map", ".")
+            .addReference(shape.key.accept(this))
+            .addReference(shape.value.accept(this))
+            .build()
     }
 
     override fun blobShape(shape: BlobShape): Symbol {

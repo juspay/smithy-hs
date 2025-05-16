@@ -10,6 +10,30 @@ import software.amazon.smithy.codegen.core.directed.*
 class DirectedCodegenImpl :
     DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> {
 
+    override fun customizeBeforeIntegrations(directive: CustomizeDirective<HaskellContext, HaskellSettings>) {
+        super.customizeBeforeIntegrations(directive)
+        val ctx = directive.context()
+        val namespace = CodegenUtils.toModName(directive.service().id.namespace)
+        ctx.writerDeligator.useFileWriter("${namespace.replace(".", "/")}/Query.hs") { writer ->
+            writer.write(
+                """
+                module $namespace.Query where
+
+                import qualified Data.Text as T
+
+                class ToQuery a where
+                    toQuery :: a -> T.Text
+
+                instance ToQuery T.Text where
+                    toQuery = id
+
+                instance ToQuery [T.Text] where
+                    toQuery xs = T.intercalate (T.pack ",") xs
+                """.trimIndent()
+            )
+        }
+    }
+
     override fun createSymbolProvider(
         directive: CreateSymbolProviderDirective<HaskellSettings>
     ): SymbolProvider {
