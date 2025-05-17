@@ -11,21 +11,17 @@ import java.util.function.Consumer
 class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> : Consumer<T> {
     override fun accept(directive: T) {
         val shape = directive.shape()
+        val symbol = directive.symbol()
 
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
-            // Write operation implementation
-            writer.write("-- Enum implementation for ${shape.id.name}")
-
-            writer.write("data ${shape.id.name} = ")
-            // index based iteration
-
-            val memberStrings = shape.members().map { member ->
-                member.memberName.uppercase()
+            val members = shape.members()
+            writer.openBlock("data ${symbol.name} =", "") {
+                writer.write("  ${members.first().memberName}")
+                members.drop(1).forEach {
+                    writer.write("| ${it.memberName}")
+                }
             }
-
-            // Join the member strings with " | "
-            writer.write(memberStrings.joinToString(" | "))
-            writer.write("deriving (Show, Eq)")
+            writer.addExport(symbol.name)
         }
     }
 }

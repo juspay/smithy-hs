@@ -1,5 +1,6 @@
 package io.superposition.smithy.haskell.client.codegen
 
+import io.superposition.smithy.haskell.client.codegen.language.Record
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolDependency
 import software.amazon.smithy.codegen.core.SymbolWriter
@@ -35,15 +36,7 @@ class HaskellWriter(
         val sb = StringBuilder()
 
         sb.appendLine("module $modName (")
-        exports.forEachIndexed { i, e ->
-            sb.append("    ")
-            if (i > 0) {
-                sb.append(", ")
-            } else {
-                sb.append("  ")
-            }
-            sb.appendLine(e)
-        }
+        sb.appendLine(exports.map { "    " + it }.joinToString(",\n"))
         sb.appendLine(") where")
         sb.appendLine()
         sb.appendLine(this.importContainer.toString())
@@ -114,6 +107,23 @@ class HaskellWriter(
                     }
                 listOf(sym.relativize(modName)) + refs
             }
+        }
+    }
+
+    fun <T>writeList(list: List<T>, toLine: (T) -> String) {
+        list.forEachIndexed { i, l ->
+            writeInlineWithNoFormatting(toLine(l))
+            if (i < list.size - 1) {
+                write(",")
+            } else {
+                write("")
+            }
+        }
+    }
+
+    fun writeRecord(record: Record) {
+        openBlock("data ${record.name} = ${record.name} {", "}") {
+            writeList(record.fields) { super.format("${it.name} :: #T", it.symbol) }
         }
     }
 

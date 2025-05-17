@@ -31,7 +31,7 @@ object HaskellSymbol {
         .build()
     val Applicative = Symbol.builder()
         .name("Applicative")
-        .namespace("Data.Applicative", ".")
+        .namespace("Control.Applicative", ".")
         .build()
     val Monad = Symbol.builder()
         .name("Monad")
@@ -44,7 +44,7 @@ object HaskellSymbol {
         .dependencies(
             SymbolDependency.builder()
                 .packageName("text")
-                .version(CodegenUtils.depRange("1.2.3", "2.0"))
+                .version(CodegenUtils.depRange("1.2.3", "2.1"))
                 .build()
         )
         .build()
