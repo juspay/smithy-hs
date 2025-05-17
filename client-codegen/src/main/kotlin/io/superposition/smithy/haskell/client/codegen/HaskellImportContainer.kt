@@ -2,6 +2,7 @@ package io.superposition.smithy.haskell.client.codegen
 
 import software.amazon.smithy.codegen.core.ImportContainer
 import software.amazon.smithy.codegen.core.Symbol
+import java.util.TreeSet
 import java.util.logging.Logger
 
 class HaskellImportContainer(private val modName: String) : ImportContainer {
@@ -21,7 +22,7 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
             .map { s -> s.first() }
             .filter { s -> s.namespace != modName }
             .map { s -> "import qualified ${s.namespace}" }
-            .sorted()
+            .toCollection(TreeSet())
 
         return orderedImports.joinToString(System.lineSeparator())
     }

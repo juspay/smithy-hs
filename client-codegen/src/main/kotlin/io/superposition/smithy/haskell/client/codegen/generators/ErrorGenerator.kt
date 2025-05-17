@@ -4,6 +4,7 @@ package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
+import io.superposition.smithy.haskell.client.codegen.language.Record
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
 import java.util.function.Consumer
@@ -13,22 +14,16 @@ class ErrorGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellS
     override fun accept(directive: T) {
         val context = directive.context()
         val error = directive.shape()
+        val symbol = directive.symbol()
+        val symbolProvider = directive.symbolProvider()
 
         context.writerDelegator().useShapeWriter(error) { writer ->
-            // Write error implementation
-            writer.write("-- Error for ${error.id.name}")
-            writer.write("data ${error.id.name} = ${error.id.name}")
-            writer.write("  { ")
-
-            // Add error members
-            error.members().forEach { member ->
-                val memberSymbol = context.symbolProvider().toSymbol(member)
-                writer.write("  ${member.memberName} :: ${memberSymbol.name}")
-            }
-
-            writer.write("  } deriving (Show, Eq)")
-            writer.write("")
-            writer.write("instance Exception ${error.id.name}")
+            val record = Record(
+                symbol.name,
+                error.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) }
+            )
+            writer.writeRecord(record)
+            writer.addExport(record.name)
         }
     }
 }
