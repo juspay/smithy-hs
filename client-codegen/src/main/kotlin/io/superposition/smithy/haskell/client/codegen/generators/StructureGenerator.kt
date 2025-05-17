@@ -4,10 +4,9 @@ package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
-import io.superposition.smithy.haskell.client.codegen.toMaybe
+import io.superposition.smithy.haskell.client.codegen.language.Record
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
-import software.amazon.smithy.model.traits.RequiredTrait
 
 @Suppress("MaxLineLength")
 class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>>(
@@ -19,16 +18,11 @@ class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, Hask
         val shape = directive.shape()
         val symbol = directive.symbol()
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
-            writer.openBlock("data #T = #T {", "}", symbol, symbol) {
-                shape.members().map {
-                    val mName = symbolProvider.toMemberName(it)
-                    var mSymbol = symbolProvider.toSymbol(it)
-                    if (!it.hasTrait(RequiredTrait.ID)) {
-                        mSymbol = mSymbol.toMaybe()
-                    }
-                    writer.write("$mName :: #T,", mSymbol)
-                }
-            }
+            val record = Record(
+                symbol.name,
+                shape.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) }
+            )
+            writer.writeRecord(record)
             writer.addExport(symbol.name)
             shape.members().forEach {
                 writer.addExport(it.memberName)

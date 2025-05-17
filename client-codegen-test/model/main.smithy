@@ -28,7 +28,7 @@ enum CoffeeType {
 /// A structure which defines a coffee item which can be ordered
 structure CoffeeItem {
     @required
-    type: CoffeeType
+    ctype: CoffeeType
 
     @required
     description: String
