@@ -6,7 +6,6 @@ import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.*
 import software.amazon.smithy.model.traits.RequiredTrait
-import software.amazon.smithy.model.traits.Trait
 import java.util.logging.Logger
 
 // TODO

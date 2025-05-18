@@ -3,11 +3,14 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.*
+import io.superposition.smithy.haskell.client.codegen.CodegenUtils.toHaskellHttpMethod
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ByteString
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Encoding
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.HaskellMap
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.JsonEncode
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.JsonObjectBuilder
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.QueryString
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Text
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ToQuery
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
@@ -19,7 +22,7 @@ import software.amazon.smithy.model.shapes.OperationShape
 import software.amazon.smithy.model.traits.HttpTrait
 import software.amazon.smithy.model.traits.JsonNameTrait
 
-@Suppress("MaxLineLength", "ktlint:standard:max-line-length", "TooManyFunctions")
+@Suppress("MaxLineLength", "ktlint:standard:max-line-length", "TooManyFunctions", "LargeClass")
 class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, HaskellSettings>>(
     private val directive: T
 ) {
@@ -43,7 +46,10 @@ class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, Hask
             #{operationSignature:C|}
 
             #{operationRequestPayload:C|}
+
             #{operationRequestQueryParams:C|}
+
+            #{operationRequestPath:C|}
             """.trimIndent()
 
             writer.pushState()
@@ -63,6 +69,7 @@ class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, Hask
                 "operationRequestQueryParams",
                 Runnable { httpQueryParamsGenerator(writer) }
             )
+            writer.putContext("operationRequestPath", Runnable { httpPathGenerator(writer) })
             writer.write(template)
             writer.addExport(opSymbol.name)
             writer.popState()
@@ -102,10 +109,30 @@ class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, Hask
         val operationOutput = outputSymbol.toEither(operationErrorSymbol(opSymbol)).inIO()
 
         writer.write("${opSymbol.name} :: #T -> #T", operationInput, operationOutput)
+        writer.openBlock("${opSymbol.name} input = do", "") {
+            val method = toHaskellHttpMethod(httpTrait.method)
+            writer.write("result <- #T request", HaskellHttp.SimpleHttpClient)
+            writer.openBlock("where", "") {
+                writer.write("path = requestPath input")
+                writer.write("query = requestQuery input")
+                writer.write("payload = requestPayload input")
+                if (method == HaskellHttp.Custom) {
+                    writer.write("method = #T ${httpTrait.method}", method)
+                } else {
+                    writer.write("method = #T", method)
+                }
+                writer.openBlock("request = #T {", "}", HaskellHttp.Request) {
+                    writer.write("#T = path", HaskellHttp.rqURI)
+                    writer.write("#T = method", HaskellHttp.rqMethod)
+                    writer.write("#T = query", HaskellHttp.rqHeaders)
+                    writer.write("#T = payload", HaskellHttp.rqBody)
+                }
+            }
+        }
     }
 
     /***
-     * URL params
+     * URL: Done
      * Query params: Done
      * payload: Done
      * headers
@@ -208,6 +235,29 @@ class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, Hask
         }
     }
 
-    private fun httpHeadersGenerator(writer: HaskellWriter) {
+    private fun httpPathGenerator(writer: HaskellWriter) {
+        // val labelBindings = requestBindings.filter { it.value.location == HttpBinding.Location.LABEL }
+        //     .map { it.value }
+        val inputSymbol = symbolProvider.toSymbol(model.expectShape(opShape.inputShape))
+        val uriSegments = httpTrait.uri.segments
+
+        // TODO: Handle implement toString for each type
+
+        writer.write("requestPath :: #T -> #T", inputSymbol, ByteString)
+        writer.openBlock("requestPath input = ", "") {
+            writer.write("#T.encodeUtf8 $ #T.pack _path", Encoding, Text)
+            writer.openBlock("where", "") {
+                writer.openBlock("_path = #T.empty", "", Text) {
+                    for (segment in uriSegments) {
+                        if (segment.isLabel) {
+                            val name = segment.content
+                            writer.write("<> (#T.$name input)", inputSymbol)
+                        } else {
+                            writer.write("<> \"${segment.content}\"")
+                        }
+                    }
+                }
+            }
+        }
     }
 }

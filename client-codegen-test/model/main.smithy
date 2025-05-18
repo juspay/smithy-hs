@@ -64,7 +64,7 @@ operation GetMenu {
 }
 
 // Post the menu
-@http(method: "POST", uri: "/menu")
+@http(method: "POST", uri: "/menu/{some}?myQuery=123")
 operation PostMenu {
     input := {
         item: CoffeeItem
@@ -76,6 +76,10 @@ operation PostMenu {
 
         @httpQuery("pageQuery")
         page: Integer
+
+        @httpLabel
+        @required
+        some: String
     }
 
     output := {

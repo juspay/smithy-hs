@@ -2,6 +2,7 @@ package io.superposition.smithy.haskell.client.codegen
 
 import software.amazon.smithy.codegen.core.ReservedWords
 import software.amazon.smithy.codegen.core.ReservedWordsBuilder
+import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.model.shapes.ServiceShape
 import software.amazon.smithy.model.shapes.Shape
 import software.amazon.smithy.utils.CaseUtils
@@ -45,4 +46,15 @@ object CodegenUtils {
     }
 
     fun depRange(begin: String, end: String) = ">= $begin && < $end"
+
+    fun toHaskellHttpMethod(method: String): Symbol {
+        return when (method) {
+            "GET" -> HaskellHttp.Get
+            "POST" -> HaskellHttp.Post
+            "PUT" -> HaskellHttp.Put
+            "DELETE" -> HaskellHttp.Delete
+            "PATCH" -> HaskellHttp.Patch
+            else -> HaskellHttp.Custom
+        }
+    }
 }
