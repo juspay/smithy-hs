@@ -165,7 +165,7 @@ class HaskellSymbolProvider(
     override fun operationShape(shape: OperationShape): Symbol {
         val name = CodegenUtils.getDefaultName(shape, service)
         return Symbol.builder()
-            .name(name.replaceFirstChar { it.lowercase() })
+            .name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Command.$name")
             .build()

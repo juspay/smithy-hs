@@ -92,16 +92,15 @@ object HaskellSymbol {
         .name("encode")
         .namespace("Data.Aeson", ".")
         .build()
-    val HaskellMap: Symbol = Symbol.builder().name("Map").namespace("Data.Map", ".").build()
-
+    val Map: Symbol = Symbol.builder().name("Map").namespace("Data.Map", ".").build()
     val QueryString: Symbol = Symbol.builder()
         .name("QueryString")
         .namespace("Network.HTTP", ".")
         .build()
 
-    val ToQuery: Symbol = Symbol.builder()
-        .name("toQuery")
-        .namespace("Query", ".")
+    val List: Symbol = Symbol.builder()
+        .name("List")
+        .namespace("Data.List", ".")
         .build()
 
     object Http {

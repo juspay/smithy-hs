@@ -37,6 +37,7 @@ class HaskellWriter(
         setExpressionStart('#')
         putFormatter('D', this::dependencyFormatter)
         putFormatter('T', this::haskellTypeFormatter)
+        putFormatter('N', this::namespaceFormatter)
         putDefaultContext()
         if (isSourceFile) {
             MODULES.set(modName, false)
@@ -63,6 +64,7 @@ class HaskellWriter(
         sb.appendLine()
         sb.appendLine(this.importContainer.toString())
         sb.appendLine()
+        // require(getContext("QueryString") is Symbol)
         sb.appendLine(super.toString())
 
         return sb.toString()
@@ -94,7 +96,9 @@ class HaskellWriter(
         putContext("right", HaskellSymbol.Either.toBuilder().name("Right").build())
         putContext("left", HaskellSymbol.Either.toBuilder().name("Left").build())
         putContext("manager", HaskellSymbol.Http.Manager)
-        putContext("managerSettings", HaskellSymbol.Http.ManagerSettings)
+        putContext("queryString", HaskellSymbol.QueryString)
+        putContext("list", HaskellSymbol.List)
+        putContext("map", HaskellSymbol.Map)
     }
 
     private fun dependencyFormatter(type: Any, ignored: String): String {
@@ -112,6 +116,13 @@ class HaskellWriter(
             }
             else -> error("$sym is not a Symbol.")
         }
+    }
+
+    private fun namespaceFormatter(sym: Any, ignored: String): String {
+        require(sym is Symbol)
+        importContainer.importSymbol(sym, null)
+        addDependency(sym)
+        return sym.namespace
     }
 
     private fun renderSymbol(sym: Symbol): List<String> {
