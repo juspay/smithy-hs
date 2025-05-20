@@ -20,7 +20,7 @@ class HaskellWriter(
     private val languageExts: List<String> = listOf(
         "DeriveGeneric",
         // "DeriveAnyClass",
-        // "OverloadedStrings",
+        "OverloadedStrings",
         // "DuplicateRecordFields",
         // "RecordWildCards",
         // "NamedFieldPuns",
@@ -99,6 +99,8 @@ class HaskellWriter(
         putContext("queryString", HaskellSymbol.QueryString)
         putContext("list", HaskellSymbol.List)
         putContext("map", HaskellSymbol.Map)
+        putContext("aeson", HaskellSymbol.Aeson)
+        putContext("byteString", HaskellSymbol.ByteString)
     }
 
     private fun dependencyFormatter(type: Any, ignored: String): String {

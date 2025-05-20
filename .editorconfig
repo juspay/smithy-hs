@@ -12,12 +12,12 @@ max_line_length = 80
 [*.kt]
 indent_style = space
 indent_size = 4
-max_line_length = 100
+max_line_length = 90
 
 [*.kts]
 indent_style = space
 indent_size = 4
-max_line_length = 100
+max_line_length = 90
 
 [*.java]
 indent_style = space

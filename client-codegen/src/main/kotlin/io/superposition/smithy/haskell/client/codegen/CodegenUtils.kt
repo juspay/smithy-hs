@@ -49,12 +49,16 @@ object CodegenUtils {
 
     fun toHaskellHttpMethod(method: String): Symbol {
         return when (method) {
-            "GET" -> HaskellHttp.Get
-            "POST" -> HaskellHttp.Post
-            "PUT" -> HaskellHttp.Put
-            "DELETE" -> HaskellHttp.Delete
-            "PATCH" -> HaskellHttp.Patch
-            else -> HaskellHttp.Custom
+            "GET" -> Http.Get
+            "POST" -> Http.Post
+            "PUT" -> Http.Put
+            "DELETE" -> Http.Delete
+            "PATCH" -> Http.Patch
+            "HEAD" -> Http.Head
+            "OPTIONS" -> Http.Options
+            "CONNECT" -> Http.Connect
+            "TRACE" -> Http.Trace
+            else -> Http.Custom
         }
     }
 }
