@@ -14,15 +14,12 @@ class ServiceGenerator<
     override fun accept(directive: T) {
         val context = directive.context()
         val service = directive.service()
-        val settings = directive.settings()
+        val symbol = directive.symbol()
 
         // Generate service client code
         context.writerDelegator().useShapeWriter(service) { writer ->
-            // Write service client implementation
-            writer.write("-- Service client for ${service.id.name}")
-            writer.write("module ${settings.packageName}.${service.id.name} where")
-            writer.write("")
-            writer.write("-- TODO: Implement service client")
+            writer.write("data #T = #T", symbol, symbol)
+            writer.addExport(symbol.name)
         }
     }
 }

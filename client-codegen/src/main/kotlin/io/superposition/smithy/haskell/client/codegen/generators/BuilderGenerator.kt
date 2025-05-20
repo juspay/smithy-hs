@@ -2,6 +2,7 @@ package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellWriter
 import io.superposition.smithy.haskell.client.codegen.isMaybe
+import io.superposition.smithy.haskell.client.codegen.language.Record
 import io.superposition.smithy.haskell.client.codegen.toMaybe
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
@@ -73,19 +74,16 @@ class BuilderGenerator(
     }
 
     private fun builderStateSection() {
-        writer.openBlock("data $stateName = $stateName {", "}") {
-            builderStateMembers.forEach {
-                writer.write("${it.name} :: #T,", it.symbol)
-            }
-        }
+        val record = Record(stateName, builderStateMembers.map { Record.Field(it.name, it.symbol) })
+        writer.writeRecord(record)
     }
 
     private fun defaultBuilderState() {
         val fn = "defaultBuilderState"
         writer.write("$fn :: $stateName")
         writer.openBlock("$fn = $stateName {", "}") {
-            builderStateMembers.forEach {
-                writer.write("${it.name} = #{nothing:T},")
+            writer.writeList(builderStateMembers) {
+                writer.format("${it.name} = #{nothing:T}")
             }
         }
     }
@@ -115,18 +113,21 @@ class BuilderGenerator(
         writer.addExport(fn)
         writer.write("$fn :: $builderName () -> #{either:T} #{text:T} ${shape.id.name}")
         writer.openBlock("$fn builder = do", "") {
+            writer.write("let (st, _) = run$builderName builder defaultBuilderState")
             builderStateMembers.forEach {
                 val mn = it.inputShape.memberName
                 val e = "\"$symbol.$mn is a required property.\""
                 if (it.inputSymbol.isMaybe()) {
-                    writer.write("$mn' <- #{right:T} (${it.name} builder)")
+                    writer.write("$mn' <- #{right:T} (${it.name} st)")
                 } else {
-                    writer.write("$mn' <- Data.Maybe.maybe (#{left:T} $e) #{right:T} (${it.name} builder)")
+                    writer.write(
+                        "$mn' <- Data.Maybe.maybe (#{left:T} $e) #{right:T} (${it.name} st)"
+                    )
                 }
             }
             writer.openBlock("#{right:T} (#T { ", "})", symbol) {
-                builderStateMembers.forEach {
-                    writer.write("${it.inputShape.memberName} = ${it.inputShape.memberName}',")
+                writer.writeList(builderStateMembers) {
+                    "${it.inputShape.memberName} = ${it.inputShape.memberName}'"
                 }
             }
         }
