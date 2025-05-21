@@ -8,7 +8,7 @@ junit-jupiter-engine = "5.11.1"
 smithy = "1.55.0"
 smithy-plugin = "1.2.0"
 kotlin = "2.0.21"
-detekt = "1.23.4"
+ktlint = "11.6.1"
 
 [libraries]
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }
@@ -18,9 +18,8 @@ smithy-codegen-core = { module = "software.amazon.smithy:smithy-codegen-core", v
 smithy-model = { module = "software.amazon.smithy:smithy-model", version.ref = "smithy" }
 smithy-protocol-traits = { module = "software.amazon.smithy:smithy-protocol-traits", version.ref = "smithy" }
 smithy-aws-traits = { module = "software.amazon.smithy:smithy-aws-traits", version.ref = "smithy" }
-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 smithy-base = { id = "software.amazon.smithy.gradle.smithy-base", version.ref = "smithy-plugin"}
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
