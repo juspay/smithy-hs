@@ -28,7 +28,7 @@ class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, Hask
                 writer.addExport(it.memberName)
             }
             writer.exposeModule()
-            writer.write("#C", BuilderGenerator(shape, symbol, symbolProvider, writer))
+            writer.write("#C", BuilderGenerator(record, symbol, writer))
         }
     }
 }

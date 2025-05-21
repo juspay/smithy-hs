@@ -5,30 +5,26 @@ import io.superposition.smithy.haskell.client.codegen.isMaybe
 import io.superposition.smithy.haskell.client.codegen.language.Record
 import io.superposition.smithy.haskell.client.codegen.toMaybe
 import software.amazon.smithy.codegen.core.Symbol
-import software.amazon.smithy.codegen.core.SymbolProvider
-import software.amazon.smithy.model.shapes.MemberShape
-import software.amazon.smithy.model.shapes.StructureShape
 import software.amazon.smithy.utils.CaseUtils
 
 class BuilderGenerator(
-    val shape: StructureShape,
+    val record: Record,
     val symbol: Symbol,
-    val symbolProvider: SymbolProvider,
     val writer: HaskellWriter
 ) : Runnable {
     private data class BuilderStateMember(
         val name: String,
         val symbol: Symbol,
-        val inputShape: MemberShape,
+        val inputName: String,
         val inputSymbol: Symbol
     )
 
-    private val builderName = "${shape.id.name}Builder"
+    private val builderName = "${record.name}Builder"
     private val stateName = "${builderName}State"
-    private val builderStateMembers = shape.members().map {
-        val name = "${symbolProvider.toMemberName(it)}BuilderState"
-        val symbol = symbolProvider.toSymbol(it).toMaybe()
-        return@map BuilderStateMember(name, symbol, it, symbolProvider.toSymbol(it))
+    private val builderStateMembers = record.fields.map {
+        val name = "${it.name}BuilderState"
+        val symbol = it.symbol.toMaybe()
+        return@map BuilderStateMember(name, symbol, it.name, it.symbol)
     }
 
     override fun run() {
@@ -91,8 +87,7 @@ class BuilderGenerator(
     @Suppress("MaxLineLength")
     private fun builderSetters() {
         builderStateMembers.forEach {
-            val im = it.inputShape
-            val fn = CaseUtils.toCamelCase("set ${im.memberName}")
+            val fn = CaseUtils.toCamelCase("set ${it.inputName}")
             writer.addExport(fn)
             writer.putContext("isMaybe", it.inputSymbol.isMaybe())
             writer.write(
@@ -102,7 +97,7 @@ class BuilderGenerator(
                 $fn value =
                    $builderName (\s -> (s { ${it.name} = #{^isMaybe}#{just:T} #{/isMaybe}value }, ()))
                 """.trimIndent(),
-                symbolProvider.toSymbol(it.inputShape)
+                it.inputSymbol
             )
         }
     }
@@ -111,11 +106,11 @@ class BuilderGenerator(
     private fun builderFunction() {
         val fn = "build"
         writer.addExport(fn)
-        writer.write("$fn :: $builderName () -> #{either:T} #{text:T} ${shape.id.name}")
+        writer.write("$fn :: $builderName () -> #{either:T} #{text:T} ${record.name}")
         writer.openBlock("$fn builder = do", "") {
             writer.write("let (st, _) = run$builderName builder defaultBuilderState")
             builderStateMembers.forEach {
-                val mn = it.inputShape.memberName
+                val mn = it.inputName
                 val e = "\"$symbol.$mn is a required property.\""
                 if (it.inputSymbol.isMaybe()) {
                     writer.write("$mn' <- #{right:T} (${it.name} st)")
@@ -127,7 +122,7 @@ class BuilderGenerator(
             }
             writer.openBlock("#{right:T} (#T { ", "})", symbol) {
                 writer.writeList(builderStateMembers) {
-                    "${it.inputShape.memberName} = ${it.inputShape.memberName}'"
+                    "${it.inputName} = ${it.inputName}'"
                 }
             }
         }

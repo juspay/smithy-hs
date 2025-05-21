@@ -6,6 +6,8 @@ build-type: Simple
 
 library
     build-depends:      base >= 4.14 && < 4.19,
+                        network-uri >= 2.6 && < 2.7,
+                        http-client >= 0.5.14 && < 0.8,
                         text >= 1.2.3 && < 2.1
     exposed-modules:    Com.Example.Model.GetMenuOutput,
                         Com.Example.Model.CoffeeItem,
