@@ -71,6 +71,8 @@ class HaskellWriter(
         putContext("nothing", HaskellSymbol.Maybe.toBuilder().name("Nothing").build())
         putContext("right", HaskellSymbol.Either.toBuilder().name("Right").build())
         putContext("left", HaskellSymbol.Either.toBuilder().name("Left").build())
+        putContext("manager", HaskellSymbol.Http.Manager)
+        putContext("managerSettings", HaskellSymbol.Http.ManagerSettings)
     }
 
     private fun dependencyFormatter(type: Any, ignored: String): String {

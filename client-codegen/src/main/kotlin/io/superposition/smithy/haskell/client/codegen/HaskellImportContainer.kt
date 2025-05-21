@@ -10,6 +10,7 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
 
     override fun importSymbol(symbol: Symbol, alias: String?) {
+        assert(symbol.namespace.isNotEmpty())
         if (symbol.isPrimitive()) {
             return
         }
