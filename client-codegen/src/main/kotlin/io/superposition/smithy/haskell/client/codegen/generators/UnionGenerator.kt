@@ -45,6 +45,8 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             writer.putContext("serializer", SerializerGenerator(writer, union, directive.symbol()))
             writer.write(template)
             writer.popState()
+            writer.exposeModule()
+            writer.addExport(directive.symbol().name)
         }
     }
 
@@ -62,9 +64,9 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
                 )
                 writer.putContext("type", symbolProvider.toSymbol(member))
                 if (i == 0) {
-                    writer.write("#{constructor:L} #{type:T}")
+                    writer.write("#{constructor:L} (#{type:T})")
                 } else {
-                    writer.write("| #{constructor:L} #{type:T}")
+                    writer.write("| #{constructor:L} (#{type:T})")
                 }
                 writer.popState()
             }
@@ -95,7 +97,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
                     writer.putContext("constructor", getConstructorName(member))
                     writer.putContext("objectBuilder", JsonObjectBuilder)
                     writer.putContext("jsonName", jsonName)
-                    writer.write("toJSON (#{constructor:L} a) = #{objectBuilder:T} [ #{jsonName:L} .= a ]")
+                    writer.write("toJSON (#{constructor:L} a) = #{objectBuilder:T} [ #{jsonName:L} #{aeson:N}..= a ]")
                     writer.popState()
                 }
             }

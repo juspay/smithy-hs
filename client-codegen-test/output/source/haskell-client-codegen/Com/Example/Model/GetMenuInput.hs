@@ -1,20 +1,34 @@
-module Com.Example.Model.GetMenuInput (
-    GetMenuInput,
-    build,
-    GetMenuInputBuilder
-) where
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
+module Com.Example.Model.GetMenuInput (
+    build,
+    GetMenuInputBuilder,
+    GetMenuInput
+) where
 import qualified Control.Applicative
 import qualified Control.Monad
+import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Functor
 import qualified Data.Text
+import qualified GHC.Generics
 
 data GetMenuInput = GetMenuInput {
-}
+} deriving (
+  GHC.Generics.Generic
+  )
+
+instance Data.Aeson.ToJSON GetMenuInput where
+    toJSON a = Data.Aeson.object
+        []
+
+
 
 data GetMenuInputBuilderState = GetMenuInputBuilderState {
-}
+} deriving (
+  GHC.Generics.Generic
+  )
 
 defaultBuilderState :: GetMenuInputBuilderState
 defaultBuilderState = GetMenuInputBuilderState {

@@ -19,7 +19,7 @@ class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, Hask
     override fun run() {
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
             val template = """
-            {record:C|}
+            #{record:C|}
 
             #{serializer:C|}
 
@@ -37,7 +37,7 @@ class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, Hask
                 "serializer",
                 StructureSerializerGenerator(shape.members(), symbol, symbolProvider, writer)
             )
-            writer.write("#C", BuilderGenerator(record, symbol, writer))
+            writer.putContext("builder", BuilderGenerator(record, symbol, writer))
             writer.write(template)
             writer.addExport(symbol.name)
             shape.members().forEach {

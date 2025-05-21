@@ -83,7 +83,7 @@ operation PostMenu {
     }
 
     output := {
-        items: CoffeeItems
+        items: CoffeeItem
     }
 }
 

@@ -1,6 +1,7 @@
 package io.superposition.smithy.haskell.client.codegen
 
 import io.superposition.smithy.haskell.client.codegen.language.Record
+import software.amazon.smithy.codegen.core.CodegenException
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolDependency
 import software.amazon.smithy.codegen.core.SymbolWriter
@@ -8,6 +9,7 @@ import java.util.ArrayList
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
+@Suppress("TooManyFunctions")
 class HaskellWriter(
     val fileName: String,
     val modName: String
@@ -40,6 +42,7 @@ class HaskellWriter(
         putFormatter('N', this::namespaceFormatter)
         putDefaultContext()
         if (isSourceFile) {
+            if (modName.isEmpty()) throw CodegenException("Module name is empty.")
             MODULES.set(modName, false)
         }
     }
@@ -60,8 +63,6 @@ class HaskellWriter(
         sb.appendLine(exports.map { "    " + it }.joinToString(",\n"))
         sb.appendLine(") where")
 
-        sb.appendLine("module $modName where")
-        sb.appendLine()
         sb.appendLine(this.importContainer.toString())
         sb.appendLine()
         // require(getContext("QueryString") is Symbol)
@@ -96,11 +97,13 @@ class HaskellWriter(
         putContext("right", HaskellSymbol.Either.toBuilder().name("Right").build())
         putContext("left", HaskellSymbol.Either.toBuilder().name("Left").build())
         putContext("manager", HaskellSymbol.Http.Manager)
-        putContext("queryString", HaskellSymbol.QueryString)
         putContext("list", HaskellSymbol.List)
         putContext("map", HaskellSymbol.Map)
         putContext("aeson", HaskellSymbol.Aeson)
         putContext("byteString", HaskellSymbol.ByteString)
+        putContext("flip", HaskellSymbol.Flip)
+        putContext("query", Http.Query)
+        putContext("httpClient", Http.HttpClient)
     }
 
     private fun dependencyFormatter(type: Any, ignored: String): String {

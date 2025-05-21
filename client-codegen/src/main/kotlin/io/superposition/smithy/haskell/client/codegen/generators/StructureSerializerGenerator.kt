@@ -25,6 +25,10 @@ class StructureSerializerGenerator(
     override fun run() {
         writer.openBlock("instance #{aeson:N}.ToJSON #T where", "", symbol) {
             writer.openBlock("toJSON a = #{aeson:N}.object", "") {
+                if (members.isEmpty()) {
+                    writer.writeInline("[]")
+                    return@openBlock
+                }
                 for ((i, member) in members.withIndex()) {
                     val memberName = symbolProvider.toMemberName(member)
                     if (i == 0) {
@@ -34,7 +38,7 @@ class StructureSerializerGenerator(
                     }
 
                     val jsonName = getJsonName(member)
-                    writer.write("\"$jsonName\" .= $memberName a")
+                    writer.write("\"$jsonName\" #{aeson:N}..= $memberName a")
                 }
                 writer.write("]")
             }

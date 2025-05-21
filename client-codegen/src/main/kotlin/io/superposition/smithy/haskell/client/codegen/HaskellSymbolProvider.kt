@@ -53,8 +53,13 @@ class HaskellSymbolProvider(
                 CodegenException("Could not find shape ${shape.target} targeted by $shape")
             }
 
+        val parent = model.getShape(shape.container)
+            .orElseThrow<CodegenException> {
+                CodegenException("Could not find shape ${shape.container} parent of $shape")
+            }
+
         return toSymbol(target).let {
-            if (!shape.hasTrait(RequiredTrait.ID)) {
+            if ((parent is StructureShape) && !shape.hasTrait(RequiredTrait.ID)) {
                 it.toMaybe()
             } else {
                 it
@@ -184,7 +189,7 @@ class HaskellSymbolProvider(
         val name = CodegenUtils.getDefaultName(shape, service)
         return Symbol.builder()
             .name(name)
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true)
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name")
             .build()
     }
@@ -192,7 +197,6 @@ class HaskellSymbolProvider(
     override fun listShape(shape: ListShape): Symbol {
         return Symbol.builder()
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
-            .namespace("Data.List", ".")
-            .name("List").addReference(shape.member.accept(this)).build()
+            .name("[]").addReference(shape.member.accept(this)).build()
     }
 }
