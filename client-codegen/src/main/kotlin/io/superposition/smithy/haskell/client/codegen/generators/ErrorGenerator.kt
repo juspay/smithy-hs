@@ -10,6 +10,7 @@ import software.amazon.smithy.model.shapes.StructureShape
 import java.util.function.Consumer
 
 // NOTE: we should probably use StructureGenerator for generating code for errors
+@Suppress("MaximumLineLength")
 class ErrorGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>> : Consumer<T> {
     override fun accept(directive: T) {
         val context = directive.context()

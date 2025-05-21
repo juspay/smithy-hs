@@ -1,26 +1,42 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Com.Example.Model.GetMenuOutput (
-    GetMenuOutput,
-    items,
     setItems,
     build,
-    GetMenuOutputBuilder
+    GetMenuOutputBuilder,
+    GetMenuOutput,
+    items
 ) where
-
 import qualified Com.Example.Model.CoffeeItem
 import qualified Control.Applicative
 import qualified Control.Monad
+import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Functor
 import qualified Data.Maybe
 import qualified Data.Text
+import qualified GHC.Generics
 
 data GetMenuOutput = GetMenuOutput {
-    items :: Data.Maybe.Maybe ([] (Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem))
-}
+    items :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem)
+} deriving (
+  GHC.Generics.Generic
+  )
+
+instance Data.Aeson.ToJSON GetMenuOutput where
+    toJSON a = Data.Aeson.object
+        [ "items" Data.Aeson..= items a
+        ]
+    
+
+
 
 data GetMenuOutputBuilderState = GetMenuOutputBuilderState {
-    itemsBuilderState :: Data.Maybe.Maybe ([] (Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem))
-}
+    itemsBuilderState :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem)
+} deriving (
+  GHC.Generics.Generic
+  )
 
 defaultBuilderState :: GetMenuOutputBuilderState
 defaultBuilderState = GetMenuOutputBuilderState {
@@ -48,7 +64,7 @@ instance Control.Monad.Monad GetMenuOutputBuilder where
             (GetMenuOutputBuilder h) = g a
         in h s')
 
-setItems :: Data.Maybe.Maybe ([] (Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem)) -> GetMenuOutputBuilder ()
+setItems :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem) -> GetMenuOutputBuilder ()
 setItems value =
    GetMenuOutputBuilder (\s -> (s { itemsBuilderState = value }, ()))
 

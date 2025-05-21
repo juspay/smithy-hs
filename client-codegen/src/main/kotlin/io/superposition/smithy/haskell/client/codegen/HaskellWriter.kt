@@ -1,6 +1,7 @@
 package io.superposition.smithy.haskell.client.codegen
 
 import io.superposition.smithy.haskell.client.codegen.language.Record
+import software.amazon.smithy.codegen.core.CodegenException
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolDependency
 import software.amazon.smithy.codegen.core.SymbolWriter
@@ -8,6 +9,7 @@ import java.util.ArrayList
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
+@Suppress("TooManyFunctions")
 class HaskellWriter(
     val fileName: String,
     val modName: String
@@ -17,13 +19,30 @@ class HaskellWriter(
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val exports: MutableList<String> = ArrayList()
     private val isSourceFile = fileName.endsWith(".hs")
+    private val languageExts: List<String> = listOf(
+        "DeriveGeneric",
+        // "DeriveAnyClass",
+        "OverloadedStrings",
+        // "DuplicateRecordFields",
+        // "RecordWildCards",
+        // "NamedFieldPuns",
+        // "TypeApplications",
+        // "FlexibleContexts",
+        // "MultiParamTypeClasses",
+        // "FunctionalDependencies",
+        // "TypeFamilies",
+        // "GADTs",
+        // "GeneralizedNewtypeDeriving",
+    )
 
     init {
         setExpressionStart('#')
         putFormatter('D', this::dependencyFormatter)
         putFormatter('T', this::haskellTypeFormatter)
+        putFormatter('N', this::namespaceFormatter)
         putDefaultContext()
         if (isSourceFile) {
+            if (modName.isEmpty()) throw CodegenException("Module name is empty.")
             MODULES.set(modName, false)
         }
     }
@@ -35,12 +54,18 @@ class HaskellWriter(
 
         val sb = StringBuilder()
 
+        for (langExt in languageExts) {
+            sb.appendLine("{-# LANGUAGE $langExt #-}")
+        }
+        sb.appendLine()
+
         sb.appendLine("module $modName (")
         sb.appendLine(exports.map { "    " + it }.joinToString(",\n"))
         sb.appendLine(") where")
-        sb.appendLine()
+
         sb.appendLine(this.importContainer.toString())
         sb.appendLine()
+        // require(getContext("QueryString") is Symbol)
         sb.appendLine(super.toString())
 
         return sb.toString()
@@ -72,7 +97,13 @@ class HaskellWriter(
         putContext("right", HaskellSymbol.Either.toBuilder().name("Right").build())
         putContext("left", HaskellSymbol.Either.toBuilder().name("Left").build())
         putContext("manager", HaskellSymbol.Http.Manager)
-        putContext("managerSettings", HaskellSymbol.Http.ManagerSettings)
+        putContext("list", HaskellSymbol.List)
+        putContext("map", HaskellSymbol.Map)
+        putContext("aeson", HaskellSymbol.Aeson)
+        putContext("byteString", HaskellSymbol.ByteString)
+        putContext("flip", HaskellSymbol.Flip)
+        putContext("query", Http.Query)
+        putContext("httpClient", Http.HttpClient)
     }
 
     private fun dependencyFormatter(type: Any, ignored: String): String {
@@ -90,6 +121,13 @@ class HaskellWriter(
             }
             else -> error("$sym is not a Symbol.")
         }
+    }
+
+    private fun namespaceFormatter(sym: Any, ignored: String): String {
+        require(sym is Symbol)
+        importContainer.importSymbol(sym, null)
+        addDependency(sym)
+        return sym.namespace
     }
 
     private fun renderSymbol(sym: Symbol): List<String> {
@@ -123,8 +161,15 @@ class HaskellWriter(
         }
     }
 
+    private fun writeDerives(derives: List<Symbol>) {
+        write("deriving (")
+        writeList(derives) { super.format("#T", it) }
+        write(")")
+    }
+
     fun writeRecord(record: Record) {
-        openBlock("data ${record.name} = ${record.name} {", "}") {
+        putContext("derives", Runnable { writeDerives(record.defaultDerives) })
+        openBlock("data ${record.name} = ${record.name} {", "} #{derives:C|}") {
             writeList(record.fields) { super.format("${it.name} :: #T", it.symbol) }
         }
     }

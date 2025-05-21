@@ -10,6 +10,10 @@ import software.amazon.smithy.codegen.core.directed.*
 class DirectedCodegenImpl :
     DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> {
 
+    override fun customizeBeforeIntegrations(directive: CustomizeDirective<HaskellContext, HaskellSettings>) {
+        super.customizeBeforeIntegrations(directive)
+    }
+
     override fun createSymbolProvider(
         directive: CreateSymbolProviderDirective<HaskellSettings>
     ): SymbolProvider {
@@ -55,12 +59,8 @@ class DirectedCodegenImpl :
         StructureGenerator<GenerateStructureDirective<HaskellContext, HaskellSettings>>(directive).run()
     }
 
-    override fun generateOperation(
-        directive: GenerateOperationDirective<HaskellContext, HaskellSettings>
-    ) {
-        OperationGenerator<GenerateOperationDirective<HaskellContext, HaskellSettings>>().accept(
-            directive
-        )
+    override fun generateOperation(directive: GenerateOperationDirective<HaskellContext, HaskellSettings>) {
+        OperationGenerator(directive).run()
     }
 
     override fun generateEnumShape(

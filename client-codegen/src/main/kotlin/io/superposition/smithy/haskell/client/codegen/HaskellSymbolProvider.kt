@@ -38,14 +38,13 @@ class HaskellSymbolProvider(
     }
 
     override fun structureShape(shape: StructureShape): Symbol {
-        // TODO What to do with the unit type trait?
-
         val name = CodegenUtils.getDefaultName(shape, service)
-        return Symbol.builder()
+        val symbol = Symbol.builder()
             .name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name")
-            .build()
+
+        return symbol.build()
     }
 
     override fun memberShape(shape: MemberShape): Symbol {
@@ -54,8 +53,13 @@ class HaskellSymbolProvider(
                 CodegenException("Could not find shape ${shape.target} targeted by $shape")
             }
 
+        val parent = model.getShape(shape.container)
+            .orElseThrow<CodegenException> {
+                CodegenException("Could not find shape ${shape.container} parent of $shape")
+            }
+
         return toSymbol(target).let {
-            if (!shape.hasTrait(RequiredTrait.ID)) {
+            if ((parent is StructureShape) && !shape.hasTrait(RequiredTrait.ID)) {
                 it.toMaybe()
             } else {
                 it
@@ -132,8 +136,13 @@ class HaskellSymbolProvider(
         TODO("Not yet implemented")
     }
 
-    override fun mapShape(shape: MapShape?): Symbol {
-        TODO("Not yet implemented")
+    override fun mapShape(shape: MapShape): Symbol {
+        return Symbol.builder()
+            .name("Map")
+            .namespace("Data.Map", ".")
+            .addReference(shape.key.accept(this))
+            .addReference(shape.value.accept(this))
+            .build()
     }
 
     override fun blobShape(shape: BlobShape): Symbol {
@@ -161,7 +170,7 @@ class HaskellSymbolProvider(
     override fun operationShape(shape: OperationShape): Symbol {
         val name = CodegenUtils.getDefaultName(shape, service)
         return Symbol.builder()
-            .name(name.replaceFirstChar { it.lowercase() })
+            .name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Command.$name")
             .build()
@@ -180,14 +189,14 @@ class HaskellSymbolProvider(
         val name = CodegenUtils.getDefaultName(shape, service)
         return Symbol.builder()
             .name(name)
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true)
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name")
             .build()
     }
 
     override fun listShape(shape: ListShape): Symbol {
         return Symbol.builder()
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true)
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .name("[]").addReference(shape.member.accept(this)).build()
     }
 }
