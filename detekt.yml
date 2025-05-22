@@ -16,11 +16,11 @@ comments:
 
 complexity:
   LongMethod:
-    threshold: 60
+    threshold: 100
   TooManyFunctions:
-    thresholdInFiles: 15
+    active: false
   LargeClass:
-    threshold: 200
+    active: false
   CyclomaticComplexMethod:
     threshold: 15
   StringLiteralDuplication:

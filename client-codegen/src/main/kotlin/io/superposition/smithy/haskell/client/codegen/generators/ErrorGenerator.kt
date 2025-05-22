@@ -2,16 +2,14 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
-import io.superposition.smithy.haskell.client.codegen.HaskellContext
-import io.superposition.smithy.haskell.client.codegen.HaskellSettings
+import io.superposition.smithy.haskell.client.codegen.HaskellShapeDirective
 import io.superposition.smithy.haskell.client.codegen.language.Record
-import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
 import java.util.function.Consumer
 
 // NOTE: we should probably use StructureGenerator for generating code for errors
 @Suppress("MaximumLineLength")
-class ErrorGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>> : Consumer<T> {
+class ErrorGenerator<T : HaskellShapeDirective<StructureShape>> : Consumer<T> {
     override fun accept(directive: T) {
         val context = directive.context()
         val error = directive.shape()

@@ -2,14 +2,11 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
-import io.superposition.smithy.haskell.client.codegen.HaskellContext
-import io.superposition.smithy.haskell.client.codegen.HaskellSettings
+import io.superposition.smithy.haskell.client.codegen.HaskellShapeDirective
 import io.superposition.smithy.haskell.client.codegen.language.Record
-import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.StructureShape
 
-@Suppress("MaxLineLength")
-class StructureGenerator<T : ShapeDirective<StructureShape, HaskellContext, HaskellSettings>>(
+class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
     private val directive: T
 ) : Runnable {
     private val shape = directive.shape()

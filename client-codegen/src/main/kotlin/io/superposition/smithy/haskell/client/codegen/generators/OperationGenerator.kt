@@ -1,7 +1,5 @@
 @file:Suppress(
     "FINITE_BOUNDS_VIOLATION_IN_JAVA",
-    "UnusedPrivateMember",
-    "UnusedPrivateProperty"
 )
 
 package io.superposition.smithy.haskell.client.codegen.generators
@@ -11,7 +9,6 @@ import io.superposition.smithy.haskell.client.codegen.CodegenUtils.toHaskellHttp
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.EncodingUtf8
 import io.superposition.smithy.haskell.client.codegen.language.ClientRecord
 import software.amazon.smithy.codegen.core.Symbol
-import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.knowledge.HttpBinding
 import software.amazon.smithy.model.knowledge.HttpBindingIndex
 import software.amazon.smithy.model.shapes.MapShape
@@ -21,13 +18,8 @@ import software.amazon.smithy.model.shapes.ServiceShape
 import software.amazon.smithy.model.traits.HttpTrait
 import software.amazon.smithy.model.traits.JsonNameTrait
 
-@Suppress(
-    "MaxLineLength",
-    "ktlint:standard:max-line-length",
-    "TooManyFunctions",
-    "LargeClass"
-)
-class OperationGenerator<T : ShapeDirective<OperationShape, HaskellContext, HaskellSettings>>(
+@Suppress("MaxLineLength")
+class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
     private val directive: T
 ) {
     private val opSymbol = directive.symbol()
