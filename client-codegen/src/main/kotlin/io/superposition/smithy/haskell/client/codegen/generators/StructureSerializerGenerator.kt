@@ -6,7 +6,6 @@ import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.traits.JsonNameTrait
 
-@Suppress("MaxLineLength")
 class StructureSerializerGenerator(
     private val members: Collection<MemberShape>,
     private val symbol: Symbol,

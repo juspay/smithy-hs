@@ -1,4 +1,4 @@
-name: Gradle Check
+name: Gradle DetektLint
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  gradle-check:
+  gradle-detekt-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +40,7 @@ jobs:
     - name: Run Gradle check with JDK 21
       run: |
         export JAVA_HOME=$JAVA_HOME_21_X64
-        ./gradlew check --parallel
+        ./gradlew detektLint
 
     - name: Upload test results
       if: always()
