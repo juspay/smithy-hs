@@ -11,9 +11,11 @@ library
                         http-types >= 0.12.3 && < 0.13,
                         aeson >= 2.0.0 && < 2.2.0,
                         bytestring >= 0.10.12 && < 0.12.0,
+                        http-date >= 0.0.8 && < 0.1,
                         containers >= 0.6.4 && < 0.7,
                         network-uri >= 2.6 && < 2.7,
-                        http-client >= 0.5.14 && < 0.8
+                        http-client >= 0.5.14 && < 0.8,
+                        time >= 1.9 && < 1.15
     exposed-modules:    Com.Example.Model.GetMenuOutput,
                         Com.Example.Model.SomeUnion,
                         Com.Example.Model.CoffeeItem,

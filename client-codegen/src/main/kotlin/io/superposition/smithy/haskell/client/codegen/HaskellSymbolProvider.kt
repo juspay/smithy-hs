@@ -6,10 +6,12 @@ import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.shapes.*
 import software.amazon.smithy.model.traits.RequiredTrait
+import software.amazon.smithy.model.traits.TimestampFormatTrait
+import software.amazon.smithy.model.traits.Trait
 import java.util.logging.Logger
+import kotlin.jvm.optionals.getOrNull
 
 // TODO
-// Handle nullability.
 // Handle sparse lists.
 
 fun <T : Shape> T.toSymbolBuilder(): Symbol.Builder {
@@ -22,6 +24,9 @@ private fun Symbol.Builder.projectNamespace(namespace: String): Symbol.Builder {
     return this.namespace(namespace, ".").definitionFile(path)
 }
 
+@Suppress("UNCHECKED_CAST")
+private fun <T : Trait>Shape.findTraitOrNull(id: ShapeId): T? = (this.findTrait(id).getOrNull() as T?)
+
 @Suppress("TooManyFunctions")
 class HaskellSymbolProvider(
     private val model: Model,
@@ -30,6 +35,27 @@ class HaskellSymbolProvider(
 ) : SymbolProvider, ShapeVisitor<Symbol> {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val namespace: String = CodegenUtils.toModName(namespace)
+
+    // Helper for mapping either a member-shape OR a timestamp shape to the appropriate
+    // symbol. Member-shapes are allowed to override the ts-format. The caller of this
+    // function should make sure that in the case of a member-shape, the target shape should
+    // be a timestamp shape.
+    private fun getTimestampSymbol(shape: Shape): Symbol {
+        when (shape) {
+            is TimestampShape -> {}
+            is MemberShape -> require(model.expectShape(shape.target) is TimestampShape)
+            else -> throw CodegenException("Attempting to map $shape to a time-stamp symbol.")
+        }
+        val defaultTimestampFormatTrait = TimestampFormatTrait(TimestampFormatTrait.EPOCH_SECONDS)
+        val format = shape.getTrait(TimestampFormatTrait::class.java)
+            .orElse(defaultTimestampFormatTrait)
+            .format
+        return when (format.name) {
+            TimestampFormatTrait.DATE_TIME -> Http.UTCTime
+            TimestampFormatTrait.HTTP_DATE -> Http.HTTPDate
+            else -> Http.POSIXTime
+        }
+    }
 
     override fun toSymbol(shape: Shape): Symbol {
         val symbol: Symbol = shape.accept(this)
@@ -58,7 +84,15 @@ class HaskellSymbolProvider(
                 CodegenException("Could not find shape ${shape.container} parent of $shape")
             }
 
-        return toSymbol(target).let {
+        val symbol = when (target) {
+            is TimestampShape -> {
+                val trait = shape.findTraitOrNull<TimestampFormatTrait>(TimestampFormatTrait.ID)
+                timestampShape(target, trait)
+            }
+            else -> toSymbol(target)
+        }
+
+        return symbol.let {
             if ((parent is StructureShape) && !shape.hasTrait(RequiredTrait.ID)) {
                 it.toMaybe()
             } else {
@@ -128,12 +162,25 @@ class HaskellSymbolProvider(
         error("BigInteger is not supported")
     }
 
-    override fun timestampShape(shape: TimestampShape?): Symbol {
-        TODO("Not yet implemented")
+    override fun timestampShape(shape: TimestampShape): Symbol {
+        return timestampShape(shape, null)
     }
 
-    override fun documentShape(shape: DocumentShape?): Symbol {
-        TODO("Not yet implemented")
+    private fun timestampShape(shape: TimestampShape, memberTrait: TimestampFormatTrait?): Symbol {
+        val defaultTrait = TimestampFormatTrait(TimestampFormatTrait.EPOCH_SECONDS)
+        val trait =
+            memberTrait
+                ?: (shape.findTraitOrNull<TimestampFormatTrait>(TimestampFormatTrait.ID) ?: defaultTrait)
+
+        return when (trait.format) {
+            TimestampFormatTrait.Format.DATE_TIME -> Http.UTCTime
+            TimestampFormatTrait.Format.HTTP_DATE -> Http.HTTPDate
+            else -> Http.POSIXTime
+        }
+    }
+
+    override fun documentShape(shape: DocumentShape): Symbol {
+        return HaskellSymbol.Value
     }
 
     override fun mapShape(shape: MapShape): Symbol {
@@ -146,7 +193,7 @@ class HaskellSymbolProvider(
     }
 
     override fun blobShape(shape: BlobShape): Symbol {
-        TODO("Not yet implemented")
+        return HaskellSymbol.ByteString
     }
 
     override fun serviceShape(shape: ServiceShape): Symbol {
