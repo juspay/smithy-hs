@@ -242,6 +242,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
 
                     for ((i, member) in documentMembers.withIndex()) {
                         val mName = symbolProvider.toMemberName(member)
+                        val msymbol = symbolProvider.toSymbol(member)
                         val jsonName =
                             member.getTrait(JsonNameTrait::class.java).map { it.value }
                                 .orElse(mName)
@@ -250,8 +251,26 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                         } else {
                             writer.writeInline(", ")
                         }
-
-                        writer.write("\"$jsonName\" #{aeson:N}..= #{input:N}.$mName $varName")
+                        if (msymbol == Http.HTTPDate || (
+                                msymbol.name == "Maybe" && msymbol.references.map {
+                                    it.symbol
+                                }.contains(Http.HTTPDate)
+                                )
+                        ) {
+                            if (msymbol.name == "Maybe") {
+                                writer.write(
+                                    "\"$jsonName\" #{aeson:N}..= ((#{textenc:N}.decodeUtf8 . #N.formatHTTPDate) #{functor:N}.<$> #{input:N}.$mName $varName)",
+                                    Http.HTTPDate
+                                )
+                            } else {
+                                writer.write(
+                                    "\"$jsonName\" #{aeson:N}..= (#{textenc:N}.decodeUtf8 $ #N.formatHTTPDate $ #{input:N}.$mName $varName)",
+                                    Http.HTTPDate
+                                )
+                            }
+                        } else {
+                            writer.write("\"$jsonName\" #{aeson:N}..= #{input:N}.$mName $varName")
+                        }
                     }
                     writer.write("]")
                 }

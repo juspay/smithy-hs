@@ -1,11 +1,13 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellWriter
+import io.superposition.smithy.haskell.client.codegen.Http
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.traits.JsonNameTrait
 
+@Suppress("MaxLineLength")
 class StructureSerializerGenerator(
     private val members: Collection<MemberShape>,
     private val symbol: Symbol,
@@ -29,6 +31,7 @@ class StructureSerializerGenerator(
                     return@openBlock
                 }
                 for ((i, member) in members.withIndex()) {
+                    val msymbol = symbolProvider.toSymbol(member)
                     val memberName = symbolProvider.toMemberName(member)
                     if (i == 0) {
                         writer.writeInline("[ ")
@@ -37,7 +40,26 @@ class StructureSerializerGenerator(
                     }
 
                     val jsonName = getJsonName(member)
-                    writer.write("\"$jsonName\" #{aeson:N}..= $memberName a")
+                    if (msymbol == Http.HTTPDate || (
+                            msymbol.name == "Maybe" && msymbol.references.map {
+                                it.symbol
+                            }.contains(Http.HTTPDate)
+                            )
+                    ) {
+                        if (msymbol.name == "Maybe") {
+                            writer.write(
+                                "\"$jsonName\" #{aeson:N}..= ((#{textenc:N}.decodeUtf8 . #N.formatHTTPDate) #{functor:N}.<$> $memberName a)",
+                                Http.HTTPDate
+                            )
+                        } else {
+                            writer.write(
+                                "\"$jsonName\" #{aeson:N}..= (#{textenc:N}.decodeUtf8 $ #N.formatHTTPDate $ $memberName a)",
+                                Http.HTTPDate
+                            )
+                        }
+                    } else {
+                        writer.write("\"$jsonName\" #{aeson:N}..= $memberName a")
+                    }
                 }
                 writer.write("]")
             }

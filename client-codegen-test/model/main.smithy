@@ -63,6 +63,12 @@ operation GetMenu {
     }
 }
 
+@timestampFormat("date-time")
+timestamp DateTime
+
+@timestampFormat("http-date")
+timestamp HttpDateTime
+
 // Post the menu
 @http(method: "POST", uri: "/menu/{some}?myQuery=123")
 operation PostMenu {
@@ -80,6 +86,14 @@ operation PostMenu {
         @httpLabel
         @required
         some: String
+
+        epoch: Timestamp
+
+        dateTime: DateTime
+
+        httpDateTime: HttpDateTime
+
+        document: Document
     }
 
     output := {

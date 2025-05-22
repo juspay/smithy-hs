@@ -12,12 +12,14 @@ import qualified Data.Aeson
 import qualified Data.ByteString
 import qualified Data.Either
 import qualified Data.Function
+import qualified Data.Functor
 import qualified Data.List
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
+import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
@@ -62,8 +64,12 @@ postMenu client inputB = do
 requestPayload :: Com.Example.Model.PostMenuInput.PostMenuInput -> Network.HTTP.Client.RequestBody
 requestPayload input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object
-        [ "item" Data.Aeson..= Com.Example.Model.PostMenuInput.item input
+        [ "dateTime" Data.Aeson..= Com.Example.Model.PostMenuInput.dateTime input
+        , "item" Data.Aeson..= Com.Example.Model.PostMenuInput.item input
         , "unionItem" Data.Aeson..= Com.Example.Model.PostMenuInput.unionItem input
+        , "document" Data.Aeson..= Com.Example.Model.PostMenuInput.document input
+        , "epoch" Data.Aeson..= Com.Example.Model.PostMenuInput.epoch input
+        , "httpDateTime" Data.Aeson..= ((Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate) Data.Functor.<$> Com.Example.Model.PostMenuInput.httpDateTime input)
         ]
     
 
