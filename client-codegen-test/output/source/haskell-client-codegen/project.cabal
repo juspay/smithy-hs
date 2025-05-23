@@ -19,11 +19,11 @@ library
                         Com.Example.Model.CoffeeItem,
                         Com.Example.Model.PostMenuInput,
                         Com.Example.Model.PostMenuOutput,
-                        Com.Example.Model.GetMenuInput
-    other-modules:      Com.Example.Model.InternalServerError,
+                        Com.Example.Model.GetMenuInput,
                         Com.Example.Command.PostMenu,
-                        Com.Example.Model.CoffeeType,
                         Com.Example.Command.GetMenu,
                         Com.Example.ExampleServiceClient
+    other-modules:      Com.Example.Model.InternalServerError,
+                        Com.Example.Model.CoffeeType
     default-language:   Haskell2010
     default-extensions: OverloadedStrings, TypeApplications

@@ -91,6 +91,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             )
             writer.write(template)
             writer.addExport(functionName)
+            writer.exposeModule()
             writer.popState()
         }
     }
@@ -122,6 +123,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             writer.write("${if (opShape.errors.isNotEmpty()) "| " else ""}BuilderError #{text:T}")
             writer.write("| RequestError #{text:T}")
         }
+        writer.addExport("$operationErrorName(..)")
     }
 
     private fun operationSignatureGenerator(writer: HaskellWriter) {

@@ -28,6 +28,7 @@ class ServiceGenerator<T : HaskellShapeDirective<ServiceShape>> : Consumer<T> {
             val record = ClientRecord(service, directive.symbolProvider()).toRecord()
             writer.writeRecord(record)
             writer.addExport(symbol.name)
+            writer.exposeModule()
             record.fields.forEach { writer.addExport(it.name) }
             BuilderGenerator(record, symbol, writer).run()
         }

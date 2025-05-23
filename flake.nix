@@ -22,17 +22,28 @@
         hpkgs = pkgs.haskell.packages.ghc964;
         codegen-dir = ./client-codegen-test/output/source/haskell-client-codegen;
         haskell-client-codegen = hpkgs.callCabal2nix "haskell-client-codegen" codegen-dir { };
+        hshell = hpkgs.developPackage {
+          root = ./client-codegen-test/hs-it;
+          source-overrides = {
+            test-client-sdk = codegen-dir;
+          };
+          modifier = drv: pkgs.haskell.lib.addBuildTools drv (with hpkgs; [
+            cabal-install
+            ## FIXME HLS build is failing on darwin-arm.
+            # haskell-language-server
+          ]);
+        };
       in
       {
-        devShells.default = pkgs.mkShell {
-          buildInputs = [
+        devShells.default = hshell.env.overrideAttrs (old:  {
+          buildInputs = (old.buildInputs or []) ++ [
             gradle
             pkgs.jdk17
           ];
-          shellHook = ''
+          shellHook = (old.shellHook or "") + ''
             export JAVA_HOME=${pkgs.jdk17}
           '';
-        };
+        });
         checks = {
           client-codegen = haskell-client-codegen;
         };

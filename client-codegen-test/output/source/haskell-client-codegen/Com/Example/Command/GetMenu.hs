@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Com.Example.Command.GetMenu (
+    GetMenuError(..),
     getMenu
 ) where
 import qualified Com.Example.ExampleServiceClient
