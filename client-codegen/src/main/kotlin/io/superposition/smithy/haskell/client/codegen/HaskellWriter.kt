@@ -102,6 +102,7 @@ class HaskellWriter(
         putContext("aeson", HaskellSymbol.Aeson)
         putContext("byteString", HaskellSymbol.ByteString)
         putContext("flip", HaskellSymbol.Flip)
+        putContext("and", HaskellSymbol.And)
         putContext("query", Http.Query)
         putContext("httpClient", Http.HttpClient)
     }
@@ -171,6 +172,44 @@ class HaskellWriter(
         putContext("derives", Runnable { writeDerives(record.defaultDerives) })
         openBlock("data ${record.name} = ${record.name} {", "} #{derives:C|}") {
             writeList(record.fields) { super.format("${it.name} :: #T", it.symbol) }
+        }
+    }
+
+    fun newCallChain(template: String, vararg args: Any): CallChain {
+        if (args.isEmpty()) {
+            write(template)
+        } else {
+            write(template, args)
+        }
+        return CallChain(indentLevel + 1)
+    }
+
+    inner class CallChain(private val indentLevel: Int) {
+        val chainFn = HaskellSymbol.And
+        private val buf: MutableList<String> = ArrayList()
+        private var closed = false
+
+        @Throws(IllegalStateException::class)
+        fun chain(template: String, vararg args: Any): CallChain {
+            check(!closed)
+            buf.add(format("#T $template", chainFn, *args))
+            return this
+        }
+
+        override fun toString(): String {
+            val sb = StringBuilder()
+            buf.forEach {
+                repeat(indentLevel) {
+                    sb.append("    ")
+                }
+                sb.appendLine(it)
+            }
+            return sb.toString()
+        }
+
+        fun close() {
+            write(toString())
+            closed = true
         }
     }
 

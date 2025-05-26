@@ -299,24 +299,18 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                             memberShape?.target,
                             MapShape::class.java
                         )
-
-                        writer.openBlock(
-                            "mapParams = #{input:N}.$memberName input",
-                            "",
-                        ) {
-                            writer.write("#{flip:T} #{maybe:N}.fromMaybe #{map:N}.empty")
-                            writer.write("#{flip:T} #{map:N}.toList")
-                            writer.write(
-                                "#{flip:T} (#{list:N}.filter (\\(k, _) -> not $ #{list:N}.any (== k) reservedParams))"
+                        val cc = writer.newCallChain("mapParams = #{input:N}.$memberName input")
+                            .chain("#{maybe:N}.fromMaybe #{map:N}.empty")
+                            .chain("#{map:N}.toList")
+                            .chain("#{list:N}.filter (\\(k, _) -> not $ #{list:N}.any (== k) reservedParams)")
+                        if (target.value.isListShape) {
+                            cc.chain(
+                                "#{list:N}.concatMap (\\(k, v) -> #{list:N}.map (\\x -> (k, #{maybe:N}.Just x)) v)"
                             )
-                            if (target.value.isListShape) {
-                                writer.write(
-                                    "#{flip:T} (#{list:N}.concatMap (\\(k, v) -> #{list:N}.map (\\x -> (k, #{maybe:N}.Just x)) v))"
-                                )
-                            } else {
-                                writer.write("#{flip:T} (#{list:N}.map (\\(k, v) -> (k, #{maybe:N}.Just v)))")
-                            }
+                        } else {
+                            cc.chain("#{list:N}.map (\\(k, v) -> (k, #{maybe:N}.Just v))")
                         }
+                        cc.close()
                     }
 
                     writer.openBlock("staticParams = []", "") {
