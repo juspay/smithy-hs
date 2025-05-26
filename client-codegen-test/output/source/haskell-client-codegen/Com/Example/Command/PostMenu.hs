@@ -79,10 +79,10 @@ requestQuery input =
             ]
         
         mapParams = Com.Example.Model.PostMenuInput.queryParams input
-            Data.Function.& Data.Maybe.fromMaybe Data.Map.empty
-            Data.Function.& Data.Map.toList
-            Data.Function.& (Data.List.filter (\(k, _) -> not $ Data.List.any (== k) reservedParams))
-            Data.Function.& (Data.List.map (\(k, v) -> (k, Data.Maybe.Just v)))
+                    Data.Function.& Data.Maybe.fromMaybe Data.Map.empty
+                    Data.Function.& Data.Map.toList
+                    Data.Function.& Data.List.filter (\(k, _) -> not $ Data.List.any (== k) reservedParams)
+                    Data.Function.& Data.List.map (\(k, v) -> (k, Data.Maybe.Just v))
         
         staticParams = []
             ++[("myQuery", Data.Maybe.Just "123")]

@@ -113,6 +113,7 @@ object HaskellSymbol {
         .name("&")
         .namespace("Data.Function", ".")
         .build()
+    val And = Flip
 
     val SomeException: Symbol = Symbol.builder()
         .name("SomeException")
