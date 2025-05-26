@@ -9,6 +9,7 @@ import java.util.logging.Logger
 class HaskellImportContainer(private val modName: String) : ImportContainer {
     private val imports: MutableMap<String, MutableSet<Symbol>> = HashMap()
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
+
     companion object {
         private val expectionList = listOf(
             "()",
@@ -36,8 +37,8 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
 
     override fun toString(): String {
         println("${imports.values}")
-        val orderedImports = imports.values.filter { s -> s.size == 1 }
-            .map { s -> s.first() }
+        val orderedImports = imports.values
+            .flatten()
             .filter { s -> s.namespace != modName }
             .map { s -> "import qualified ${s.namespace}" }
             .toCollection(TreeSet())

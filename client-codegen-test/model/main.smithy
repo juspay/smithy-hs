@@ -83,7 +83,14 @@ operation PostMenu {
     }
 
     output := {
+        @required
         items: CoffeeItem
+
+        @httpPrefixHeaders("x-some-header-")
+        resHeaders: MapOfString
+
+        @httpHeader("x-config-tag")
+        config_tag: String
     }
 }
 
