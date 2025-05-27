@@ -61,4 +61,12 @@ object CodegenUtils {
             else -> Http.Custom
         }
     }
+
+    fun getSetterName(memberName: String): String {
+        return CaseUtils.toCamelCase("set $memberName")
+    }
+
+    fun String.dq(): String {
+        return "\"$this\""
+    }
 }

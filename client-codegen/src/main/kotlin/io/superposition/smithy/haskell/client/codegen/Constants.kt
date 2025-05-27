@@ -17,9 +17,21 @@ object HaskellDependencies {
         .packageName("network-uri")
         .version(CodegenUtils.depRange("2.6", "2.7"))
         .build()
+    val CaseInsensitive = SymbolDependency.builder()
+        .packageName("case-insensitive")
+        .version(CodegenUtils.depRange("1.2.1", "1.3"))
+        .build()
 }
 
 object HaskellSymbol {
+    object Misc {
+        val CaseInsensitive: Symbol = Symbol.builder()
+            .name("CI")
+            .namespace("Data.CaseInsensitive", ".")
+            .dependencies(HaskellDependencies.CaseInsensitive)
+            .build()
+    }
+
     val IO: Symbol = Symbol.builder()
         .name("IO")
         .build()
@@ -70,6 +82,9 @@ object HaskellSymbol {
                 .build()
         )
         .build()
+    val ParseEither = Symbol.builder().name("parseEither")
+        .namespace("Data.Aeson.Types", ".")
+        .build()
     val ToJSON: Symbol = Aeson.toBuilder().name("ToJSON")
         .build()
     val JsonString: Symbol = Aeson.toBuilder().name("String").build()
@@ -77,7 +92,8 @@ object HaskellSymbol {
         .name("object")
         .build()
 
-    val TextPack: Symbol = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
+    val TextPack: Symbol =
+        Symbol.builder().name("pack").namespace("Data.Text", ".").build()
 
     val EncodingUtf8: Symbol = Symbol.builder()
         .name("encodeUtf8")
@@ -87,6 +103,17 @@ object HaskellSymbol {
     val ByteString: Symbol = Symbol.builder()
         .name("ByteString")
         .namespace("Data.ByteString", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("bytestring")
+                .version(CodegenUtils.depRange("0.10.12", "0.12.0"))
+                .build()
+        )
+        .build()
+
+    val LazyByteString: Symbol = Symbol.builder()
+        .name("ByteString")
+        .namespace("Data.ByteString.Lazy", ".")
         .dependencies(
             SymbolDependency.builder()
                 .packageName("bytestring")
@@ -133,6 +160,13 @@ object HaskellSymbol {
             .dependencies(HaskellDependencies.NetworkUri)
             .build()
     }
+}
+
+object BiFunctor {
+    val first = Symbol.builder()
+        .name("first")
+        .namespace("Data.Bifunctor", ".")
+        .build()
 }
 
 object Http {

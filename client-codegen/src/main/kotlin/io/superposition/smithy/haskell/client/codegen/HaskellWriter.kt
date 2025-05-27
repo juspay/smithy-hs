@@ -101,10 +101,12 @@ class HaskellWriter(
         putContext("map", HaskellSymbol.Map)
         putContext("aeson", HaskellSymbol.Aeson)
         putContext("byteString", HaskellSymbol.ByteString)
+        putContext("lazyByteString", HaskellSymbol.LazyByteString)
         putContext("flip", HaskellSymbol.Flip)
         putContext("and", HaskellSymbol.And)
         putContext("query", Http.Query)
         putContext("httpClient", Http.HttpClient)
+        putContext("first", BiFunctor.first)
     }
 
     private fun dependencyFormatter(type: Any, ignored: String): String {
@@ -120,6 +122,7 @@ class HaskellWriter(
             is Symbol -> {
                 return renderSymbol(sym).joinToString(" ")
             }
+
             else -> error("$sym is not a Symbol.")
         }
     }
@@ -151,7 +154,7 @@ class HaskellWriter(
         }
     }
 
-    fun <T>writeList(list: List<T>, toLine: (T) -> String) {
+    fun <T> writeList(list: List<T>, toLine: (T) -> String) {
         list.forEachIndexed { i, l ->
             writeInlineWithNoFormatting(toLine(l))
             if (i < list.size - 1) {

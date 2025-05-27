@@ -1,11 +1,11 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
+import io.superposition.smithy.haskell.client.codegen.CodegenUtils
 import io.superposition.smithy.haskell.client.codegen.HaskellWriter
 import io.superposition.smithy.haskell.client.codegen.isMaybe
 import io.superposition.smithy.haskell.client.codegen.language.Record
 import io.superposition.smithy.haskell.client.codegen.toMaybe
 import software.amazon.smithy.codegen.core.Symbol
-import software.amazon.smithy.utils.CaseUtils
 
 class BuilderGenerator(
     val record: Record,
@@ -87,7 +87,7 @@ class BuilderGenerator(
     @Suppress("MaxLineLength")
     private fun builderSetters() {
         builderStateMembers.forEach {
-            val fn = CaseUtils.toCamelCase("set ${it.inputName}")
+            val fn = CodegenUtils.getSetterName(it.inputName)
             writer.addExport(fn)
             writer.putContext("isMaybe", it.inputSymbol.isMaybe())
             writer.write(
