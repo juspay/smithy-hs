@@ -12,7 +12,10 @@ import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.knowledge.HttpBinding
 import software.amazon.smithy.model.knowledge.HttpBindingIndex
 import software.amazon.smithy.model.shapes.MapShape
+import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.shapes.OperationShape
+import software.amazon.smithy.model.traits.HttpHeaderTrait
+import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
 import software.amazon.smithy.model.traits.HttpTrait
 import software.amazon.smithy.model.traits.JsonNameTrait
 
@@ -52,11 +55,14 @@ class RequestBindingGenerator(
     }
 
     override fun run() {
+        writer.pushState()
+        writer.putContext("requestHeaders", HaskellSymbol.Http.RequestHeaders)
         val payloadGeneratorStatus = serializePayloadFn()
         val queryGeneratorStatus = serializeQueryFn()
-        serializeHeadersFn()
+        val headerGeneratorStatus = serializeHeadersFn()
         serializeLabelFn()
-        operationFn(payloadGeneratorStatus, queryGeneratorStatus)
+        operationFn(payloadGeneratorStatus, queryGeneratorStatus, headerGeneratorStatus)
+        writer.popState()
     }
 
     private fun serializePayloadFn(): Boolean {
@@ -108,90 +114,89 @@ class RequestBindingGenerator(
             return false
         }
 
+        val listForEach = { fn: String, isList: Boolean ->
+            if (isList) {
+                "($fn . #{list:N}.concatMap (expandTuple))"
+            } else {
+                fn
+            }
+        }
+
+        val isMemberListShape = { member: MemberShape ->
+            model.expectShape(member.target).isListShape
+        }
+
         writer.write("$fnName :: #{input:T} -> #{byteString:T}")
         writer.openBlock("$fnName input =", "") {
-            writer.write(
-                "#{query:N}.renderQuery True (#{query:N}.queryTextToQuery m)"
-            )
+            writer.openBlock("let", "") {
+                val vars = mutableListOf("staticParams")
+
+                writer.openBlock("staticParams = [", "") {
+                    writer.writeList(literalParams.toList()) { (k, v): Pair<String, String> ->
+                        writer.format("toQueryItem (${k.dq()}, ${v.dq()})")
+                    }
+                    writer.write("]")
+                }
+
+                if (mapBinding != null) {
+                    vars.add("mapParams")
+                    val memberShape = mapBinding.member
+                    val memberName = symbolProvider.toMemberName(memberShape)
+                    val valueMember = model.expectShape(
+                        memberShape?.target,
+                        MapShape::class.java
+                    ).value
+
+                    writer.newCallChain("mapParams = #{input:N}.$memberName input")
+                        .chainIf("#{maybe:N}.maybe [] (#{map:N}.toList)", memberShape.isOptional)
+                        .chainIf("#{map:N}.toList", !memberShape.isOptional)
+                        .chain(
+                            "(#{list:N}.filter (\\(k, _) -> not $ #{list:N}.any (== k) reservedParams))"
+                        )
+                        .chain(listForEach("toQuery", isMemberListShape(valueMember)))
+                        .close()
+                }
+
+                for (param in queryBindings) {
+                    val member = param.member
+                    val name = symbolProvider.toMemberName(member)
+                    val target = model.expectShape(
+                        member?.target
+                    )
+
+                    val query = param.locationName.dq()
+                    val isOfStringType = if (target.isListShape) {
+                        val inner = model.expectShape(
+                            target.asListShape().get().member.target
+                        )
+                        inner.isStringShape
+                    } else {
+                        target.isStringShape
+                    }
+
+                    val varName = "${name}Query"
+                    val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+                    writer.newCallChain("$varName = #{input:N}.$name input", chainFn)
+                        .chainIf("(\\x -> [x])", !target.isListShape)
+                        .chainIf("#{list:N}.map (\\x -> #{text:N}.pack $ show x)", !isOfStringType)
+                        .chain("#{list:N}.map (\\x -> toQueryItem ($query, x))")
+                        .setChainFn(HaskellSymbol.And)
+                        .chainIf("#{maybe:N}.maybe [] (id)", member.isOptional)
+                        .close()
+                }
+
+                writer.write("m = ${vars.joinToString(" ++ ")}")
+                writer.write("in #{query:N}.renderQuery True (#{query:N}.queryTextToQuery m)")
+            }
             writer.openBlock("where", "") {
+                writer.write("toQueryItem (k, v) = (k, #{maybe:N}.Just v)")
+                writer.write("toQuery = #{list:N}.map (toQueryItem)")
+                writer.write("expandTuple (key, values) = #{list:N}.map (\\v -> (key, v)) values")
                 if (mapBinding != null) {
                     writer.openBlock("reservedParams = [", "") {
                         writer.writeList(preloadedParams.toList()) { writer.format(it.dq()) }
                         writer.write("]")
                     }
-
-                    val memberShape = mapBinding.member
-                    val memberName = symbolProvider.toMemberName(memberShape)
-                    val target = model.expectShape(
-                        memberShape?.target,
-                        MapShape::class.java
-                    )
-
-                    writer.openBlock(
-                        "mapParams = #{input:N}.$memberName input",
-                        "",
-                    ) {
-                        writer.write("#{flip:T} #{maybe:N}.fromMaybe #{map:N}.empty")
-                        writer.write("#{flip:T} #{map:N}.toList")
-                        writer.write(
-                            "#{flip:T} (#{list:N}.filter (\\(k, _) -> not $ #{list:N}.any (== k) reservedParams))"
-                        )
-                        if (target.value.isListShape) {
-                            writer.write(
-                                "#{flip:T} (#{list:N}.concatMap (\\(k, v) -> #{list:N}.map (\\x -> (k, #{maybe:N}.Just x)) v))"
-                            )
-                        } else {
-                            writer.write("#{flip:T} (#{list:N}.map (\\(k, v) -> (k, #{maybe:N}.Just v)))")
-                        }
-                    }
-                }
-
-                writer.openBlock("staticParams = [", "") {
-                    writer.writeList(literalParams.toList()) { (k, v): Pair<String, String> ->
-                        writer.format("(${k.dq()}, #{maybe:N}.Just ${v.dq()})")
-                    }
-                    writer.write("]")
-                }
-
-                writer.openBlock("dynamicParams = []", "") {
-                    for (param in queryBindings) {
-                        val memberShape = param.member
-                        val memberName = symbolProvider.toMemberName(memberShape)
-                        val target = model.expectShape(
-                            memberShape?.target
-                        )
-
-                        val query = param.locationName.dq()
-                        val isOfStringType = if (target.isListShape) {
-                            val inner = model.expectShape(
-                                target.asListShape().get().member.target
-                            )
-                            inner.isStringShape
-                        } else {
-                            target.isStringShape
-                        }
-                        if (target.isListShape) {
-                            val inner =
-                                if (isOfStringType) "x" else "#{text:N}.pack $ show x"
-                            writer.write(
-                                "++ [(#{list:N}.concatMap (\\x -> ($query, #{maybe:N}.Just ($inner))) (#{input:N}.$memberName input))]"
-                            )
-                        } else {
-                            val inner =
-                                if (isOfStringType) "#{input:N}.$memberName input" else "#{text:N}.pack $ show (#{input:N}.$memberName input)"
-                            writer.write(
-                                "++ [($query, #{maybe:N}.Just ($inner))]"
-                            )
-                        }
-                    }
-                }
-
-                if (mapBinding != null) {
-                    writer.write(
-                        "m = staticParams ++ mapParams ++ dynamicParams"
-                    )
-                } else {
-                    writer.write("m = staticParams ++ dynamicParams")
                 }
             }
         }
@@ -209,7 +214,7 @@ class RequestBindingGenerator(
             HttpBinding.Location.LABEL
         )
 
-        // Handle implement toString for each type
+        // TODO handle non string labels
         writer.write("$fnName :: #{input:T} -> #{byteString:T}")
         writer.openBlock("$fnName input = ", "") {
             writer.write("#T _path", EncodingUtf8)
@@ -228,9 +233,73 @@ class RequestBindingGenerator(
         }
     }
 
+    private fun serializeHeadersFn(): Boolean {
+        val fnName =
+            bindingSerializeFnName(operationSymbol.name, HttpBinding.Location.HEADER)
+        val headerBindings = getBindings(HttpBinding.Location.HEADER)
+        val prefixHeaderBindings =
+            getBindings(HttpBinding.Location.PREFIX_HEADERS)
+        if (headerBindings.isEmpty() && prefixHeaderBindings.isEmpty()) {
+            return false
+        }
+
+        // TODO handle non string labels
+        writer.write("$fnName :: #{input:T} -> #{requestHeaders:T}")
+        writer.openBlock("$fnName input =", "") {
+            val vars = mutableListOf<String>()
+            writer.openBlock("let ", "") {
+                for (binding in headerBindings) {
+                    val member = binding.member
+                    val hName = (binding.bindingTrait.get() as HttpHeaderTrait).value
+                    val name = member.memberName
+
+                    val varName = "${name}Header"
+                    val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+
+                    writer.newCallChain("$varName = (#{input:N}.$name input)", chainFn)
+                        .chain("\\x -> [(${hName.dq()}, #{encoding:N}.encodeUtf8 x)]")
+                        .chainIf("#{just:T}", !member.isOptional)
+                        .close()
+                    vars.add(varName)
+                }
+
+                for (binding in prefixHeaderBindings) {
+                    val member = binding.member
+                    val hPrefix = (binding.bindingTrait.get() as HttpPrefixHeadersTrait).value
+                    val name = member.memberName
+
+                    val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+
+                    val varName = "${name}Header"
+                    writer.newCallChain("$varName = #{input:N}.$name input", chainFn)
+                        .chain("#{map:N}.toList")
+                        .chain(
+                            "#{list:N}.map (\\(n, v) -> (toHeaderName ${hPrefix.dq()} n, #{encoding:N}.encodeUtf8 v))"
+                        )
+                        .chainIf("#{just:T}", !member.isOptional)
+                        .close()
+                    vars.add(varName)
+                }
+
+                writer.openBlock("in #{list:N}.concat $ #{maybe:N}.catMaybes [", "") {
+                    writer.writeList(vars) { it }
+                    writer.write("]")
+                }
+            }
+            if (prefixHeaderBindings.isNotEmpty()) {
+                writer.openBlock("where", "") {
+                    writer.write("toHeaderName prefix name = #{ci:N}.mk $ #{encoding:N}.encodeUtf8 $ prefix <> name")
+                }
+            }
+        }
+
+        return true
+    }
+
     private fun operationFn(
         payloadGeneratorStatus: Boolean,
         queryGeneratorStatus: Boolean,
+        headerGeneratorStatus: Boolean
     ) {
         val operationInput =
             inputSymbol.toBuilder().name("${inputSymbol.name}Builder")
@@ -249,6 +318,8 @@ class RequestBindingGenerator(
             bindingSerializeFnName(operationSymbol.name, HttpBinding.Location.QUERY)
         val labelSerializeFn =
             bindingSerializeFnName(operationSymbol.name, HttpBinding.Location.LABEL)
+        val headerSerializeFn =
+            bindingSerializeFnName(operationSymbol.name, HttpBinding.Location.HEADER)
 
         writer.write(
             "$functionName :: #{client:T} -> #T () -> #T",
@@ -302,14 +373,16 @@ class RequestBindingGenerator(
                                     Http.rqBody
                                 )
                             }
+                            if (headerGeneratorStatus) {
+                                writer.write(
+                                    ", #T = $headerSerializeFn input",
+                                    Http.rqHeaders
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    private fun serializeHeadersFn(): Boolean {
-        return true
     }
 }

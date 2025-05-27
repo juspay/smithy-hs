@@ -4,17 +4,25 @@
 module Com.Example.Model.PostMenuInput (
     setItem,
     setUnionitem,
-    setQueryparams,
+    setListqueryparams,
     setPage,
+    setExperimenttype,
+    setStatus,
     setSome,
+    setTags,
+    setVersions,
     build,
     PostMenuInputBuilder,
     PostMenuInput,
     item,
     unionItem,
-    queryParams,
+    listQueryParams,
     page,
-    some
+    experimentType,
+    status,
+    some,
+    tags,
+    versions
 ) where
 import qualified Com.Example.Model.CoffeeItem
 import qualified Com.Example.Model.SomeUnion
@@ -31,9 +39,13 @@ import qualified GHC.Generics
 data PostMenuInput = PostMenuInput {
     item :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
     unionItem :: Data.Maybe.Maybe Com.Example.Model.SomeUnion.SomeUnion,
-    queryParams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
+    listQueryParams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text)),
     page :: Data.Maybe.Maybe Integer,
-    some :: Data.Text.Text
+    experimentType :: Data.Text.Text,
+    status :: [] Data.Text.Text,
+    some :: Data.Text.Text,
+    tags :: Data.Maybe.Maybe Data.Text.Text,
+    versions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Generics.Generic
   )
@@ -42,9 +54,13 @@ instance Data.Aeson.ToJSON PostMenuInput where
     toJSON a = Data.Aeson.object
         [ "item" Data.Aeson..= item a
         , "unionItem" Data.Aeson..= unionItem a
-        , "queryParams" Data.Aeson..= queryParams a
+        , "listQueryParams" Data.Aeson..= listQueryParams a
         , "page" Data.Aeson..= page a
+        , "experimentType" Data.Aeson..= experimentType a
+        , "status" Data.Aeson..= status a
         , "some" Data.Aeson..= some a
+        , "tags" Data.Aeson..= tags a
+        , "versions" Data.Aeson..= versions a
         ]
     
 
@@ -53,9 +69,13 @@ instance Data.Aeson.ToJSON PostMenuInput where
 data PostMenuInputBuilderState = PostMenuInputBuilderState {
     itemBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
     unionItemBuilderState :: Data.Maybe.Maybe Com.Example.Model.SomeUnion.SomeUnion,
-    queryParamsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
+    listQueryParamsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text)),
     pageBuilderState :: Data.Maybe.Maybe Integer,
-    someBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    experimentTypeBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    statusBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    someBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    versionsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Generics.Generic
   )
@@ -64,9 +84,13 @@ defaultBuilderState :: PostMenuInputBuilderState
 defaultBuilderState = PostMenuInputBuilderState {
     itemBuilderState = Data.Maybe.Nothing,
     unionItemBuilderState = Data.Maybe.Nothing,
-    queryParamsBuilderState = Data.Maybe.Nothing,
+    listQueryParamsBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
-    someBuilderState = Data.Maybe.Nothing
+    experimentTypeBuilderState = Data.Maybe.Nothing,
+    statusBuilderState = Data.Maybe.Nothing,
+    someBuilderState = Data.Maybe.Nothing,
+    tagsBuilderState = Data.Maybe.Nothing,
+    versionsBuilderState = Data.Maybe.Nothing
 }
 
 newtype PostMenuInputBuilder a = PostMenuInputBuilder {
@@ -98,32 +122,56 @@ setUnionitem :: Data.Maybe.Maybe Com.Example.Model.SomeUnion.SomeUnion -> PostMe
 setUnionitem value =
    PostMenuInputBuilder (\s -> (s { unionItemBuilderState = value }, ()))
 
-setQueryparams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> PostMenuInputBuilder ()
-setQueryparams value =
-   PostMenuInputBuilder (\s -> (s { queryParamsBuilderState = value }, ()))
+setListqueryparams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text ([] Data.Text.Text)) -> PostMenuInputBuilder ()
+setListqueryparams value =
+   PostMenuInputBuilder (\s -> (s { listQueryParamsBuilderState = value }, ()))
 
 setPage :: Data.Maybe.Maybe Integer -> PostMenuInputBuilder ()
 setPage value =
    PostMenuInputBuilder (\s -> (s { pageBuilderState = value }, ()))
 
+setExperimenttype :: Data.Text.Text -> PostMenuInputBuilder ()
+setExperimenttype value =
+   PostMenuInputBuilder (\s -> (s { experimentTypeBuilderState = Data.Maybe.Just value }, ()))
+
+setStatus :: [] Data.Text.Text -> PostMenuInputBuilder ()
+setStatus value =
+   PostMenuInputBuilder (\s -> (s { statusBuilderState = Data.Maybe.Just value }, ()))
+
 setSome :: Data.Text.Text -> PostMenuInputBuilder ()
 setSome value =
    PostMenuInputBuilder (\s -> (s { someBuilderState = Data.Maybe.Just value }, ()))
+
+setTags :: Data.Maybe.Maybe Data.Text.Text -> PostMenuInputBuilder ()
+setTags value =
+   PostMenuInputBuilder (\s -> (s { tagsBuilderState = value }, ()))
+
+setVersions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> PostMenuInputBuilder ()
+setVersions value =
+   PostMenuInputBuilder (\s -> (s { versionsBuilderState = value }, ()))
 
 build :: PostMenuInputBuilder () -> Data.Either.Either Data.Text.Text PostMenuInput
 build builder = do
     let (st, _) = runPostMenuInputBuilder builder defaultBuilderState
     item' <- Data.Either.Right (itemBuilderState st)
     unionItem' <- Data.Either.Right (unionItemBuilderState st)
-    queryParams' <- Data.Either.Right (queryParamsBuilderState st)
+    listQueryParams' <- Data.Either.Right (listQueryParamsBuilderState st)
     page' <- Data.Either.Right (pageBuilderState st)
+    experimentType' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.PostMenuInput.PostMenuInput.experimentType is a required property.") Data.Either.Right (experimentTypeBuilderState st)
+    status' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.PostMenuInput.PostMenuInput.status is a required property.") Data.Either.Right (statusBuilderState st)
     some' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.PostMenuInput.PostMenuInput.some is a required property.") Data.Either.Right (someBuilderState st)
+    tags' <- Data.Either.Right (tagsBuilderState st)
+    versions' <- Data.Either.Right (versionsBuilderState st)
     Data.Either.Right (PostMenuInput { 
         item = item',
         unionItem = unionItem',
-        queryParams = queryParams',
+        listQueryParams = listQueryParams',
         page = page',
-        some = some'
+        experimentType = experimentType',
+        status = status',
+        some = some',
+        tags = tags',
+        versions = versions'
     })
 
 

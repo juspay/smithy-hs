@@ -141,6 +141,10 @@ object HaskellSymbol {
         .namespace("Data.Function", ".")
         .build()
     val And = Flip
+    val FlippedFmap: Symbol = Symbol.builder()
+        .name("<&>")
+        .namespace("Data.Functor", ".")
+        .build()
 
     val SomeException: Symbol = Symbol.builder()
         .name("SomeException")
@@ -158,6 +162,11 @@ object HaskellSymbol {
             .name("URI")
             .namespace("Network.URI", ".")
             .dependencies(HaskellDependencies.NetworkUri)
+            .build()
+
+        val RequestHeaders = Symbol.builder()
+            .name("RequestHeaders")
+            .namespace("Network.HTTP.Types.Header", ".")
             .build()
     }
 }

@@ -178,17 +178,16 @@ class HaskellWriter(
         }
     }
 
-    fun newCallChain(template: String, vararg args: Any): CallChain {
+    fun newCallChain(template: String, chainFn: Symbol = HaskellSymbol.And, vararg args: Any): CallChain {
         if (args.isEmpty()) {
             write(template)
         } else {
             write(template, args)
         }
-        return CallChain(indentLevel + 1)
+        return CallChain(indentLevel + 1, chainFn)
     }
 
-    inner class CallChain(private val indentLevel: Int) {
-        val chainFn = HaskellSymbol.And
+    inner class CallChain(private val indentLevel: Int, private var chainFn: Symbol) {
         private val buf: MutableList<String> = ArrayList()
         private var closed = false
 
@@ -196,6 +195,22 @@ class HaskellWriter(
         fun chain(template: String, vararg args: Any): CallChain {
             check(!closed)
             buf.add(format("#T $template", chainFn, *args))
+            return this
+        }
+
+        @Throws(IllegalStateException::class)
+        fun setChainFn(chainFn: Symbol): CallChain {
+            check(!closed)
+            this.chainFn = chainFn
+            return this
+        }
+
+        @Throws(IllegalStateException::class)
+        fun chainIf(template: String, condition: Boolean, vararg args: Any): CallChain {
+            check(!closed)
+            if (condition) {
+                buf.add(format("#T $template", chainFn, *args))
+            }
             return this
         }
 

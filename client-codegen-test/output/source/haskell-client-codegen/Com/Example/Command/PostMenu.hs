@@ -26,6 +26,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
+import qualified Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
@@ -45,27 +46,63 @@ serPostMenuPAYLOAD input =
 
 serPostMenuQUERY :: Com.Example.Model.PostMenuInput.PostMenuInput -> Data.ByteString.ByteString
 serPostMenuQUERY input =
-    Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
+    let
+        staticParams = [
+            toQueryItem ("myQuery", "123")
+            ]
+        
+        mapParams = Com.Example.Model.PostMenuInput.listQueryParams input
+                    Data.Function.& Data.Maybe.maybe [] (Data.Map.toList)
+                    Data.Function.& (Data.List.filter (\(k, _) -> not $ Data.List.any (== k) reservedParams))
+                    Data.Function.& (toQuery . Data.List.concatMap (expandTuple))
+        
+        pageQuery = Com.Example.Model.PostMenuInput.page input
+                    Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (\x -> Data.Text.pack $ show x)
+                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("pageQuery", x))
+                    Data.Function.& Data.Maybe.maybe [] (id)
+        
+        experimentTypeQuery = Com.Example.Model.PostMenuInput.experimentType input
+                    Data.Function.& (\x -> [x])
+                    Data.Function.& Data.List.map (\x -> toQueryItem ("type", x))
+        
+        statusQuery = Com.Example.Model.PostMenuInput.status input
+                    Data.Function.& Data.List.map (\x -> toQueryItem ("status", x))
+        
+        m = staticParams ++ mapParams
+        in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
+    
     where
+        toQueryItem (k, v) = (k, Data.Maybe.Just v)
+        toQuery = Data.List.map (toQueryItem)
+        expandTuple (key, values) = Data.List.map (\v -> (key, v)) values
         reservedParams = [
             "myQuery",
-            "pageQuery"
+            "pageQuery",
+            "type",
+            "status"
             ]
         
-        mapParams = Com.Example.Model.PostMenuInput.queryParams input
-            Data.Function.& Data.Maybe.fromMaybe Data.Map.empty
-            Data.Function.& Data.Map.toList
-            Data.Function.& (Data.List.filter (\(k, _) -> not $ Data.List.any (== k) reservedParams))
-            Data.Function.& (Data.List.map (\(k, v) -> (k, Data.Maybe.Just v)))
+    
+
+serPostMenuHEADER :: Com.Example.Model.PostMenuInput.PostMenuInput -> Network.HTTP.Types.Header.RequestHeaders
+serPostMenuHEADER input =
+    let 
+        tagsHeader = (Com.Example.Model.PostMenuInput.tags input)
+                    Data.Functor.<&> \x -> [("x-my-header", Data.Text.Encoding.encodeUtf8 x)]
         
-        staticParams = [
-            ("myQuery", Data.Maybe.Just "123")
+        versionsHeader = Com.Example.Model.PostMenuInput.versions input
+                    Data.Functor.<&> Data.Map.toList
+                    Data.Functor.<&> Data.List.map (\(n, v) -> (toHeaderName "x-useless-" n, Data.Text.Encoding.encodeUtf8 v))
+        
+        in Data.List.concat $ Data.Maybe.catMaybes [
+            tagsHeader,
+            versionsHeader
             ]
         
-        dynamicParams = []
-            ++ [("pageQuery", Data.Maybe.Just (Data.Text.pack $ show (Com.Example.Model.PostMenuInput.page input)))]
-        
-        m = staticParams ++ mapParams ++ dynamicParams
+    
+    where
+        toHeaderName prefix name = Data.CaseInsensitive.mk $ Data.Text.Encoding.encodeUtf8 $ prefix <> name
     
 
 serPostMenuLABEL :: Com.Example.Model.PostMenuInput.PostMenuInput -> Data.ByteString.ByteString
@@ -103,6 +140,7 @@ postMenu client inputB = do
                     , Network.HTTP.Client.method = method
                     , Network.HTTP.Client.queryString = serPostMenuQUERY input
                     , Network.HTTP.Client.requestBody = serPostMenuPAYLOAD input
+                    , Network.HTTP.Client.requestHeaders = serPostMenuHEADER input
                 }
             
         
