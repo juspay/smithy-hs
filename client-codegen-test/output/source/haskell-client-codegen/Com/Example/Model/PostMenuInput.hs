@@ -65,6 +65,20 @@ instance Data.Aeson.ToJSON PostMenuInput where
     
 
 
+instance Data.Aeson.FromJSON PostMenuInput where
+    parseJSON = Data.Aeson.withObject "PostMenuInput" $ \v -> PostMenuInput
+        Data.Functor.<$> v Data.Aeson..: "item"
+        Control.Applicative.<*> v Data.Aeson..: "unionItem"
+        Control.Applicative.<*> v Data.Aeson..: "listQueryParams"
+        Control.Applicative.<*> v Data.Aeson..: "page"
+        Control.Applicative.<*> v Data.Aeson..: "experimentType"
+        Control.Applicative.<*> v Data.Aeson..: "status"
+        Control.Applicative.<*> v Data.Aeson..: "some"
+        Control.Applicative.<*> v Data.Aeson..: "tags"
+        Control.Applicative.<*> v Data.Aeson..: "versions"
+    
+
+
 
 data PostMenuInputBuilderState = PostMenuInputBuilderState {
     itemBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,

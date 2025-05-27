@@ -88,6 +88,7 @@ class HaskellWriter(
     private fun putDefaultContext() {
         putContext("functor", HaskellSymbol.Functor)
         putContext("applicative", HaskellSymbol.Applicative)
+        putContext("alternative", HaskellSymbol.Alternative)
         putContext("monad", HaskellSymbol.Monad)
         putContext("either", HaskellSymbol.Either)
         putContext("maybe", HaskellSymbol.Maybe)

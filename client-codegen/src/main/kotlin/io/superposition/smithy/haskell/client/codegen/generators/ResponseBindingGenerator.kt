@@ -176,8 +176,7 @@ class ResponseBindingGenerator(
                         "#{aeson:N}..:"
                     }
 
-                    // TODO: Handle structure, union, and enum deserialization
-                    writer.write("#{parseEither:T} (flip (undefined) ${jsonName.dq()}) responseObject")
+                    writer.write("#{parseEither:T} (flip ($parser) ${jsonName.dq()}) responseObject")
                     writer.openBlock("#{flip:T} \\case", "") {
                         writer.write(
                             "#{left:T} err -> #{left:T} (#{text:N}.pack err)"

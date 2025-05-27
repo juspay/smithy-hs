@@ -6,14 +6,7 @@ import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.shapes.OperationShape
 import software.amazon.smithy.model.shapes.Shape
 import software.amazon.smithy.model.shapes.StructureShape
-import software.amazon.smithy.model.traits.HttpHeaderTrait
-import software.amazon.smithy.model.traits.HttpLabelTrait
-import software.amazon.smithy.model.traits.HttpPayloadTrait
-import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
-import software.amazon.smithy.model.traits.HttpQueryParamsTrait
-import software.amazon.smithy.model.traits.HttpQueryTrait
-import software.amazon.smithy.model.traits.HttpResponseCodeTrait
-import software.amazon.smithy.model.traits.InputTrait
+import software.amazon.smithy.model.traits.*
 
 fun Shape.isHttpHeader(): Boolean = this.hasTrait(HttpHeaderTrait.ID)
 fun Shape.isHttpQueryMap(): Boolean = this.hasTrait(HttpQueryParamsTrait.ID)
@@ -31,4 +24,12 @@ fun OperationShape.inputShape(model: Model): StructureShape {
 
 fun StructureShape.expectMember(member: String): MemberShape {
     return this.getMember(member).orElseThrow { CodegenException("$member did not exist on $this") }
+}
+
+fun MemberShape.jsonName(): String {
+    return this.getTrait(JsonNameTrait::class.java).map { it.value }.orElse(this.memberName)
+}
+
+fun MemberShape.enumValue(): String {
+    return this.getTrait(EnumValueTrait::class.java).map { it.expectStringValue() }.orElse(this.memberName)
 }
