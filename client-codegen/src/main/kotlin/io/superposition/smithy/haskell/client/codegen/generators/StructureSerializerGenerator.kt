@@ -25,7 +25,7 @@ class StructureSerializerGenerator(
                         writer.writeInline(", ")
                     }
 
-                    writer.write("${member.jsonName().dq()} #{aeson:N}..= ${member.memberName} a")
+                    writer.write("${member.jsonName.dq} #{aeson:N}..= ${member.memberName} a")
                 }
                 writer.write("]")
             }

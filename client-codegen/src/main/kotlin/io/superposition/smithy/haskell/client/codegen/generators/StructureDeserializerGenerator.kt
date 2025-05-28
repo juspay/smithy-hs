@@ -15,17 +15,20 @@ class StructureDeserializerGenerator(
         val structName = symbol.name
         writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {
             if (members.isEmpty()) {
-                writer.write("parseJSON = #{aeson:N}.withObject ${structName.dq()} $ \\_ -> pure $ $structName")
+                writer.write("parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\_ -> pure $ $structName")
                 return@openBlock
             }
-            writer.openBlock("parseJSON = #{aeson:N}.withObject ${structName.dq()} $ \\v -> $structName", "") {
+            writer.openBlock(
+                "parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\v -> $structName",
+                ""
+            ) {
                 for ((i, member) in members.withIndex()) {
                     if (i == 0) {
                         writer.writeInline("#{functor:N}.<$> ")
                     } else {
                         writer.writeInline("#{applicative:N}.<*> ")
                     }
-                    writer.write("v #{aeson:N}..: ${member.jsonName().dq()}")
+                    writer.write("v #{aeson:N}..: ${member.jsonName.dq}")
                 }
             }
         }

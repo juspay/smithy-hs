@@ -17,7 +17,8 @@ import software.amazon.smithy.utils.CaseUtils
 import java.util.function.Consumer
 
 @Suppress("MaxLineLength")
-class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSettings>> : Consumer<T> {
+class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSettings>> :
+    Consumer<T> {
     companion object {
         private fun getConstructorName(
             member: MemberShape
@@ -43,10 +44,22 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             writer.putContext("shape", directive.symbol())
             writer.putContext(
                 "constructors",
-                Runnable { generateConstructor(writer, directive.symbolProvider(), union) }
+                Runnable {
+                    generateConstructor(
+                        writer,
+                        directive.symbolProvider(),
+                        union
+                    )
+                }
             )
-            writer.putContext("serializer", Runnable { generateSerializer(writer, union, directive.symbol()) })
-            writer.putContext("deserializer", Runnable { generateDeserializer(writer, union, directive.symbol()) })
+            writer.putContext(
+                "serializer",
+                Runnable { generateSerializer(writer, union, directive.symbol()) }
+            )
+            writer.putContext(
+                "deserializer",
+                Runnable { generateDeserializer(writer, union, directive.symbol()) }
+            )
             writer.write(template)
             writer.popState()
             writer.exposeModule()
@@ -76,9 +89,9 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
     ) {
         writer.openBlock("instance #{aeson:N}.ToJSON ${symbol.name} where", "") {
             for (member in shape.members()) {
-                val jsonName = member.jsonName()
+                val jsonName = member.jsonName
                 val constructor = getConstructorName(member)
-                writer.write("toJSON ($constructor a) = #{aeson:N}.object [ ${jsonName.dq()} #{aeson:N}..= a ]")
+                writer.write("toJSON ($constructor a) = #{aeson:N}.object [ ${jsonName.dq} #{aeson:N}..= a ]")
             }
         }
     }
@@ -88,15 +101,19 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
         shape: Shape,
         symbol: Symbol,
     ) {
-        val errMsg = "Could not parse ${symbol.name}. Expected an object with one of keys: ${
-            shape.members().joinToString { it.memberName }
-        }.".dq()
+        val errMsg =
+            "Could not parse ${symbol.name}. Expected an object with one of keys: ${
+                shape.members().joinToString { it.memberName }
+            }.".dq
         val structName = symbol.name
         writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {
-            writer.openBlock("parseJSON = #{aeson:N}.withObject ${structName.dq()} $ \\v ->", "") {
+            writer.openBlock(
+                "parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\v ->",
+                ""
+            ) {
                 for (member in shape.members()) {
                     val constructor = getConstructorName(member)
-                    val jsonName = member.jsonName().dq()
+                    val jsonName = member.jsonName.dq
                     writer.write(
                         "($constructor #{functor:N}.<$> v #{aeson:N}..: $jsonName) #{alternative:N}.<|>"
                     )

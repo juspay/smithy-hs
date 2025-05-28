@@ -133,7 +133,7 @@ class RequestBindingGenerator(
 
                 writer.openBlock("staticParams = [", "") {
                     writer.writeList(literalParams.toList()) { (k, v): Pair<String, String> ->
-                        writer.format("toQueryItem (${k.dq()}, ${v.dq()})")
+                        writer.format("toQueryItem (${k.dq}, ${v.dq})")
                     }
                     writer.write("]")
                 }
@@ -164,7 +164,7 @@ class RequestBindingGenerator(
                         member?.target
                     )
 
-                    val query = param.locationName.dq()
+                    val query = param.locationName.dq
                     val isOfStringType = if (target.isListShape) {
                         val inner = model.expectShape(
                             target.asListShape().get().member.target
@@ -194,7 +194,7 @@ class RequestBindingGenerator(
                 writer.write("expandTuple (key, values) = #{list:N}.map (\\v -> (key, v)) values")
                 if (mapBinding != null) {
                     writer.openBlock("reservedParams = [", "") {
-                        writer.writeList(preloadedParams.toList()) { writer.format(it.dq()) }
+                        writer.writeList(preloadedParams.toList()) { writer.format(it.dq) }
                         writer.write("]")
                     }
                 }
@@ -223,9 +223,9 @@ class RequestBindingGenerator(
                     for (segment in uriSegments) {
                         if (segment.isLabel) {
                             val name = segment.content
-                            writer.write("<> ${pathSep.dq()} <> (#{input:N}.$name input)")
+                            writer.write("<> ${pathSep.dq} <> (#{input:N}.$name input)")
                         } else {
-                            writer.write("<> ${"$pathSep${segment.content}".dq()}")
+                            writer.write("<> ${"$pathSep${segment.content}".dq}")
                         }
                     }
                 }
@@ -257,7 +257,7 @@ class RequestBindingGenerator(
                     val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
 
                     writer.newCallChain("$varName = (#{input:N}.$name input)", chainFn)
-                        .chain("\\x -> [(${hName.dq()}, #{encoding:N}.encodeUtf8 x)]")
+                        .chain("\\x -> [(${hName.dq}, #{encoding:N}.encodeUtf8 x)]")
                         .chainIf("#{just:T}", !member.isOptional)
                         .close()
                     vars.add(varName)
@@ -274,7 +274,7 @@ class RequestBindingGenerator(
                     writer.newCallChain("$varName = #{input:N}.$name input", chainFn)
                         .chain("#{map:N}.toList")
                         .chain(
-                            "#{list:N}.map (\\(n, v) -> (toHeaderName ${hPrefix.dq()} n, #{encoding:N}.encodeUtf8 v))"
+                            "#{list:N}.map (\\(n, v) -> (toHeaderName ${hPrefix.dq} n, #{encoding:N}.encodeUtf8 v))"
                         )
                         .chainIf("#{just:T}", !member.isOptional)
                         .close()

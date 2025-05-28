@@ -69,14 +69,14 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("findHeader ${hName.dq()}")
+                writer.write("findHeader ${hName.dq}")
                 writer.write("#{flip:T} #{maybe:N}.maybe #{nothing:T} (#{aeson:N}.decodeStrict)")
 
                 if (member.isOptional) {
                     writer.write("#{flip:T} #{right:T}")
                 } else {
                     writer.write(
-                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"$name not found in header".dq()}) (#{right:T})"
+                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"$name not found in header".dq}) (#{right:T})"
                     )
                 }
             }
@@ -95,12 +95,12 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("filterHeaderByPrefix ${hPrefix.dq()}")
+                writer.write("filterHeaderByPrefix ${hPrefix.dq}")
                 writer.write(
                     "#{flip:T} #{list:N}.map #C",
                     Runnable {
                         writer.write(
-                            "(\\(n, v) -> (stripPrefix ${hPrefix.dq()} n, #{encoding:N}.decodeUtf8 v))"
+                            "(\\(n, v) -> (stripPrefix ${hPrefix.dq} n, #{encoding:N}.decodeUtf8 v))"
                         )
                     }
                 )
@@ -140,7 +140,7 @@ class ResponseBindingGenerator(
                     writer.write("#{flip:T} #{right:T}")
                 } else {
                     writer.write(
-                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response".dq()}) (#{right:T})"
+                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response".dq}) (#{right:T})"
                     )
                 }
             }
@@ -152,7 +152,7 @@ class ResponseBindingGenerator(
                 writer.write("#{httpClient:N}.responseBody response")
                 writer.write("#{flip:T} #{aeson:N}.decode")
                 writer.write(
-                    "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response body".dq()}) (#{right:T})"
+                    "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response body".dq}) (#{right:T})"
                 )
             }
 
@@ -176,7 +176,7 @@ class ResponseBindingGenerator(
                         "#{aeson:N}..:"
                     }
 
-                    writer.write("#{parseEither:T} (flip ($parser) ${jsonName.dq()}) responseObject")
+                    writer.write("#{parseEither:T} (flip ($parser) ${jsonName.dq}) responseObject")
                     writer.openBlock("#{flip:T} \\case", "") {
                         writer.write(
                             "#{left:T} err -> #{left:T} (#{text:N}.pack err)"

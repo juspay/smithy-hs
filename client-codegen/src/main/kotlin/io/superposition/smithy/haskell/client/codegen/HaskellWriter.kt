@@ -141,15 +141,14 @@ class HaskellWriter(
         return when (sym.references.size) {
             0 -> listOf(sym.relativize(modName))
             else -> {
-                val refs = sym.references
-                    .map {
-                        var rendered = renderSymbol(it.symbol)
-                        if (rendered.size > 1) {
-                            return@map "(" + rendered.joinToString(" ") + ")"
-                        } else {
-                            return@map rendered.joinToString(" ")
-                        }
+                val refs = sym.references.map {
+                    var rendered = renderSymbol(it.symbol)
+                    if (rendered.size > 1) {
+                        return@map "(" + rendered.joinToString(" ") + ")"
+                    } else {
+                        return@map rendered.joinToString(" ")
                     }
+                }
                 listOf(sym.relativize(modName)) + refs
             }
         }
@@ -179,7 +178,11 @@ class HaskellWriter(
         }
     }
 
-    fun newCallChain(template: String, chainFn: Symbol = HaskellSymbol.And, vararg args: Any): CallChain {
+    fun newCallChain(
+        template: String,
+        chainFn: Symbol = HaskellSymbol.And,
+        vararg args: Any
+    ): CallChain {
         if (args.isEmpty()) {
             write(template)
         } else {

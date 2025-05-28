@@ -11,7 +11,8 @@ import java.net.URL
 
 object CodegenUtils {
     // TODO Refer smithy-java for resource loading
-    private final val RESERVED_WORDS_FILE: URL = this.javaClass.getResource("/reserved-words.txt")!!
+    private final val RESERVED_WORDS_FILE: URL =
+        this.javaClass.getResource("/reserved-words.txt")!!
     private final val SHAPE_ESCAPER: ReservedWords = ReservedWordsBuilder()
         .loadCaseInsensitiveWords(RESERVED_WORDS_FILE) { word -> word + "Shape" }
         .build()
@@ -66,7 +67,6 @@ object CodegenUtils {
         return CaseUtils.toCamelCase("set $memberName")
     }
 
-    fun String.dq(): String {
-        return "\"$this\""
-    }
+    val String.dq: String
+        get() = "\"$this\""
 }
