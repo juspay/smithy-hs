@@ -19,6 +19,8 @@ class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
             #{record:C|}
 
             #{serializer:C|}
+            
+            #{deserializer:C|}
 
             #{builder:C|}
             """.trimIndent()
@@ -32,7 +34,11 @@ class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
             writer.putContext("record", Runnable { writer.writeRecord(record) })
             writer.putContext(
                 "serializer",
-                StructureSerializerGenerator(shape.members(), symbol, symbolProvider, writer)
+                StructureSerializerGenerator(shape.members(), symbol, writer)
+            )
+            writer.putContext(
+                "deserializer",
+                StructureDeserializerGenerator(shape.members(), symbol, writer)
             )
             writer.putContext("builder", BuilderGenerator(record, symbol, writer))
             writer.write(template)

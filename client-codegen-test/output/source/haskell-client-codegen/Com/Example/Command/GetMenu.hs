@@ -80,7 +80,7 @@ deserializeResponse response = do
         Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
     
     itemsDocumentE :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem) <-
-        Data.Aeson.Types.parseEither (flip (undefined) "items") responseObject
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "items") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value

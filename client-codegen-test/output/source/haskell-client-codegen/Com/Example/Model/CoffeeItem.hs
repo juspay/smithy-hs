@@ -35,6 +35,13 @@ instance Data.Aeson.ToJSON CoffeeItem where
     
 
 
+instance Data.Aeson.FromJSON CoffeeItem where
+    parseJSON = Data.Aeson.withObject "CoffeeItem" $ \v -> CoffeeItem
+        Data.Functor.<$> v Data.Aeson..: "coffeeType"
+        Control.Applicative.<*> v Data.Aeson..: "description"
+    
+
+
 
 data CoffeeItemBuilderState = CoffeeItemBuilderState {
     ctypeBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeType.CoffeeType,

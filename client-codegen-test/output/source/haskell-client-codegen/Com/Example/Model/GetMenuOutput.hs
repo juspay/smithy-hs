@@ -31,6 +31,12 @@ instance Data.Aeson.ToJSON GetMenuOutput where
     
 
 
+instance Data.Aeson.FromJSON GetMenuOutput where
+    parseJSON = Data.Aeson.withObject "GetMenuOutput" $ \v -> GetMenuOutput
+        Data.Functor.<$> v Data.Aeson..: "items"
+    
+
+
 
 data GetMenuOutputBuilderState = GetMenuOutputBuilderState {
     itemsBuilderState :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem)

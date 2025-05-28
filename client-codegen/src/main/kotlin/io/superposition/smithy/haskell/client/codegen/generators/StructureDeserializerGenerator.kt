@@ -6,28 +6,30 @@ import io.superposition.smithy.haskell.client.codegen.jsonName
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.model.shapes.MemberShape
 
-class StructureSerializerGenerator(
+class StructureDeserializerGenerator(
     private val members: Collection<MemberShape>,
     private val symbol: Symbol,
     private val writer: HaskellWriter,
 ) : Runnable {
     override fun run() {
-        writer.openBlock("instance #{aeson:N}.ToJSON #T where", "", symbol) {
-            writer.openBlock("toJSON a = #{aeson:N}.object", "") {
-                if (members.isEmpty()) {
-                    writer.writeInline("[]")
-                    return@openBlock
-                }
+        val structName = symbol.name
+        writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {
+            if (members.isEmpty()) {
+                writer.write("parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\_ -> pure $ $structName")
+                return@openBlock
+            }
+            writer.openBlock(
+                "parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\v -> $structName",
+                ""
+            ) {
                 for ((i, member) in members.withIndex()) {
                     if (i == 0) {
-                        writer.writeInline("[ ")
+                        writer.writeInline("#{functor:N}.<$> ")
                     } else {
-                        writer.writeInline(", ")
+                        writer.writeInline("#{applicative:N}.<*> ")
                     }
-
-                    writer.write("${member.jsonName.dq} #{aeson:N}..= ${member.memberName} a")
+                    writer.write("v #{aeson:N}..: ${member.jsonName.dq}")
                 }
-                writer.write("]")
             }
         }
     }

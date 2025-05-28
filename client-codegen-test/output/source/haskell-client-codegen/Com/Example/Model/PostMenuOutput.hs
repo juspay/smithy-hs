@@ -40,6 +40,14 @@ instance Data.Aeson.ToJSON PostMenuOutput where
     
 
 
+instance Data.Aeson.FromJSON PostMenuOutput where
+    parseJSON = Data.Aeson.withObject "PostMenuOutput" $ \v -> PostMenuOutput
+        Data.Functor.<$> v Data.Aeson..: "items"
+        Control.Applicative.<*> v Data.Aeson..: "resHeaders"
+        Control.Applicative.<*> v Data.Aeson..: "config_tag"
+    
+
+
 
 data PostMenuOutputBuilderState = PostMenuOutputBuilderState {
     itemsBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,

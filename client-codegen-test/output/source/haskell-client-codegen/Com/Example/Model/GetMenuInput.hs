@@ -24,6 +24,10 @@ instance Data.Aeson.ToJSON GetMenuInput where
         []
 
 
+instance Data.Aeson.FromJSON GetMenuInput where
+    parseJSON = Data.Aeson.withObject "GetMenuInput" $ \_ -> pure $ GetMenuInput
+
+
 
 data GetMenuInputBuilderState = GetMenuInputBuilderState {
 } deriving (

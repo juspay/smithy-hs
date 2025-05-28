@@ -54,6 +54,10 @@ list CoffeeItems {
     member: CoffeeItem
 }
 
+list StringList {
+    member: String
+}
+
 /// Retrieve the menu
 @http(method: "GET", uri: "/menu")
 @readonly
@@ -71,15 +75,31 @@ operation PostMenu {
 
         unionItem: SomeUnion
 
+        // @httpQueryParams
+        // stringQueryParams: MapOfString
         @httpQueryParams
-        queryParams: MapOfString
+        listQueryParams: MapOfListString
 
         @httpQuery("pageQuery")
         page: Integer
 
+        @httpQuery("type")
+        @required
+        experimentType: String
+
+        @httpQuery("status")
+        @required
+        status: StringList
+
         @httpLabel
         @required
         some: String
+
+        @httpHeader("x-my-header")
+        tags: String
+
+        @httpPrefixHeaders("x-useless-")
+        versions: MapOfString
     }
 
     output := {
@@ -97,6 +117,11 @@ operation PostMenu {
 map MapOfString {
     key: String
     value: String
+}
+
+map MapOfListString {
+    key: String
+    value: StringList
 }
 
 // Errors

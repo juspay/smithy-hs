@@ -2,23 +2,23 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
+import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
 import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Eq
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Generic
-import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.JsonString
-import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.TextPack
-import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ToJSON
 import io.superposition.smithy.haskell.client.codegen.HaskellWriter
+import io.superposition.smithy.haskell.client.codegen.enumValue
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
-import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.shapes.Shape
-import software.amazon.smithy.model.traits.EnumValueTrait
 import java.util.function.Consumer
 
 @Suppress("MaxLineLength")
-class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> : Consumer<T> {
+class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> :
+    Consumer<T> {
+    private val defaultDerives = listOf(Generic, Eq)
+
     override fun accept(directive: T) {
         val shape = directive.shape()
         val symbol = directive.symbol()
@@ -31,80 +31,87 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
                 #{derives:C|}
 
             #{serializer:C|}
+            #{deserializer:C|}
             """.trimIndent()
 
             writer.pushState()
             writer.putContext("shape", directive.symbol())
-            writer.putContext("constructors", ConstructorGenerator(writer, shape))
-            writer.putContext("derives", DerivesGenerator(writer))
-            writer.putContext("serializer", SerializerGenerator(writer, shape, directive.symbol()))
+            writer.putContext(
+                "constructors",
+                Runnable { generateConstructors(writer, shape) }
+            )
+            writer.putContext("derives", Runnable { generateDerives(writer) })
+            writer.putContext(
+                "serializer",
+                Runnable { serializerGenerator(writer, shape, directive.symbol()) }
+            )
+            writer.putContext(
+                "deserializer",
+                Runnable { generateDeserializers(writer, shape, symbol) }
+            )
             writer.write(template)
             writer.addExport(symbol.name)
             writer.popState()
         }
     }
 
-    private class ConstructorGenerator(
-        private val writer: HaskellWriter,
-        private val shape: Shape,
-    ) : Runnable {
-        override fun run() {
-            for ((i, member) in shape.members().withIndex()) {
-                if (i == 0) {
-                    writer.write(member.memberName)
-                } else {
-                    writer.write("| ${member.memberName}")
+    private fun generateConstructors(
+        writer: HaskellWriter,
+        shape: Shape,
+    ) {
+        for ((i, member) in shape.members().withIndex()) {
+            if (i == 0) {
+                writer.write(member.memberName)
+            } else {
+                writer.write("| ${member.memberName}")
+            }
+        }
+    }
+
+    private fun generateDerives(writer: HaskellWriter) {
+        writer.openBlock("deriving (", ")") {
+            writer.writeList(defaultDerives) { derive ->
+                writer.format("#T", derive)
+            }
+        }
+    }
+
+    private fun generateDeserializers(
+        writer: HaskellWriter,
+        shape: Shape,
+        symbol: Symbol,
+    ) {
+        val errMsg = "Unknown value for ${symbol.name}: ".dq
+        writer.openBlock("instance #{aeson:N}.FromJSON ${symbol.name} where", "") {
+            writer.openBlock(
+                "parseJSON = #{aeson:N}.withText ${symbol.name.dq} $ \\v ->",
+                ""
+            ) {
+                writer.openBlock("case v of", "") {
+                    for (member in shape.members()) {
+                        val constructor = member.memberName
+                        writer.write(
+                            "${member.enumValue.dq} -> pure $constructor"
+                        )
+                    }
+                    writer.write("_ -> fail $ $errMsg <> #{text:N}.unpack v")
                 }
             }
         }
     }
 
-    private class SerializerGenerator(
-        private val writer: HaskellWriter,
-        private val shape: Shape,
-        private val symbol: Symbol,
-    ) : Runnable {
-        private fun getJsonName(member: MemberShape): String {
-            val enumValue = member.getTrait(EnumValueTrait::class.java)
-            if (enumValue.isPresent) {
-                return enumValue.get().expectStringValue()
+    private fun serializerGenerator(
+        writer: HaskellWriter,
+        shape: Shape,
+        symbol: Symbol,
+    ) {
+        writer.openBlock("instance #{aeson:N}.ToJSON ${symbol.name} where", "") {
+            for (member in shape.members()) {
+                val enumValue = member.enumValue.dq
+                writer.write(
+                    "toJSON ${member.memberName} = #{aeson:N}.String $ #{text:N}.pack $enumValue"
+                )
             }
-            return member.memberName
-        }
-
-        override fun run() {
-            writer.pushState()
-            writer.putContext("shape", symbol)
-            writer.putContext("serializerClass", ToJSON)
-            writer.putContext("jsonString", JsonString)
-            writer.putContext("textPack", TextPack)
-            writer.openBlock("instance #{serializerClass:T} #{shape:T} where", "") {
-                for (member in shape.members()) {
-                    val jsonName = getJsonName(member)
-                    val constructor = member.memberName
-                    writer.pushState()
-                    writer.putContext("constructor", constructor)
-                    writer.putContext("jsonName", "\"${jsonName}\"")
-                    writer.write("toJSON #{constructor:L} = #{jsonString:T} $ #{textPack:T} #{jsonName:L}")
-                    writer.popState()
-                }
-            }
-            writer.popState()
-        }
-    }
-
-    private class DerivesGenerator(private val writer: HaskellWriter) : Runnable {
-        val defaultDerives = listOf(Generic, Eq)
-        override fun run() {
-            writer.writeInline("deriving (")
-            for ((i, derive) in defaultDerives.withIndex()) {
-                if (i == 0) {
-                    writer.writeInline("#T", derive)
-                } else {
-                    writer.writeInline(", #T", derive)
-                }
-            }
-            writer.writeInline(")")
         }
     }
 }

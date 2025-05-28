@@ -51,6 +51,10 @@ object HaskellSymbol {
         .name("Applicative")
         .namespace("Control.Applicative", ".")
         .build()
+    val Alternative = Symbol.builder()
+        .name("Alternative")
+        .namespace("Control.Applicative", ".")
+        .build()
     val Monad = Symbol.builder()
         .name("Monad")
         .namespace("Control.Monad", ".")
@@ -85,15 +89,6 @@ object HaskellSymbol {
     val ParseEither = Symbol.builder().name("parseEither")
         .namespace("Data.Aeson.Types", ".")
         .build()
-    val ToJSON: Symbol = Aeson.toBuilder().name("ToJSON")
-        .build()
-    val JsonString: Symbol = Aeson.toBuilder().name("String").build()
-    val JsonObjectBuilder: Symbol = Aeson.toBuilder()
-        .name("object")
-        .build()
-
-    val TextPack: Symbol =
-        Symbol.builder().name("pack").namespace("Data.Text", ".").build()
 
     val EncodingUtf8: Symbol = Symbol.builder()
         .name("encodeUtf8")
@@ -141,6 +136,10 @@ object HaskellSymbol {
         .namespace("Data.Function", ".")
         .build()
     val And = Flip
+    val FlippedFmap: Symbol = Symbol.builder()
+        .name("<&>")
+        .namespace("Data.Functor", ".")
+        .build()
 
     val SomeException: Symbol = Symbol.builder()
         .name("SomeException")
@@ -158,6 +157,11 @@ object HaskellSymbol {
             .name("URI")
             .namespace("Network.URI", ".")
             .dependencies(HaskellDependencies.NetworkUri)
+            .build()
+
+        val RequestHeaders = Symbol.builder()
+            .name("RequestHeaders")
+            .namespace("Network.HTTP.Types.Header", ".")
             .build()
     }
 }
