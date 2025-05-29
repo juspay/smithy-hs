@@ -34,4 +34,11 @@ test-suite hs-it-test
                       network-uri,
                       containers,
                       aeson,
-                      HUnit
+                      HUnit,
+                      warp,
+                      wai,
+                      http-types,
+                      stm
+
+    other-modules:    Message
+
