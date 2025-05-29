@@ -61,6 +61,8 @@ object HaskellSymbol {
         .namespace("Control.Monad", ".")
         .build()
 
+    val Bind = Monad.toBuilder().name(">>=").build()
+
     val Text = Symbol.builder()
         .name("Text")
         .namespace("Data.Text", ".")

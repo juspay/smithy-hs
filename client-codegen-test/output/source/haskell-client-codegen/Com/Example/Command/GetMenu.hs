@@ -76,8 +76,9 @@ deserializeResponse response = do
     
     responseObject :: Data.Aeson.Object <-
         Network.HTTP.Client.responseBody response
-        Data.Function.& Data.Aeson.decode
-        Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
+                Data.Function.& Data.Aeson.decode
+                Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
+        
     
     itemsDocumentE :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem) <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "items") responseObject

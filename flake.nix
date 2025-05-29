@@ -29,8 +29,8 @@
           };
           modifier = drv: pkgs.haskell.lib.addBuildTools drv (with hpkgs; [
             cabal-install
-            ## FIXME HLS build is failing on darwin-arm.
-            # haskell-language-server
+          ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [
+            hpkgs.haskell-language-server
           ]);
         };
       in

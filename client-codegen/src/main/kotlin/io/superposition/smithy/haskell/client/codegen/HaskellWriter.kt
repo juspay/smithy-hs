@@ -109,6 +109,7 @@ class HaskellWriter(
         putContext("lazyByteString", HaskellSymbol.LazyByteString)
         putContext("flip", HaskellSymbol.Flip)
         putContext("and", HaskellSymbol.And)
+        putContext("bind", HaskellSymbol.Bind)
         putContext("query", Http.Query)
         putContext("httpClient", Http.HttpClient)
         putContext("first", BiFunctor.first)

@@ -74,21 +74,18 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("findHeader ${hName.dq}")
                 val decode = if (symbol.isOrWrapped(Http.HTTPDate)) {
                     "#{httpDate:N}.parseHTTPDate"
                 } else {
                     "#{aeson:N}.decodeStrict"
                 }
-                writer.write("#{flip:T} #{maybe:N}.maybe #{nothing:T} ($decode)")
-
-                if (member.isOptional) {
-                    writer.write("#{flip:T} #{right:T}")
-                } else {
-                    writer.write(
-                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"$name not found in header".dq}) (#{right:T})"
+                writer.newCallChain("(findHeader ${hName.dq} #{bind:T} $decode)")
+                    .chainIf("#{right:T}", member.isOptional)
+                    .chainIf(
+                        "#{maybe:N}.maybe (#{left:T} ${"$name not found in header".dq}) (#{right:T})",
+                        !member.isOptional
                     )
-                }
+                    .close()
             }
         }
 
@@ -105,20 +102,19 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("filterHeaderByPrefix ${hPrefix.dq}")
-                writer.write(
-                    "#{flip:T} #{list:N}.map #C",
-                    Runnable {
-                        writer.write(
-                            "(\\(n, v) -> (stripPrefix ${hPrefix.dq} n, #{encoding:N}.decodeUtf8 v))"
-                        )
-                    }
-                )
-                writer.write("#{flip:T} #{map:N}.fromList")
-                if (member.isOptional) {
-                    writer.write("#{flip:T} #{just:T}")
-                }
-                writer.write("#{flip:T} #{right:T}")
+                writer.newCallChain("filterHeaderByPrefix ${hPrefix.dq}")
+                    .chain(
+                        "#{list:N}.map #C",
+                        Runnable {
+                            writer.write(
+                                "(\\(n, v) -> (stripPrefix ${hPrefix.dq} n, #{encoding:N}.decodeUtf8 v))"
+                            )
+                        }
+                    )
+                    .chain("#{map:N}.fromList")
+                    .chainIf("#{just:T}", member.isOptional)
+                    .chain("#{right:T}")
+                    .close()
             }
         }
     }
@@ -145,25 +141,25 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("#{aeson:N}.decode (#{httpClient:N}.responseBody response)")
-                if (member.isOptional) {
-                    writer.write("#{flip:T} #{right:T}")
-                } else {
-                    writer.write(
-                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response".dq}) (#{right:T})"
+                writer.newCallChain("#{aeson:N}.decode (#{httpClient:N}.responseBody response)")
+                    .chainIf("#{right:T}", member.isOptional)
+                    .chainIf(
+                        "#{maybe:N}.maybe (#{left:T} ${"$name not found in payload".dq}) (#{right:T})",
+                        !member.isOptional
                     )
-                }
+                    .close()
             }
         } else {
             writer.openBlock(
                 "responseObject :: #{aeson:N}.Object <-",
                 ""
             ) {
-                writer.write("#{httpClient:N}.responseBody response")
-                writer.write("#{flip:T} #{aeson:N}.decode")
-                writer.write(
-                    "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response body".dq}) (#{right:T})"
-                )
+                writer.newCallChain("#{httpClient:N}.responseBody response")
+                    .chain("#{aeson:N}.decode")
+                    .chain(
+                        "#{maybe:N}.maybe (#{left:T} ${"failed to parse response body".dq}) (#{right:T})"
+                    )
+                    .close()
             }
 
             for (binding in documentBindings) {
@@ -258,7 +254,7 @@ class ResponseBindingGenerator(
                     ""
                 ) {
                     writer.write(
-                        "#{flip:T} #{list:N}.map (\\(n, v) -> (#{encoding:N}.decodeUtf8 (#{ci:N}.original n), v))"
+                        "#{and:T} #{list:N}.map (\\(n, v) -> (#{encoding:N}.decodeUtf8 (#{ci:N}.original n), v))"
                     )
                 }
                 writer.write("findHeader name = snd #{functor:N}.<$> #{list:N}.find ((name ==) . fst) headers")
