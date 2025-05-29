@@ -4,8 +4,11 @@ package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ByteStringChar8
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ParseEither
 import io.superposition.smithy.haskell.client.codegen.HaskellWriter
+import io.superposition.smithy.haskell.client.codegen.Http
+import io.superposition.smithy.haskell.client.codegen.isOrWrapped
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.knowledge.HttpBinding
@@ -56,6 +59,8 @@ class ResponseBindingGenerator(
         val headerBindings = getBindings(HttpBinding.Location.HEADER)
         val prefixHeaderBindings = getBindings(HttpBinding.Location.PREFIX_HEADERS)
 
+        writer.putContext("httpDate", Http.HTTPDate)
+        writer.putContext("bsChar8", ByteStringChar8)
         for (binding in headerBindings) {
             val member = binding.member
             val hName = (binding.bindingTrait.get() as HttpHeaderTrait).value
@@ -70,7 +75,12 @@ class ResponseBindingGenerator(
                 symbol
             ) {
                 writer.write("findHeader ${hName.dq}")
-                writer.write("#{flip:T} #{maybe:N}.maybe #{nothing:T} (#{aeson:N}.decodeStrict)")
+                val decode = if (symbol.isOrWrapped(Http.HTTPDate)) {
+                    "#{httpDate:N}.parseHTTPDate"
+                } else {
+                    "#{aeson:N}.decodeStrict"
+                }
+                writer.write("#{flip:T} #{maybe:N}.maybe #{nothing:T} ($decode)")
 
                 if (member.isOptional) {
                     writer.write("#{flip:T} #{right:T}")

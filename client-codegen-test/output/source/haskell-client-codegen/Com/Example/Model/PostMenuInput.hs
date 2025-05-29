@@ -11,6 +11,10 @@ module Com.Example.Model.PostMenuInput (
     setSome,
     setTags,
     setVersions,
+    setDatetime,
+    setEpochseconds,
+    setHttpdate,
+    setHttpdaterequired,
     build,
     PostMenuInputBuilder,
     PostMenuInput,
@@ -22,7 +26,11 @@ module Com.Example.Model.PostMenuInput (
     status,
     some,
     tags,
-    versions
+    versions,
+    dateTime,
+    epochSeconds,
+    httpDate,
+    httpDateRequired
 ) where
 import qualified Com.Example.Model.CoffeeItem
 import qualified Com.Example.Model.SomeUnion
@@ -30,11 +38,16 @@ import qualified Control.Applicative
 import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Either
+import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
+import qualified Data.Text.Encoding
+import qualified Data.Time
+import qualified Data.Time.Clock.POSIX
 import qualified GHC.Generics
+import qualified Network.HTTP.Date
 
 data PostMenuInput = PostMenuInput {
     item :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
@@ -45,37 +58,62 @@ data PostMenuInput = PostMenuInput {
     status :: [] Data.Text.Text,
     some :: Data.Text.Text,
     tags :: Data.Maybe.Maybe Data.Text.Text,
-    versions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
+    versions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
+    dateTime :: Data.Maybe.Maybe Data.Time.UTCTime,
+    epochSeconds :: Data.Maybe.Maybe Data.Time.Clock.POSIX.POSIXTime,
+    httpDate :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
+    httpDateRequired :: Network.HTTP.Date.HTTPDate
 } deriving (
   GHC.Generics.Generic
   )
 
 instance Data.Aeson.ToJSON PostMenuInput where
-    toJSON a = Data.Aeson.object
-        [ "item" Data.Aeson..= item a
-        , "unionItem" Data.Aeson..= unionItem a
-        , "listQueryParams" Data.Aeson..= listQueryParams a
-        , "page" Data.Aeson..= page a
-        , "experimentType" Data.Aeson..= experimentType a
-        , "status" Data.Aeson..= status a
-        , "some" Data.Aeson..= some a
-        , "tags" Data.Aeson..= tags a
-        , "versions" Data.Aeson..= versions a
+    toJSON a = Data.Aeson.object [
+        "item" Data.Aeson..= item a,
+        "unionItem" Data.Aeson..= unionItem a,
+        "listQueryParams" Data.Aeson..= listQueryParams a,
+        "page" Data.Aeson..= page a,
+        "experimentType" Data.Aeson..= experimentType a,
+        "status" Data.Aeson..= status a,
+        "some" Data.Aeson..= some a,
+        "tags" Data.Aeson..= tags a,
+        "versions" Data.Aeson..= versions a,
+        "dateTime" Data.Aeson..= dateTime a,
+        "epochSeconds" Data.Aeson..= epochSeconds a,
+        "httpDate" Data.Aeson..= ((httpDate a) Data.Functor.<&> (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate)),
+        "httpDateRequired" Data.Aeson..= ((httpDateRequired a) Data.Function.& (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate))
         ]
     
 
 
 instance Data.Aeson.FromJSON PostMenuInput where
     parseJSON = Data.Aeson.withObject "PostMenuInput" $ \v -> PostMenuInput
-        Data.Functor.<$> v Data.Aeson..: "item"
-        Control.Applicative.<*> v Data.Aeson..: "unionItem"
-        Control.Applicative.<*> v Data.Aeson..: "listQueryParams"
-        Control.Applicative.<*> v Data.Aeson..: "page"
-        Control.Applicative.<*> v Data.Aeson..: "experimentType"
-        Control.Applicative.<*> v Data.Aeson..: "status"
-        Control.Applicative.<*> v Data.Aeson..: "some"
-        Control.Applicative.<*> v Data.Aeson..: "tags"
-        Control.Applicative.<*> v Data.Aeson..: "versions"
+        Data.Functor.<$> (v Data.Aeson..: "item")
+        Control.Applicative.<*> (v Data.Aeson..: "unionItem")
+        Control.Applicative.<*> (v Data.Aeson..: "listQueryParams")
+        Control.Applicative.<*> (v Data.Aeson..: "page")
+        Control.Applicative.<*> (v Data.Aeson..: "experimentType")
+        Control.Applicative.<*> (v Data.Aeson..: "status")
+        Control.Applicative.<*> (v Data.Aeson..: "some")
+        Control.Applicative.<*> (v Data.Aeson..: "tags")
+        Control.Applicative.<*> (v Data.Aeson..: "versions")
+        Control.Applicative.<*> (v Data.Aeson..: "dateTime")
+        Control.Applicative.<*> (v Data.Aeson..: "epochSeconds")
+        Control.Applicative.<*> (v Data.Aeson..: "httpDate"
+             >>= \t -> t
+                            Data.Functor.<&> Data.Text.Encoding.encodeUtf8
+                            Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
+                            Data.Functor.<&> Data.Maybe.maybe (fail "Failed to parse Com.Example.Model.PostMenuInput.PostMenuInput.Data.Maybe.Maybe as Network.HTTP.Date.HTTPDate") pure
+                            Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
+            
+            )
+        Control.Applicative.<*> (v Data.Aeson..: "httpDateRequired"
+             >>= \t -> t
+                            Data.Function.& Data.Text.Encoding.encodeUtf8
+                            Data.Function.& Network.HTTP.Date.parseHTTPDate
+                            Data.Function.& Data.Maybe.maybe (fail "Failed to parse Com.Example.Model.PostMenuInput.PostMenuInput.Network.HTTP.Date.HTTPDate as Network.HTTP.Date.HTTPDate") pure
+            
+            )
     
 
 
@@ -89,7 +127,11 @@ data PostMenuInputBuilderState = PostMenuInputBuilderState {
     statusBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     someBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    versionsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
+    versionsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
+    dateTimeBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
+    epochSecondsBuilderState :: Data.Maybe.Maybe Data.Time.Clock.POSIX.POSIXTime,
+    httpDateBuilderState :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
+    httpDateRequiredBuilderState :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate
 } deriving (
   GHC.Generics.Generic
   )
@@ -104,7 +146,11 @@ defaultBuilderState = PostMenuInputBuilderState {
     statusBuilderState = Data.Maybe.Nothing,
     someBuilderState = Data.Maybe.Nothing,
     tagsBuilderState = Data.Maybe.Nothing,
-    versionsBuilderState = Data.Maybe.Nothing
+    versionsBuilderState = Data.Maybe.Nothing,
+    dateTimeBuilderState = Data.Maybe.Nothing,
+    epochSecondsBuilderState = Data.Maybe.Nothing,
+    httpDateBuilderState = Data.Maybe.Nothing,
+    httpDateRequiredBuilderState = Data.Maybe.Nothing
 }
 
 newtype PostMenuInputBuilder a = PostMenuInputBuilder {
@@ -164,6 +210,22 @@ setVersions :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> 
 setVersions value =
    PostMenuInputBuilder (\s -> (s { versionsBuilderState = value }, ()))
 
+setDatetime :: Data.Maybe.Maybe Data.Time.UTCTime -> PostMenuInputBuilder ()
+setDatetime value =
+   PostMenuInputBuilder (\s -> (s { dateTimeBuilderState = value }, ()))
+
+setEpochseconds :: Data.Maybe.Maybe Data.Time.Clock.POSIX.POSIXTime -> PostMenuInputBuilder ()
+setEpochseconds value =
+   PostMenuInputBuilder (\s -> (s { epochSecondsBuilderState = value }, ()))
+
+setHttpdate :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate -> PostMenuInputBuilder ()
+setHttpdate value =
+   PostMenuInputBuilder (\s -> (s { httpDateBuilderState = value }, ()))
+
+setHttpdaterequired :: Network.HTTP.Date.HTTPDate -> PostMenuInputBuilder ()
+setHttpdaterequired value =
+   PostMenuInputBuilder (\s -> (s { httpDateRequiredBuilderState = Data.Maybe.Just value }, ()))
+
 build :: PostMenuInputBuilder () -> Data.Either.Either Data.Text.Text PostMenuInput
 build builder = do
     let (st, _) = runPostMenuInputBuilder builder defaultBuilderState
@@ -176,6 +238,10 @@ build builder = do
     some' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.PostMenuInput.PostMenuInput.some is a required property.") Data.Either.Right (someBuilderState st)
     tags' <- Data.Either.Right (tagsBuilderState st)
     versions' <- Data.Either.Right (versionsBuilderState st)
+    dateTime' <- Data.Either.Right (dateTimeBuilderState st)
+    epochSeconds' <- Data.Either.Right (epochSecondsBuilderState st)
+    httpDate' <- Data.Either.Right (httpDateBuilderState st)
+    httpDateRequired' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.PostMenuInput.PostMenuInput.httpDateRequired is a required property.") Data.Either.Right (httpDateRequiredBuilderState st)
     Data.Either.Right (PostMenuInput { 
         item = item',
         unionItem = unionItem',
@@ -185,7 +251,11 @@ build builder = do
         status = status',
         some = some',
         tags = tags',
-        versions = versions'
+        versions = versions',
+        dateTime = dateTime',
+        epochSeconds = epochSeconds',
+        httpDate = httpDate',
+        httpDateRequired = httpDateRequired'
     })
 
 

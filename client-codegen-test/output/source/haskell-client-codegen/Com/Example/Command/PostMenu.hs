@@ -26,6 +26,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
+import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
@@ -39,8 +40,12 @@ data PostMenuError =
 serPostMenuPAYLOAD:: Com.Example.Model.PostMenuInput.PostMenuInput -> Network.HTTP.Client.RequestBody
 serPostMenuPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
+        "dateTime" Data.Aeson..= Com.Example.Model.PostMenuInput.dateTime input,
         "item" Data.Aeson..= Com.Example.Model.PostMenuInput.item input,
-        "unionItem" Data.Aeson..= Com.Example.Model.PostMenuInput.unionItem input
+        "epochSeconds" Data.Aeson..= Com.Example.Model.PostMenuInput.epochSeconds input,
+        "unionItem" Data.Aeson..= Com.Example.Model.PostMenuInput.unionItem input,
+        "httpDate" Data.Aeson..= ((Com.Example.Model.PostMenuInput.httpDate input) Data.Functor.<&> (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate)),
+        "httpDateRequired" Data.Aeson..= ((Com.Example.Model.PostMenuInput.httpDateRequired input) Data.Function.& (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate))
         ]
     
 
@@ -56,15 +61,15 @@ serPostMenuQUERY input =
                     Data.Function.& (Data.List.filter (\(k, _) -> not $ Data.List.any (== k) reservedParams))
                     Data.Function.& (toQuery . Data.List.concatMap (expandTuple))
         
+        experimentTypeQuery = Com.Example.Model.PostMenuInput.experimentType input
+                    Data.Function.& (\x -> [x])
+                    Data.Function.& Data.List.map (\x -> toQueryItem ("type", x))
+        
         pageQuery = Com.Example.Model.PostMenuInput.page input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (\x -> Data.Text.pack $ show x)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("pageQuery", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
-        
-        experimentTypeQuery = Com.Example.Model.PostMenuInput.experimentType input
-                    Data.Function.& (\x -> [x])
-                    Data.Function.& Data.List.map (\x -> toQueryItem ("type", x))
         
         statusQuery = Com.Example.Model.PostMenuInput.status input
                     Data.Function.& Data.List.map (\x -> toQueryItem ("status", x))
@@ -78,8 +83,8 @@ serPostMenuQUERY input =
         expandTuple (key, values) = Data.List.map (\v -> (key, v)) values
         reservedParams = [
             "myQuery",
-            "pageQuery",
             "type",
+            "pageQuery",
             "status"
             ]
         
@@ -149,10 +154,20 @@ postMenu client inputB = do
 
 deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.PostMenuOutput.PostMenuOutput
 deserializeResponse response = do
+    httpDateOptionalHeaderE :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate <-
+        findHeader "x-last-modified"
+        Data.Function.& Data.Maybe.maybe Data.Maybe.Nothing (Network.HTTP.Date.parseHTTPDate)
+        Data.Function.& Data.Either.Right
+    
     config_tagHeaderE :: Data.Maybe.Maybe Data.Text.Text <-
         findHeader "x-config-tag"
         Data.Function.& Data.Maybe.maybe Data.Maybe.Nothing (Data.Aeson.decodeStrict)
         Data.Function.& Data.Either.Right
+    
+    httpDateRequiredHeaderE :: Network.HTTP.Date.HTTPDate <-
+        findHeader "last-modified"
+        Data.Function.& Data.Maybe.maybe Data.Maybe.Nothing (Network.HTTP.Date.parseHTTPDate)
+        Data.Function.& Data.Maybe.maybe (Data.Either.Left "httpDateRequired not found in header") (Data.Either.Right)
     
     resHeadersHeaderE :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) <- do
         filterHeaderByPrefix "x-some-header-"
@@ -174,7 +189,9 @@ deserializeResponse response = do
         
     
     Com.Example.Model.PostMenuOutput.build $ do
+        Com.Example.Model.PostMenuOutput.setHttpdateoptional httpDateOptionalHeaderE
         Com.Example.Model.PostMenuOutput.setConfigTag config_tagHeaderE
+        Com.Example.Model.PostMenuOutput.setHttpdaterequired httpDateRequiredHeaderE
         Com.Example.Model.PostMenuOutput.setResheaders resHeadersHeaderE
         Com.Example.Model.PostMenuOutput.setItems itemsDocumentE
     

@@ -93,6 +93,10 @@ class HaskellWriter(
         putContext("either", HaskellSymbol.Either)
         putContext("maybe", HaskellSymbol.Maybe)
         putContext("text", HaskellSymbol.Text)
+        putContext(
+            "textenc",
+            HaskellSymbol.Text.toBuilder().name("INVALID").namespace("Data.Text.Encoding", ".").build()
+        )
         putContext("just", HaskellSymbol.Maybe.toBuilder().name("Just").build())
         putContext("nothing", HaskellSymbol.Maybe.toBuilder().name("Nothing").build())
         putContext("right", HaskellSymbol.Either.toBuilder().name("Right").build())
@@ -129,6 +133,9 @@ class HaskellWriter(
     }
 
     private fun namespaceFormatter(sym: Any, ignored: String): String {
+        if (sym !is Symbol) {
+            println("$sym is not a symbol!")
+        }
         require(sym is Symbol)
         importContainer.importSymbol(sym, null)
         addDependency(sym)
