@@ -125,6 +125,17 @@ object HaskellSymbol {
         )
         .build()
 
+    val ByteStringBuilder: Symbol = Symbol.builder()
+        .name("Builder")
+        .namespace("Data.ByteString.Builder", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("bytestring")
+                .version(CodegenUtils.depRange("0.10.12", "0.12.0"))
+                .build()
+        )
+        .build()
+
     val LazyByteString: Symbol = Symbol.builder()
         .name("ByteString")
         .namespace("Data.ByteString.Lazy", ".")
@@ -219,6 +230,11 @@ object Http {
 
     val Query: Symbol = HttpTypesModule.toBuilder()
         .name("Query")
+        .namespace("$TYPES_MODULE.URI", ".")
+        .build()
+
+    val Path: Symbol = HttpTypesModule.toBuilder()
+        .name("Path")
         .namespace("$TYPES_MODULE.URI", ".")
         .build()
 

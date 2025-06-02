@@ -36,7 +36,7 @@ class CabalGenerator(directive: CustomizeDirective<HaskellContext, HaskellSettin
                     other-modules:      #{privateModules:C|}
                 #{/privateModules}
                     default-language:   Haskell2010
-                    default-extensions: OverloadedStrings, TypeApplications, ScopedTypeVariables, LambdaCase
+                    default-extensions: OverloadedStrings, TypeApplications, ScopedTypeVariables, LambdaCase, ConstrainedClassMethods
                 """.trimIndent()
             )
         }

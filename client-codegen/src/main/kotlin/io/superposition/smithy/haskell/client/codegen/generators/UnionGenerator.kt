@@ -76,7 +76,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             val memberSymbol = symbolProvider.toSymbol(member)
             val constructor = getConstructorName(member)
             if (i != 0) {
-                writer.write("| ")
+                writer.writeInline("| ")
             }
             writer.write("$constructor (#T)", memberSymbol)
         }

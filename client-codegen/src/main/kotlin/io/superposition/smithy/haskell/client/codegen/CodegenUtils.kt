@@ -69,4 +69,7 @@ object CodegenUtils {
 
     val String.dq: String
         get() = "\"$this\""
+
+    val comma: String
+        get() = ",".dq
 }
