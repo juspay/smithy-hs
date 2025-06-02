@@ -7,26 +7,24 @@ build-type: Simple
 library
     build-depends:      base >= 4.14 && < 4.19,
                         text >= 1.2.3 && < 2.1,
+                        containers >= 0.6.4 && < 0.7,
+                        case-insensitive >= 1.2.1 && < 1.3,
                         bytestring >= 0.10.12 && < 0.12.0,
                         http-client >= 0.7.9 && < 0.8,
                         http-types >= 0.12.3 && < 0.13,
                         aeson >= 2.0.0 && < 2.2.0,
-                        case-insensitive >= 1.2.1 && < 1.3,
-                        http-date >= 0.0.8 && < 0.1,
-                        containers >= 0.6.4 && < 0.7,
                         network-uri >= 2.6 && < 2.7,
-                        http-client >= 0.5.14 && < 0.8,
-                        time >= 1.9 && < 1.15
-    exposed-modules:    Com.Example.Model.GetMenuOutput,
-                        Com.Example.Model.SomeUnion,
-                        Com.Example.Model.CoffeeItem,
-                        Com.Example.Model.PostMenuInput,
-                        Com.Example.Model.PostMenuOutput,
-                        Com.Example.Model.GetMenuInput,
-                        Com.Example.Command.PostMenu,
-                        Com.Example.Command.GetMenu,
+                        http-client >= 0.5.14 && < 0.8
+    exposed-modules:    Com.Example.Model.TestQueryInput,
+                        Com.Example.Command.TestQuery,
+                        Com.Example.Model.TestHttpHeadersOutput,
+                        Com.Example.Command.TestHttpHeaders,
+                        Com.Example.Model.TestHttpLabelsInput,
+                        Com.Example.Command.TestHttpLabels,
+                        Com.Example.Model.TestHttpHeadersInput,
+                        Com.Example.Model.TestQueryOutput,
+                        Com.Example.Model.TestHttpLabelsOutput,
                         Com.Example.ExampleServiceClient
-    other-modules:      Com.Example.Model.InternalServerError,
-                        Com.Example.Model.CoffeeType
+    other-modules:      Com.Example.Model.InternalServerError
     default-language:   Haskell2010
     default-extensions: OverloadedStrings, TypeApplications, ScopedTypeVariables, LambdaCase

@@ -3,14 +3,16 @@
 
 module Message where
 
-import qualified Control.Concurrent.STM as Stm
-import qualified Network.HTTP.Types as Http
-import qualified Network.Wai as Wai
-import qualified Network.Wai as Wai.Request
+import Com.Example.ExampleServiceClient qualified as Client
+import Control.Concurrent.STM qualified as Stm
+import Network.HTTP.Types qualified as Http
+import Network.Wai qualified as Wai
+import Network.Wai qualified as Wai.Request
 
 data State = State
   { req :: Stm.TMVar Wai.Request,
-    res :: Stm.TMVar Wai.Response
+    res :: Stm.TMVar Wai.Response,
+    client :: Client.ExampleServiceClient
   }
 
 compareRequest :: Wai.Request -> Wai.Request -> IO Bool
@@ -26,4 +28,4 @@ compareRequest a b = do
       && bodyA == bodyB
 
 defaultResponse :: Wai.Response
-defaultResponse = Wai.responseLBS Http.ok200 [] ""
+defaultResponse = Wai.responseLBS Http.ok200 [] "{ \"message\": \"Success\" }"

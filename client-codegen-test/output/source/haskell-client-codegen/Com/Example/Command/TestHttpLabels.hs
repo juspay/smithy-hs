@@ -1,15 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Com.Example.Command.GetMenu (
-    GetMenuError(..),
-    getMenu
+module Com.Example.Command.TestHttpLabels (
+    TestHttpLabelsError(..),
+    testHttpLabels
 ) where
 import qualified Com.Example.ExampleServiceClient
-import qualified Com.Example.Model.CoffeeItem
-import qualified Com.Example.Model.GetMenuInput
-import qualified Com.Example.Model.GetMenuOutput
 import qualified Com.Example.Model.InternalServerError
+import qualified Com.Example.Model.TestHttpLabelsInput
+import qualified Com.Example.Model.TestHttpLabelsOutput
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -27,24 +26,27 @@ import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Types.Method
 
-data GetMenuError =
+data TestHttpLabelsError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
 
 
-serGetMenuLABEL :: Com.Example.Model.GetMenuInput.GetMenuInput -> Data.ByteString.ByteString
-serGetMenuLABEL input = 
+serTestHttpLabelsLABEL :: Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInput -> Data.ByteString.ByteString
+serTestHttpLabelsLABEL input = 
     Data.Text.Encoding.encodeUtf8 _path
     where
         _path = Data.Text.empty
-            <> "/menu"
+            <> "/path_params"
+            <> "/" <> (Com.Example.Model.TestHttpLabelsInput.identifier input)
+            <> "/" <> (Com.Example.Model.TestHttpLabelsInput.enabled input)
+            <> "/" <> (Com.Example.Model.TestHttpLabelsInput.name input)
         
     
 
-getMenu :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Example.Model.GetMenuInput.GetMenuInputBuilder () -> IO (Data.Either.Either GetMenuError Com.Example.Model.GetMenuOutput.GetMenuOutput)
-getMenu client inputB = do
-    let inputE = Com.Example.Model.GetMenuInput.build inputB
+testHttpLabels :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInputBuilder () -> IO (Data.Either.Either TestHttpLabelsError Com.Example.Model.TestHttpLabelsOutput.TestHttpLabelsOutput)
+testHttpLabels client inputB = do
+    let inputE = Com.Example.Model.TestHttpLabelsInput.build inputB
         baseUri = Com.Example.ExampleServiceClient.endpointUri client
         token = Com.Example.ExampleServiceClient.token client
         httpManager = Com.Example.ExampleServiceClient.httpManager client
@@ -61,7 +63,7 @@ getMenu client inputB = do
     where
         method = Network.HTTP.Types.Method.methodGet
         toRequest input req =
-            let path = (Network.HTTP.Client.path req) <> (serGetMenuLABEL input)
+            let path = (Network.HTTP.Client.path req) <> (serTestHttpLabelsLABEL input)
                 in req {
                     Network.HTTP.Client.path = path
                     , Network.HTTP.Client.method = method
@@ -71,7 +73,7 @@ getMenu client inputB = do
     
 
 
-deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.GetMenuOutput.GetMenuOutput
+deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.TestHttpLabelsOutput.TestHttpLabelsOutput
 deserializeResponse response = do
     
     responseObject :: Data.Aeson.Object <-
@@ -80,15 +82,15 @@ deserializeResponse response = do
                 Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
         
     
-    itemsDocumentE :: Data.Maybe.Maybe ([] Com.Example.Model.CoffeeItem.CoffeeItem) <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "items") responseObject
+    messageDocumentE :: Data.Text.Text <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "message") responseObject
         Data.Function.& \case
             Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
             Data.Either.Right value -> Data.Either.Right value
         
     
-    Com.Example.Model.GetMenuOutput.build $ do
-        Com.Example.Model.GetMenuOutput.setItems itemsDocumentE
+    Com.Example.Model.TestHttpLabelsOutput.build $ do
+        Com.Example.Model.TestHttpLabelsOutput.setMessage messageDocumentE
     
     where
         headers = Network.HTTP.Client.responseHeaders response

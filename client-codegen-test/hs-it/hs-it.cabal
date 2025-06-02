@@ -19,7 +19,7 @@ common warnings
 test-suite hs-it-test
     import:           warnings
     default-language: Haskell2010
-    default-extensions: OverloadedStrings, TypeApplications
+    default-extensions: OverloadedStrings, TypeApplications, ImportQualifiedPost, LambdaCase
     type:             exitcode-stdio-1.0
 
     hs-source-dirs:   test
@@ -38,7 +38,11 @@ test-suite hs-it-test
                       warp,
                       wai,
                       http-types,
-                      stm
+                      stm,
+                      bytestring,
+                      case-insensitive
 
     other-modules:    Message
-
+                      HttpLabelTest
+                      HttpQueryTest
+                      HttpHeaderTest
