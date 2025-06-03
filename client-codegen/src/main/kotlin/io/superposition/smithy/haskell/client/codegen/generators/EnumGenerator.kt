@@ -50,7 +50,8 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
                 Runnable { generateDeserializers(writer, shape, symbol) }
             )
             writer.write(template)
-            writer.addExport(symbol.name)
+            writer.addExport("${symbol.name}(..)")
+            writer.exposeModule()
             writer.popState()
         }
     }

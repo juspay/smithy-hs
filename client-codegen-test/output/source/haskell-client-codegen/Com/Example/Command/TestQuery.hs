@@ -14,6 +14,7 @@ import qualified Data.Aeson
 import qualified Data.Aeson.Types
 import qualified Data.Bifunctor
 import qualified Data.ByteString
+import qualified Data.ByteString.Builder
 import qualified Data.ByteString.Lazy
 import qualified Data.CaseInsensitive
 import qualified Data.Either
@@ -34,6 +35,15 @@ data TestQueryError =
     | RequestError Data.Text.Text
 
 
+class RequestSegment a where
+    toRequestSegment :: Show a => a -> Data.Text.Text
+instance RequestSegment Data.Text.Text where
+    toRequestSegment = id
+instance RequestSegment Integer where
+    toRequestSegment = Data.Text.pack . show
+instance RequestSegment Bool where
+    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+
 serTestQueryQUERY :: Com.Example.Model.TestQueryInput.TestQueryInput -> Data.ByteString.ByteString
 serTestQueryQUERY input =
     let
@@ -48,26 +58,28 @@ serTestQueryQUERY input =
         
         coffeeTypeQuery = Com.Example.Model.TestQueryInput.coffeeType input
                     Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("type", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         pageQuery = Com.Example.Model.TestQueryInput.page input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (\x -> Data.Text.pack $ show x)
+                    Data.Functor.<&> Data.List.map (toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("page", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         enabledQuery = Com.Example.Model.TestQueryInput.enabled input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (\x -> Data.Text.pack $ show x)
+                    Data.Functor.<&> Data.List.map (toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("enabled", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         tagsQuery = Com.Example.Model.TestQueryInput.tags input
+                    Data.Functor.<&> Data.List.map (toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("tags", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ mapParams
+        m = staticParams ++ mapParams ++ coffeeTypeQuery ++ pageQuery ++ enabledQuery ++ tagsQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where
@@ -86,11 +98,9 @@ serTestQueryQUERY input =
 
 serTestQueryLABEL :: Com.Example.Model.TestQueryInput.TestQueryInput -> Data.ByteString.ByteString
 serTestQueryLABEL input = 
-    Data.Text.Encoding.encodeUtf8 _path
-    where
-        _path = Data.Text.empty
-            <> "/query_params"
-        
+    Data.ByteString.toStrict $ Data.ByteString.Builder.toLazyByteString $ Network.HTTP.Types.URI.encodePathSegmentsRelative [
+        "query_params"
+        ]
     
 
 testQuery :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Example.Model.TestQueryInput.TestQueryInputBuilder () -> IO (Data.Either.Either TestQueryError Com.Example.Model.TestQueryOutput.TestQueryOutput)
@@ -112,13 +122,11 @@ testQuery client inputB = do
     where
         method = Network.HTTP.Types.Method.methodGet
         toRequest input req =
-            let path = (Network.HTTP.Client.path req) <> (serTestQueryLABEL input)
-                in req {
-                    Network.HTTP.Client.path = path
-                    , Network.HTTP.Client.method = method
-                    , Network.HTTP.Client.queryString = serTestQueryQUERY input
-                }
-            
+            req {
+                Network.HTTP.Client.path = serTestQueryLABEL input
+                , Network.HTTP.Client.method = method
+                , Network.HTTP.Client.queryString = serTestQueryQUERY input
+            }
         
     
 

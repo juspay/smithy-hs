@@ -13,10 +13,10 @@ service ExampleService {
         TestHttpLabels
         TestQuery
         TestHttpHeaders
-        // TestHttpPayloadSer
-        // TestHttpDocumentSer
-        // TestHttpPayloadOutputSer
-        // TestHttpDocumenetOutputSer
+        TestHttpPayload
+        TestHttpDocument
+        TestHttpPayloadDeserialization
+        TestHttpDocumentDeserialization
         // TestAllFeaturesSer
     ]
     errors: [
@@ -170,92 +170,113 @@ operation TestHttpHeaders {
         message: String
     }
 }
-// // Test for httpPayload, also including query params and http labels and some headers
-// @http(method: "POST", uri: "/payload/{identifier}")
-// operation TestHttpPayloadSer {
-//     input := {
-//         @httpPayload
-//         @required
-//         payload: CoffeeItem
-//         @httpLabel
-//         @required
-//         identifier: Integer
-//         @httpHeader("x-header-string")
-//         stringHeader: String
-//         @httpPrefixHeaders("x-prefix-")
-//         prefixHeaders: MapOfString
-//     }
-//     output := {
-//         @required
-//         message: String
-//     }
-// }
-// // Test for httpPayload, also including query params and http labels and some headers
-// @http(method: "POST", uri: "/document/{identifier}")
-// operation TestHttpDocumentSer {
-//     input := {
-//         payload: CoffeeItem
-//         customization: CoffeeCustomization
-//         @httpLabel
-//         @required
-//         identifier: Integer
-//         @httpHeader("x-header-string")
-//         stringHeader: String
-//         @httpPrefixHeaders("x-prefix-")
-//         prefixHeaders: MapOfString
-//     }
-//     output := {
-//         @required
-//         message: String
-//     }
-// }
-// // Test for httpPayload and headers in the output
-// @http(method: "GET", uri: "/payload_output")
-// @readonly
-// operation TestHttpPayloadOutputSer {
-//     input := {
-//         @httpQuery("type")
-//         coffeeType: String
-//     }
-//     output := {
-//         @httpHeader("x-output-header")
-//         outputHeader: String
-//         @httpHeader("x-output-header-int")
-//         outputHeaderInt: Integer
-//         @httpHeader("x-output-header-bool")
-//         outputHeaderBool: Boolean
-//         @httpHeader("x-output-header-list")
-//         outputHeaderList: StringList
-//         @httpPrefixHeaders("x-output-prefix-")
-//         outputPrefixHeaders: MapOfString
-//         @httpPayload
-//         item: CoffeeItem
-//     }
-// }
-// // Test for httpPayload and headers in the output
-// @http(method: "GET", uri: "/document_output")
-// @readonly
-// operation TestHttpDocumenetOutputSer {
-//     input := {
-//         @httpQuery("type")
-//         coffeeType: String
-//     }
-//     output := {
-//         @httpHeader("x-output-header")
-//         outputHeader: String
-//         @httpHeader("x-output-header-int")
-//         outputHeaderInt: Integer
-//         @httpHeader("x-output-header-bool")
-//         outputHeaderBool: Boolean
-//         @httpHeader("x-output-header-list")
-//         outputHeaderList: StringList
-//         @httpPrefixHeaders("x-output-prefix-")
-//         outputPrefixHeaders: MapOfString
-//         item: CoffeeItem
-//         customization: CoffeeCustomization
-//     }
-// }
-// // Test operation which has all of above
+
+@http(method: "POST", uri: "/payload/{identifier}")
+operation TestHttpPayload {
+    input := {
+        @httpPayload
+        @required
+        payload: CoffeeItem
+
+        @httpLabel
+        @required
+        identifier: Integer
+
+        @httpHeader("x-header-string")
+        stringHeader: String
+
+        @httpPrefixHeaders("x-prefix-")
+        prefixHeaders: MapOfString
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@http(method: "POST", uri: "/document/{identifier}")
+operation TestHttpDocument {
+    input := {
+        payload: CoffeeItem
+
+        customization: CoffeeCustomization
+
+        @httpLabel
+        @required
+        identifier: Integer
+
+        @httpHeader("x-header-string")
+        stringHeader: String
+
+        @httpPrefixHeaders("x-prefix-")
+        prefixHeaders: MapOfString
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@http(method: "GET", uri: "/payload_response")
+@readonly
+operation TestHttpPayloadDeserialization {
+    input := {
+        @httpQuery("type")
+        coffeeType: String
+    }
+
+    output := {
+        @httpHeader("x-output-header")
+        outputHeader: String
+
+        @httpHeader("x-output-header-int")
+        outputHeaderInt: Integer
+
+        @httpHeader("x-output-header-bool")
+        outputHeaderBool: Boolean
+
+        @httpHeader("x-output-header-list")
+        outputHeaderList: StringList
+
+        @httpPrefixHeaders("x-output-prefix-")
+        outputPrefixHeaders: MapOfString
+
+        @httpPayload
+        item: CoffeeItem
+    }
+}
+
+@http(method: "GET", uri: "/document_response")
+@readonly
+operation TestHttpDocumentDeserialization {
+    input := {
+        @httpQuery("type")
+        coffeeType: String
+    }
+
+    output := {
+        @httpHeader("x-output-header")
+        outputHeader: String
+
+        @httpHeader("x-output-header-int")
+        outputHeaderInt: Integer
+
+        @httpHeader("x-output-header-bool")
+        outputHeaderBool: Boolean
+
+        @httpHeader("x-output-header-list")
+        outputHeaderList: StringList
+
+        @httpPrefixHeaders("x-output-prefix-")
+        outputPrefixHeaders: MapOfString
+
+        item: CoffeeItem
+
+        customization: CoffeeCustomization
+    }
+}
 // @http(method: "POST", uri: "/all_features/{identifier}")
 // operation TestAllFeaturesSer {
 //     input := {

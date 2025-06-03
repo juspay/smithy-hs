@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Com.Example.Model.CoffeeType (
-    CoffeeType
+    CoffeeType(..)
 ) where
 import qualified Data.Aeson
 import qualified Data.Eq

@@ -6,6 +6,7 @@ import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.comma
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.toHaskellHttpMethod
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.EncodingUtf8
 import io.superposition.smithy.haskell.client.codegen.language.ClientRecord
 import software.amazon.smithy.codegen.core.CodegenException
 import software.amazon.smithy.codegen.core.SymbolProvider

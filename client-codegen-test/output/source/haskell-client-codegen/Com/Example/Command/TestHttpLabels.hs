@@ -14,6 +14,7 @@ import qualified Data.Aeson
 import qualified Data.Aeson.Types
 import qualified Data.Bifunctor
 import qualified Data.ByteString
+import qualified Data.ByteString.Builder
 import qualified Data.ByteString.Lazy
 import qualified Data.CaseInsensitive
 import qualified Data.Either
@@ -25,6 +26,7 @@ import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Types.Method
+import qualified Network.HTTP.Types.URI
 
 data TestHttpLabelsError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
@@ -32,16 +34,29 @@ data TestHttpLabelsError =
     | RequestError Data.Text.Text
 
 
+class RequestSegment a where
+    toRequestSegment :: Show a => a -> Data.Text.Text
+instance RequestSegment Data.Text.Text where
+    toRequestSegment = id
+instance RequestSegment Integer where
+    toRequestSegment = Data.Text.pack . show
+instance RequestSegment Bool where
+    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+
 serTestHttpLabelsLABEL :: Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInput -> Data.ByteString.ByteString
 serTestHttpLabelsLABEL input = 
-    Data.Text.Encoding.encodeUtf8 _path
-    where
-        _path = Data.Text.empty
-            <> "/path_params"
-            <> "/" <> (Com.Example.Model.TestHttpLabelsInput.identifier input)
-            <> "/" <> (Com.Example.Model.TestHttpLabelsInput.enabled input)
-            <> "/" <> (Com.Example.Model.TestHttpLabelsInput.name input)
+    Data.ByteString.toStrict $ Data.ByteString.Builder.toLazyByteString $ Network.HTTP.Types.URI.encodePathSegmentsRelative [
+        "path_params",
+        (Com.Example.Model.TestHttpLabelsInput.identifier input
+                    Data.Function.& toRequestSegment)
+        ,
+        (Com.Example.Model.TestHttpLabelsInput.enabled input
+                    Data.Function.& toRequestSegment)
+        ,
+        (Com.Example.Model.TestHttpLabelsInput.name input
+                    Data.Function.& toRequestSegment)
         
+        ]
     
 
 testHttpLabels :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInputBuilder () -> IO (Data.Either.Either TestHttpLabelsError Com.Example.Model.TestHttpLabelsOutput.TestHttpLabelsOutput)
@@ -63,12 +78,10 @@ testHttpLabels client inputB = do
     where
         method = Network.HTTP.Types.Method.methodGet
         toRequest input req =
-            let path = (Network.HTTP.Client.path req) <> (serTestHttpLabelsLABEL input)
-                in req {
-                    Network.HTTP.Client.path = path
-                    , Network.HTTP.Client.method = method
-                }
-            
+            req {
+                Network.HTTP.Client.path = serTestHttpLabelsLABEL input
+                , Network.HTTP.Client.method = method
+            }
         
     
 

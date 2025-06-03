@@ -2,12 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Com.Example.Model.CoffeeItem (
-    setCtype,
+    setCoffeetype,
     setDescription,
     build,
     CoffeeItemBuilder,
     CoffeeItem,
-    ctype,
+    coffeeType,
     description
 ) where
 import qualified Com.Example.Model.CoffeeType
@@ -21,7 +21,7 @@ import qualified Data.Text
 import qualified GHC.Generics
 
 data CoffeeItem = CoffeeItem {
-    ctype :: Com.Example.Model.CoffeeType.CoffeeType,
+    coffeeType :: Com.Example.Model.CoffeeType.CoffeeType,
     description :: Data.Text.Text
 } deriving (
   GHC.Generics.Generic
@@ -29,7 +29,7 @@ data CoffeeItem = CoffeeItem {
 
 instance Data.Aeson.ToJSON CoffeeItem where
     toJSON a = Data.Aeson.object [
-        "coffeeType" Data.Aeson..= ctype a,
+        "type" Data.Aeson..= coffeeType a,
         "description" Data.Aeson..= description a
         ]
     
@@ -37,14 +37,14 @@ instance Data.Aeson.ToJSON CoffeeItem where
 
 instance Data.Aeson.FromJSON CoffeeItem where
     parseJSON = Data.Aeson.withObject "CoffeeItem" $ \v -> CoffeeItem
-        Data.Functor.<$> (v Data.Aeson..: "coffeeType")
+        Data.Functor.<$> (v Data.Aeson..: "type")
         Control.Applicative.<*> (v Data.Aeson..: "description")
     
 
 
 
 data CoffeeItemBuilderState = CoffeeItemBuilderState {
-    ctypeBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeType.CoffeeType,
+    coffeeTypeBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeType.CoffeeType,
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
@@ -52,7 +52,7 @@ data CoffeeItemBuilderState = CoffeeItemBuilderState {
 
 defaultBuilderState :: CoffeeItemBuilderState
 defaultBuilderState = CoffeeItemBuilderState {
-    ctypeBuilderState = Data.Maybe.Nothing,
+    coffeeTypeBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing
 }
 
@@ -77,9 +77,9 @@ instance Control.Monad.Monad CoffeeItemBuilder where
             (CoffeeItemBuilder h) = g a
         in h s')
 
-setCtype :: Com.Example.Model.CoffeeType.CoffeeType -> CoffeeItemBuilder ()
-setCtype value =
-   CoffeeItemBuilder (\s -> (s { ctypeBuilderState = Data.Maybe.Just value }, ()))
+setCoffeetype :: Com.Example.Model.CoffeeType.CoffeeType -> CoffeeItemBuilder ()
+setCoffeetype value =
+   CoffeeItemBuilder (\s -> (s { coffeeTypeBuilderState = Data.Maybe.Just value }, ()))
 
 setDescription :: Data.Text.Text -> CoffeeItemBuilder ()
 setDescription value =
@@ -88,10 +88,10 @@ setDescription value =
 build :: CoffeeItemBuilder () -> Data.Either.Either Data.Text.Text CoffeeItem
 build builder = do
     let (st, _) = runCoffeeItemBuilder builder defaultBuilderState
-    ctype' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.CoffeeItem.CoffeeItem.ctype is a required property.") Data.Either.Right (ctypeBuilderState st)
+    coffeeType' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.CoffeeItem.CoffeeItem.coffeeType is a required property.") Data.Either.Right (coffeeTypeBuilderState st)
     description' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.CoffeeItem.CoffeeItem.description is a required property.") Data.Either.Right (descriptionBuilderState st)
     Data.Either.Right (CoffeeItem { 
-        ctype = ctype',
+        coffeeType = coffeeType',
         description = description'
     })
 

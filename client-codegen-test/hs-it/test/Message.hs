@@ -5,6 +5,7 @@ module Message where
 
 import Com.Example.ExampleServiceClient qualified as Client
 import Control.Concurrent.STM qualified as Stm
+import Data.ByteString (ByteString)
 import Network.HTTP.Types qualified as Http
 import Network.Wai qualified as Wai
 import Network.Wai qualified as Wai.Request
@@ -12,6 +13,7 @@ import Network.Wai qualified as Wai.Request
 data State = State
   { req :: Stm.TMVar Wai.Request,
     res :: Stm.TMVar Wai.Response,
+    rBody :: Stm.TMVar ByteString,
     client :: Client.ExampleServiceClient
   }
 

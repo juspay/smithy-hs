@@ -46,3 +46,5 @@ test-suite hs-it-test
                       HttpLabelTest
                       HttpQueryTest
                       HttpHeaderTest
+                      HttpPayloadTest
+                      HttpDocumentTest

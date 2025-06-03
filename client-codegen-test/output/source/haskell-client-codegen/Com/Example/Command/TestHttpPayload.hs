@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Com.Example.Command.TestHttpHeaders (
-    TestHttpHeadersError(..),
-    testHttpHeaders
+module Com.Example.Command.TestHttpPayload (
+    TestHttpPayloadError(..),
+    testHttpPayload
 ) where
 import qualified Com.Example.ExampleServiceClient
 import qualified Com.Example.Model.InternalServerError
-import qualified Com.Example.Model.TestHttpHeadersInput
-import qualified Com.Example.Model.TestHttpHeadersOutput
+import qualified Com.Example.Model.TestHttpPayloadInput
+import qualified Com.Example.Model.TestHttpPayloadOutput
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -30,7 +30,7 @@ import qualified Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
-data TestHttpHeadersError =
+data TestHttpPayloadError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
@@ -45,38 +45,25 @@ instance RequestSegment Integer where
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
 
-serTestHttpHeadersHEADER :: Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInput -> Network.HTTP.Types.Header.RequestHeaders
-serTestHttpHeadersHEADER input =
+serTestHttpPayloadPAYLOAD:: Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInput -> Network.HTTP.Client.RequestBody
+serTestHttpPayloadPAYLOAD input =
+    Network.HTTP.Client.RequestBodyLBS $
+    Data.Aeson.encode $
+    Com.Example.Model.TestHttpPayloadInput.payload input
+
+serTestHttpPayloadHEADER :: Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInput -> Network.HTTP.Types.Header.RequestHeaders
+serTestHttpPayloadHEADER input =
     let 
-        boolHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.boolHeader input
-                    Data.Functor.<&> toRequestSegment)
-        
-                    Data.Functor.<&> \x -> [("x-header-bool", Data.Text.Encoding.encodeUtf8 x)]
-        
-        intHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.intHeader input
-                    Data.Functor.<&> toRequestSegment)
-        
-                    Data.Functor.<&> \x -> [("x-header-int", Data.Text.Encoding.encodeUtf8 x)]
-        
-        listHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.listHeader input
-                    Data.Functor.<&> Data.List.map (toRequestSegment))
-        
-                    Data.Functor.<&> Data.Text.intercalate ","
-                    Data.Functor.<&> \x -> [("x-header-list", Data.Text.Encoding.encodeUtf8 x)]
-        
-        stringHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.stringHeader input
+        stringHeaderHeader = (Com.Example.Model.TestHttpPayloadInput.stringHeader input
                     Data.Functor.<&> toRequestSegment)
         
                     Data.Functor.<&> \x -> [("x-header-string", Data.Text.Encoding.encodeUtf8 x)]
         
-        prefixHeadersHeader = Com.Example.Model.TestHttpHeadersInput.prefixHeaders input
+        prefixHeadersHeader = Com.Example.Model.TestHttpPayloadInput.prefixHeaders input
                     Data.Functor.<&> Data.Map.toList
                     Data.Functor.<&> Data.List.map (\(n, v) -> (toHeaderName "x-prefix-" n, Data.Text.Encoding.encodeUtf8 v))
         
         in Data.List.concat $ Data.Maybe.catMaybes [
-            boolHeaderHeader,
-            intHeaderHeader,
-            listHeaderHeader,
             stringHeaderHeader,
             prefixHeadersHeader
             ]
@@ -86,16 +73,19 @@ serTestHttpHeadersHEADER input =
         toHeaderName prefix name = Data.CaseInsensitive.mk $ Data.Text.Encoding.encodeUtf8 $ prefix <> name
     
 
-serTestHttpHeadersLABEL :: Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInput -> Data.ByteString.ByteString
-serTestHttpHeadersLABEL input = 
+serTestHttpPayloadLABEL :: Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInput -> Data.ByteString.ByteString
+serTestHttpPayloadLABEL input = 
     Data.ByteString.toStrict $ Data.ByteString.Builder.toLazyByteString $ Network.HTTP.Types.URI.encodePathSegmentsRelative [
-        "headers"
+        "payload",
+        (Com.Example.Model.TestHttpPayloadInput.identifier input
+                    Data.Function.& toRequestSegment)
+        
         ]
     
 
-testHttpHeaders :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInputBuilder () -> IO (Data.Either.Either TestHttpHeadersError Com.Example.Model.TestHttpHeadersOutput.TestHttpHeadersOutput)
-testHttpHeaders client inputB = do
-    let inputE = Com.Example.Model.TestHttpHeadersInput.build inputB
+testHttpPayload :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInputBuilder () -> IO (Data.Either.Either TestHttpPayloadError Com.Example.Model.TestHttpPayloadOutput.TestHttpPayloadOutput)
+testHttpPayload client inputB = do
+    let inputE = Com.Example.Model.TestHttpPayloadInput.build inputB
         baseUri = Com.Example.ExampleServiceClient.endpointUri client
         token = Com.Example.ExampleServiceClient.token client
         httpManager = Com.Example.ExampleServiceClient.httpManager client
@@ -110,18 +100,19 @@ testHttpHeaders client inputB = do
         
     
     where
-        method = Network.HTTP.Types.Method.methodGet
+        method = Network.HTTP.Types.Method.methodPost
         toRequest input req =
             req {
-                Network.HTTP.Client.path = serTestHttpHeadersLABEL input
+                Network.HTTP.Client.path = serTestHttpPayloadLABEL input
                 , Network.HTTP.Client.method = method
-                , Network.HTTP.Client.requestHeaders = serTestHttpHeadersHEADER input
+                , Network.HTTP.Client.requestBody = serTestHttpPayloadPAYLOAD input
+                , Network.HTTP.Client.requestHeaders = serTestHttpPayloadHEADER input
             }
         
     
 
 
-deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.TestHttpHeadersOutput.TestHttpHeadersOutput
+deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.TestHttpPayloadOutput.TestHttpPayloadOutput
 deserializeResponse response = do
     
     responseObject :: Data.Aeson.Object <-
@@ -137,8 +128,8 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
-    Com.Example.Model.TestHttpHeadersOutput.build $ do
-        Com.Example.Model.TestHttpHeadersOutput.setMessage messageDocumentE
+    Com.Example.Model.TestHttpPayloadOutput.build $ do
+        Com.Example.Model.TestHttpPayloadOutput.setMessage messageDocumentE
     
     where
         headers = Network.HTTP.Client.responseHeaders response

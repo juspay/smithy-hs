@@ -62,8 +62,8 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             )
             writer.write(template)
             writer.popState()
+            writer.addExport("${directive.symbol().name}(..)")
             writer.exposeModule()
-            writer.addExport(directive.symbol().name)
         }
     }
 
