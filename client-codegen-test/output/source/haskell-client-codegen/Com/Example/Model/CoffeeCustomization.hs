@@ -9,11 +9,17 @@ import qualified Com.Example.Model.TemperaturePreference
 import qualified Control.Applicative
 import qualified Data.Aeson
 import qualified Data.Functor
+import qualified GHC.Generics
+import qualified GHC.Show
 
 -- Union implementation for CoffeeCustomization
 data CoffeeCustomization =
     Milk (Com.Example.Model.MilkType.MilkType)
     | Temperature (Com.Example.Model.TemperaturePreference.TemperaturePreference)
+    deriving (
+    GHC.Generics.Generic,
+    GHC.Show.Show
+    )
 
 instance Data.Aeson.ToJSON CoffeeCustomization where
     toJSON (Milk a) = Data.Aeson.object [ "milk" Data.Aeson..= a ]

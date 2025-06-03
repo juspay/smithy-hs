@@ -78,6 +78,10 @@ object HaskellSymbol {
         .name("Generic")
         .namespace("GHC.Generics", ".")
         .build()
+    val Show: Symbol = Symbol.builder()
+        .name("Show")
+        .namespace("GHC.Show", ".")
+        .build()
 
     val Eq: Symbol = Symbol.builder().name("Eq").namespace("Data.Eq", ".").build()
 
@@ -114,8 +118,8 @@ object HaskellSymbol {
                 .build()
         )
         .build()
-    val ByteStringChar8 = Symbol.builder()
-        .name("N/A")
+    val Char8: Symbol = Symbol.builder()
+        .name("Char8")
         .namespace("Data.ByteString.Char8", ".")
         .dependencies(
             SymbolDependency.builder()
@@ -166,7 +170,7 @@ object HaskellSymbol {
         .namespace("Data.Function", ".")
         .build()
     val And = Flip
-    val FlippedFmap: Symbol = Symbol.builder()
+    val FFmap: Symbol = Symbol.builder()
         .name("<&>")
         .namespace("Data.Functor", ".")
         .build()

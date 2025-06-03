@@ -12,7 +12,6 @@ import Control.Concurrent.MVar as MVar
 import Control.Concurrent.STM qualified as Stm
 import Control.Monad qualified
 import Data.ByteString qualified as BS
-import Data.Either (isLeft)
 import Data.Function ((&))
 import Data.Functor
 import Data.Text qualified as T
@@ -23,31 +22,13 @@ import HttpLabelTest (testHttpLabels)
 import HttpPayloadDeserializationTest (testHttpPayloadDeserialization)
 import HttpPayloadTest (testHttpPayload)
 import HttpQueryTest (testHttpQuery)
-import Message (State (..), compareRequest, defaultResponse)
+import Message (State (..))
 import Network.HTTP.Client.TLS qualified as TLS
 import Network.URI qualified as URI
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp qualified as Warp
 import System.Exit (exitFailure)
 import Test.HUnit qualified as HUnit
-
--- httpQuery (ser)
--- int, bool, timestamp, string, list
---
--- httpLabel (ser)
--- int, bool, timestamp, string
---
--- httpHeader (ser, de)
--- int, bool, timestamp, string
---
--- httpPrefixHeader (ser, de)
--- Map of String
---
--- httpQueryParams (ser)
--- Map of String, Map of List String
---
--- httpPayload (ser, de)
--- int, string, struct, union, enum, timestamp, bool
 
 port :: Int
 port = 4321
@@ -78,7 +59,9 @@ tests state =
       HUnit.TestLabel "HttpQuery Operation" $ testHttpQuery state,
       HUnit.TestLabel "HttpHeaders Operation" $ testHttpHeaders state,
       HUnit.TestLabel "HttpPayload Operation" $ testHttpPayload state,
-      HUnit.TestLabel "HttpDocument Operation" $ testHttpDocument state
+      HUnit.TestLabel "HttpDocument Operation" $ testHttpDocument state,
+      HUnit.TestLabel "HttpPayloadDeserialization Operation" $ testHttpPayloadDeserialization state,
+      HUnit.TestLabel "HttpDocumentDeserialization Operation" $ testHttpDocumentDeserialization state
     ]
 
 app :: State -> Wai.Application

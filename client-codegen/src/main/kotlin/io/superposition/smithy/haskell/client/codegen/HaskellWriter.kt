@@ -106,6 +106,7 @@ class HaskellWriter(
         putContext("map", HaskellSymbol.Map)
         putContext("aeson", HaskellSymbol.Aeson)
         putContext("byteString", HaskellSymbol.ByteString)
+        putContext("char8", HaskellSymbol.Char8)
         putContext("byteStringBuilder", HaskellSymbol.ByteStringBuilder)
         putContext("lazyByteString", HaskellSymbol.LazyByteString)
         putContext("flip", HaskellSymbol.Flip)
@@ -175,7 +176,7 @@ class HaskellWriter(
         }
     }
 
-    private fun writeDerives(derives: List<Symbol>) {
+    fun writeDerives(derives: List<Symbol>) {
         write("deriving (")
         writeList(derives) { super.format("#T", it) }
         write(")")

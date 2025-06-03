@@ -6,7 +6,6 @@
 module HttpQueryTest where
 
 import Com.Example.Command.TestQuery qualified as TestQuery
-import Com.Example.ExampleServiceClient qualified as Client
 import Com.Example.Model.TestQueryInput qualified as TestQueryInput
 import Control.Concurrent.STM qualified as Stm
 import Data.Map.Strict qualified as Map
@@ -76,5 +75,5 @@ testHttpQuery state = HUnit.TestCase $ do
       HUnit.assertFailure $ "Request error: " ++ T.unpack err
     Left (TestQuery.InternalServerError _) ->
       HUnit.assertFailure "Unexpected server error"
-    Right output ->
+    Right _ ->
       HUnit.assertBool "TestQuery operation successful" True

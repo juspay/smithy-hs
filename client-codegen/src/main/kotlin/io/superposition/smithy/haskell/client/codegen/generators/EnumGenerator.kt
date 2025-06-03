@@ -7,6 +7,7 @@ import io.superposition.smithy.haskell.client.codegen.HaskellContext
 import io.superposition.smithy.haskell.client.codegen.HaskellSettings
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Eq
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Generic
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Show
 import io.superposition.smithy.haskell.client.codegen.HaskellWriter
 import io.superposition.smithy.haskell.client.codegen.enumValue
 import software.amazon.smithy.codegen.core.Symbol
@@ -17,7 +18,7 @@ import java.util.function.Consumer
 @Suppress("MaxLineLength")
 class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> :
     Consumer<T> {
-    private val defaultDerives = listOf(Generic, Eq)
+    private val defaultDerives = listOf(Generic, Eq, Show)
 
     override fun accept(directive: T) {
         val shape = directive.shape()

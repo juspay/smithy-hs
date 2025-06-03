@@ -6,14 +6,12 @@
 module HttpHeaderTest where
 
 import Com.Example.Command.TestHttpHeaders qualified as TestHttpHeaders
-import Com.Example.ExampleServiceClient qualified as Client
 import Com.Example.Model.TestHttpHeadersInput qualified as TestHttpHeadersInput
 import Control.Concurrent.STM qualified as Stm
 import Data.ByteString.Char8 qualified as BS
 import Data.CaseInsensitive qualified as CI
 import Data.Char (toLower)
 import Data.Function
-import Data.List (find, sort)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Encoding (decodeUtf8)
@@ -91,5 +89,5 @@ testHttpHeaders state = HUnit.TestCase $ do
       HUnit.assertFailure $ "Request error: " ++ T.unpack err
     Left (TestHttpHeaders.InternalServerError _) ->
       HUnit.assertFailure "Unexpected server error"
-    Right output ->
+    Right _ ->
       HUnit.assertBool "TestHttpHeaders operation successful" True

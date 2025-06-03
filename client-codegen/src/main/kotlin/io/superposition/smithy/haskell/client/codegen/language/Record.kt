@@ -9,8 +9,10 @@ import software.amazon.smithy.model.traits.HttpBearerAuthTrait
 data class Record(
     val name: String,
     val fields: List<Field>,
+    val derives: List<Symbol> = listOf()
 ) {
-    val defaultDerives = listOf(HaskellSymbol.Generic)
+    val defaultDerives = derives + listOf(HaskellSymbol.Generic)
+
     data class Field(val name: String, val symbol: Symbol)
 }
 

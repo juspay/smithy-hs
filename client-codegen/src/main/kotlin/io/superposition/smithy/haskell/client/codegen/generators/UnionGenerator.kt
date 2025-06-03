@@ -2,11 +2,8 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
+import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
-import io.superposition.smithy.haskell.client.codegen.HaskellContext
-import io.superposition.smithy.haskell.client.codegen.HaskellSettings
-import io.superposition.smithy.haskell.client.codegen.HaskellWriter
-import io.superposition.smithy.haskell.client.codegen.jsonName
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
@@ -35,6 +32,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             -- Union implementation for #{shape:T}
             data #{shape:T} =
                 #{constructors:C|}
+                #{derives:C|}
 
             #{serializer:C|}
             #{deserializer:C|}
@@ -55,6 +53,10 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             writer.putContext(
                 "serializer",
                 Runnable { generateSerializer(writer, union, directive.symbol()) }
+            )
+            writer.putContext(
+                "derives",
+                Runnable { writer.writeDerives(listOf(HaskellSymbol.Generic, HaskellSymbol.Show)) }
             )
             writer.putContext(
                 "deserializer",

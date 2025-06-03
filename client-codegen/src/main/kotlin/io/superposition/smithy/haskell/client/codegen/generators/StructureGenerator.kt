@@ -3,6 +3,7 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellShapeDirective
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol
 import io.superposition.smithy.haskell.client.codegen.language.Record
 import software.amazon.smithy.model.shapes.StructureShape
 
@@ -27,7 +28,8 @@ class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
 
             val record = Record(
                 symbol.name,
-                shape.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) }
+                shape.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) },
+                listOf(HaskellSymbol.Show)
             )
 
             writer.pushState()

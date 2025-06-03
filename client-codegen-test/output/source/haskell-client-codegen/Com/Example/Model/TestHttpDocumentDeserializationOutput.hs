@@ -31,6 +31,7 @@ import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
+import qualified GHC.Show
 
 data TestHttpDocumentDeserializationOutput = TestHttpDocumentDeserializationOutput {
     outputHeader :: Data.Maybe.Maybe Data.Text.Text,
@@ -41,6 +42,7 @@ data TestHttpDocumentDeserializationOutput = TestHttpDocumentDeserializationOutp
     item :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
     customization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization
 } deriving (
+  GHC.Show.Show,
   GHC.Generics.Generic
   )
 

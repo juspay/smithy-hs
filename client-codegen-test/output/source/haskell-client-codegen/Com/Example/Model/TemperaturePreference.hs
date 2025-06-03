@@ -8,6 +8,7 @@ import qualified Data.Aeson
 import qualified Data.Eq
 import qualified Data.Text
 import qualified GHC.Generics
+import qualified GHC.Show
 
 -- Enum implementation for TemperaturePreference
 data TemperaturePreference =
@@ -16,7 +17,8 @@ data TemperaturePreference =
     | EXTRA_HOT
     deriving (
         GHC.Generics.Generic,
-        Data.Eq.Eq
+        Data.Eq.Eq,
+        GHC.Show.Show
     )
 
 instance Data.Aeson.ToJSON TemperaturePreference where

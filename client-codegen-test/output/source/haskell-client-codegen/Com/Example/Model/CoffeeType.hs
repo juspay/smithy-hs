@@ -8,6 +8,7 @@ import qualified Data.Aeson
 import qualified Data.Eq
 import qualified Data.Text
 import qualified GHC.Generics
+import qualified GHC.Show
 
 -- Enum implementation for CoffeeType
 data CoffeeType =
@@ -17,7 +18,8 @@ data CoffeeType =
     | ESPRESSO
     deriving (
         GHC.Generics.Generic,
-        Data.Eq.Eq
+        Data.Eq.Eq,
+        GHC.Show.Show
     )
 
 instance Data.Aeson.ToJSON CoffeeType where

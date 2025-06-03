@@ -12,7 +12,6 @@ import Com.Example.Model.TestHttpPayloadInput qualified as TestHttpPayloadInput
 import Control.Concurrent.STM qualified as Stm
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Char8 qualified as BS
-import Data.ByteString.Lazy qualified as LBS
 import Data.CaseInsensitive qualified as CI
 import Data.Function
 import Data.Map.Strict qualified as Map

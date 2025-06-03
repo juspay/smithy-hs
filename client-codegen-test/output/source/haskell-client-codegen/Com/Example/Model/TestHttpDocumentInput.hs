@@ -27,6 +27,7 @@ import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
+import qualified GHC.Show
 
 data TestHttpDocumentInput = TestHttpDocumentInput {
     payload :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
@@ -35,6 +36,7 @@ data TestHttpDocumentInput = TestHttpDocumentInput {
     stringHeader :: Data.Maybe.Maybe Data.Text.Text,
     prefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
+  GHC.Show.Show,
   GHC.Generics.Generic
   )
 

@@ -85,7 +85,7 @@ class RequestBindingGenerator(
         formatter: (String) -> String
     ): String {
         val name = binding.memberName
-        val chainFn = if (binding.member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+        val chainFn = if (binding.member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
 
         val chain = writer.newCallChain("(#{input:N}.$name input", chainFn)
             .chainIf("#{list:N}.map (toRequestSegment))", binding.member.isMemberListShape(model))
@@ -209,7 +209,7 @@ class RequestBindingGenerator(
                     val query = param.locationName.dq
 
                     val varName = "${name}Query"
-                    val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+                    val chainFn = if (member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
                     writer.newCallChain("$varName = #{input:N}.$name input", chainFn)
                         .chainIf("(\\x -> [x])", !member.isMemberListShape(model))
                         .chain("#{list:N}.map (toRequestSegment)")
@@ -292,7 +292,7 @@ class RequestBindingGenerator(
                     val name = member.memberName
 
                     val varName = "${name}Header"
-                    val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+                    val chainFn = if (member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
 
                     val chainHead =
                         toStringSerializer(binding) { s -> "$varName = $s" }
@@ -313,7 +313,7 @@ class RequestBindingGenerator(
                         MapShape::class.java
                     ).value
 
-                    val chainFn = if (member.isOptional) HaskellSymbol.FlippedFmap else HaskellSymbol.And
+                    val chainFn = if (member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
 
                     val varName = "${name}Header"
                     writer.newCallChain("$varName = #{input:N}.$name input", chainFn)

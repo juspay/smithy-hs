@@ -16,10 +16,12 @@ import qualified Data.Functor
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
+import qualified GHC.Show
 
 data TestHttpDocumentOutput = TestHttpDocumentOutput {
     message :: Data.Text.Text
 } deriving (
+  GHC.Show.Show,
   GHC.Generics.Generic
   )
 

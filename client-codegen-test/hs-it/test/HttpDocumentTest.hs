@@ -15,7 +15,6 @@ import Control.Concurrent.STM qualified as Stm
 import Data.Aeson qualified as Aeson
 import Data.Aeson qualified as Aeson.Value
 import Data.ByteString.Char8 qualified as BS
-import Data.ByteString.Lazy qualified as LBS
 import Data.CaseInsensitive qualified as CI
 import Data.Function
 import Data.Map.Strict qualified as Map
@@ -94,5 +93,5 @@ testHttpDocument state = HUnit.TestCase $ do
           HUnit.assertFailure $ "Request error: " ++ T.unpack err
         Left (TestHttpDocument.InternalServerError _) ->
           HUnit.assertFailure "Unexpected server error"
-        Right output ->
+        Right _ ->
           HUnit.assertBool "TestHttpDocument operation successful" True

@@ -12,12 +12,12 @@ import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestHttpDocumentDeserializationInput
 import qualified Com.Example.Model.TestHttpDocumentDeserializationOutput
 import qualified Control.Exception
-import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
 import qualified Data.Bifunctor
 import qualified Data.ByteString
 import qualified Data.ByteString.Builder
+import qualified Data.ByteString.Char8
 import qualified Data.ByteString.Lazy
 import qualified Data.CaseInsensitive
 import qualified Data.Either
@@ -29,6 +29,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
+import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
@@ -106,23 +107,23 @@ testHttpDocumentDeserialization client inputB = do
 deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.TestHttpDocumentDeserializationOutput.TestHttpDocumentDeserializationOutput
 deserializeResponse response = do
     outputHeaderHeaderE :: Data.Maybe.Maybe Data.Text.Text <-
-        (findHeader "x-output-header" Control.Monad.>>= Data.Aeson.decodeStrict)
-                Data.Function.& Data.Either.Right
+        (findHeader "x-output-header" Data.Functor.<&> parseTextHeader)
+                Data.Function.& sequence
         
     
     outputHeaderBoolHeaderE :: Data.Maybe.Maybe Bool <-
-        (findHeader "x-output-header-bool" Control.Monad.>>= Data.Aeson.decodeStrict)
-                Data.Function.& Data.Either.Right
+        (findHeader "x-output-header-bool" Data.Functor.<&> parseHeader)
+                Data.Function.& sequence
         
     
     outputHeaderListHeaderE :: Data.Maybe.Maybe ([] Data.Text.Text) <-
-        (findHeader "x-output-header-list" Control.Monad.>>= Data.Aeson.decodeStrict)
-                Data.Function.& Data.Either.Right
+        (findHeader "x-output-header-list" Data.Functor.<&> parseHeaderList parseTextHeader)
+                Data.Function.& sequence
         
     
     outputHeaderIntHeaderE :: Data.Maybe.Maybe Integer <-
-        (findHeader "x-output-header-int" Control.Monad.>>= Data.Aeson.decodeStrict)
-                Data.Function.& Data.Either.Right
+        (findHeader "x-output-header-int" Data.Functor.<&> parseHeader)
+                Data.Function.& sequence
         
     
     outputPrefixHeadersHeaderE :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) <- do
@@ -164,9 +165,23 @@ deserializeResponse response = do
     
     where
         headers = Network.HTTP.Client.responseHeaders response
-            Data.Function.& Data.List.map (\(n, v) -> (Data.Text.Encoding.decodeUtf8 (Data.CaseInsensitive.original n), v))
+                    Data.Function.& Data.List.map (\(n, v) -> (Data.Text.Encoding.decodeUtf8 (Data.CaseInsensitive.original n), v))
         
         findHeader name = snd Data.Functor.<$> Data.List.find ((name ==) . fst) headers
+        parseTextHeader :: Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text Data.Text.Text
+        parseTextHeader v = Data.Text.Encoding.decodeUtf8' v Data.Function.& \ case
+            Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
+            Data.Either.Right value -> Data.Either.Right value
+        
+        parseTimestampHeader :: Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text Network.HTTP.Date.HTTPDate
+        parseTimestampHeader v = Data.Maybe.maybe (Data.Either.Left "failed to parse http datetime") (Data.Either.Right) $ Network.HTTP.Date.parseHTTPDate v
+        parseHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
+        parseHeader v = Data.Aeson.eitherDecodeStrict v Data.Function.& \ case
+            Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
+            Data.Either.Right value -> Data.Either.Right value
+        
+        parseHeaderList :: Data.Aeson.FromJSON a => (Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a) -> Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text [a]
+        parseHeaderList parser = sequence . Data.List.map (parser) . Data.ByteString.Char8.split ','
         filterHeaderByPrefix prefix = Data.List.filter (Data.Text.isPrefixOf prefix . fst) headers
         stripPrefix prefix s = Data.Maybe.maybe s (id) $ Data.Text.stripPrefix prefix s
     

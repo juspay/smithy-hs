@@ -48,3 +48,5 @@ test-suite hs-it-test
                       HttpHeaderTest
                       HttpPayloadTest
                       HttpDocumentTest
+                      HttpPayloadDeserializationTest
+                      HttpDocumentDeserializationTest
