@@ -1,34 +1,41 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
+import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
-import io.superposition.smithy.haskell.client.codegen.HaskellWriter
-import io.superposition.smithy.haskell.client.codegen.jsonName
-import software.amazon.smithy.codegen.core.Symbol
-import software.amazon.smithy.model.shapes.MemberShape
+import software.amazon.smithy.model.shapes.StructureShape
 
+@Suppress("MaxLineLength")
 class StructureSerializerGenerator(
-    private val members: Collection<MemberShape>,
-    private val symbol: Symbol,
-    private val writer: HaskellWriter,
+    private val directive: HaskellShapeDirective<StructureShape>,
+    private val writer: HaskellWriter
 ) : Runnable {
     override fun run() {
-        writer.openBlock("instance #{aeson:N}.ToJSON #T where", "", symbol) {
-            writer.openBlock("toJSON a = #{aeson:N}.object", "") {
-                if (members.isEmpty()) {
-                    writer.writeInline("[]")
-                    return@openBlock
-                }
-                for ((i, member) in members.withIndex()) {
-                    if (i == 0) {
-                        writer.writeInline("[ ")
+        writer.pushState()
+        writer.putContext("encoding", HaskellSymbol.EncodingUtf8)
+        writer.putContext("hdate", Http.HTTPDate)
+        writer.openBlock("instance #{aeson:N}.ToJSON #T where", "", directive.symbol()) {
+            writer.openBlock("toJSON a = #{aeson:N}.object [", "") {
+                val members = directive.shape().members().toList()
+                writer.writeList(members) {
+                    val sym = directive.symbolProvider().toSymbol(it)
+                    val sb = StringBuilder()
+                        .append("${it.jsonName.dq} #{aeson:N}..= ")
+                    if (sym.isOrWrapped(Http.HTTPDate)) {
+                        sb.append("((${it.memberName} a) ")
+                        if (sym.isMaybe()) {
+                            sb.append("#{functor:N}.<&> ")
+                        } else {
+                            sb.append("#{and:T} ")
+                        }
+                        sb.append("(#{encoding:N}.decodeUtf8 . #{hdate:N}.formatHTTPDate))")
                     } else {
-                        writer.writeInline(", ")
+                        sb.append("${it.memberName} a")
                     }
-
-                    writer.write("${member.jsonName.dq} #{aeson:N}..= ${member.memberName} a")
+                    writer.format(sb.toString())
                 }
                 writer.write("]")
             }
         }
+        writer.popState()
     }
 }

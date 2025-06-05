@@ -100,6 +100,19 @@ operation PostMenu {
 
         @httpPrefixHeaders("x-useless-")
         versions: MapOfString
+
+        @timestampFormat("date-time")
+        dateTime: Timestamp
+
+        @timestampFormat("epoch-seconds")
+        epochSeconds: Timestamp
+
+        @timestampFormat("http-date")
+        httpDate: Timestamp
+
+        @required
+        @timestampFormat("http-date")
+        httpDateRequired: Timestamp
     }
 
     output := {
@@ -111,6 +124,15 @@ operation PostMenu {
 
         @httpHeader("x-config-tag")
         config_tag: String
+
+        @timestampFormat("http-date")
+        @httpHeader("x-last-modified")
+        httpDateOptional: Timestamp
+
+        @required
+        @timestampFormat("http-date")
+        @httpHeader("last-modified")
+        httpDateRequired: Timestamp
     }
 }
 

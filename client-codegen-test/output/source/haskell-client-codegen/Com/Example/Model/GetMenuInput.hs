@@ -20,8 +20,9 @@ data GetMenuInput = GetMenuInput {
   )
 
 instance Data.Aeson.ToJSON GetMenuInput where
-    toJSON a = Data.Aeson.object
-        []
+    toJSON a = Data.Aeson.object [
+        ]
+    
 
 
 instance Data.Aeson.FromJSON GetMenuInput where

@@ -28,17 +28,17 @@ data CoffeeItem = CoffeeItem {
   )
 
 instance Data.Aeson.ToJSON CoffeeItem where
-    toJSON a = Data.Aeson.object
-        [ "coffeeType" Data.Aeson..= ctype a
-        , "description" Data.Aeson..= description a
+    toJSON a = Data.Aeson.object [
+        "coffeeType" Data.Aeson..= ctype a,
+        "description" Data.Aeson..= description a
         ]
     
 
 
 instance Data.Aeson.FromJSON CoffeeItem where
     parseJSON = Data.Aeson.withObject "CoffeeItem" $ \v -> CoffeeItem
-        Data.Functor.<$> v Data.Aeson..: "coffeeType"
-        Control.Applicative.<*> v Data.Aeson..: "description"
+        Data.Functor.<$> (v Data.Aeson..: "coffeeType")
+        Control.Applicative.<*> (v Data.Aeson..: "description")
     
 
 

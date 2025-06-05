@@ -25,15 +25,15 @@ data GetMenuOutput = GetMenuOutput {
   )
 
 instance Data.Aeson.ToJSON GetMenuOutput where
-    toJSON a = Data.Aeson.object
-        [ "items" Data.Aeson..= items a
+    toJSON a = Data.Aeson.object [
+        "items" Data.Aeson..= items a
         ]
     
 
 
 instance Data.Aeson.FromJSON GetMenuOutput where
     parseJSON = Data.Aeson.withObject "GetMenuOutput" $ \v -> GetMenuOutput
-        Data.Functor.<$> v Data.Aeson..: "items"
+        Data.Functor.<$> (v Data.Aeson..: "items")
     
 
 

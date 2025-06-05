@@ -75,10 +75,7 @@ style:
     active: true
     max: 3
   WildcardImport:
-    active: true
-    excludeImports:
-      - 'java.util.*'
-      - 'software.amazon.smithy.model.shapes.*'
+    active: false
 
 potential-bugs:
   active: true

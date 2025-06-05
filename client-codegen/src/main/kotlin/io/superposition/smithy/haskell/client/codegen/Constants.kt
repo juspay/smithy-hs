@@ -6,6 +6,7 @@ import software.amazon.smithy.codegen.core.SymbolDependency
 
 object SymbolProperties {
     val IS_PRIMITIVE: Property<Boolean> = Property.named("is-primitive")
+    val WRAPPER_T: Property<Boolean> = Property.named("wrapper-t")
 }
 
 object HaskellDependencies {
@@ -89,6 +90,12 @@ object HaskellSymbol {
     val ParseEither = Symbol.builder().name("parseEither")
         .namespace("Data.Aeson.Types", ".")
         .build()
+    val JsonString: Symbol = Aeson.toBuilder().name("String").build()
+    val JsonObjectBuilder: Symbol = Aeson.toBuilder()
+        .name("object")
+        .build()
+    val Value = Aeson.toBuilder().name("Value").build()
+    val TextPack: Symbol = Symbol.builder().name("pack").namespace("Data.Text", ".").build()
 
     val EncodingUtf8: Symbol = Symbol.builder()
         .name("encodeUtf8")
@@ -98,6 +105,16 @@ object HaskellSymbol {
     val ByteString: Symbol = Symbol.builder()
         .name("ByteString")
         .namespace("Data.ByteString", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("bytestring")
+                .version(CodegenUtils.depRange("0.10.12", "0.12.0"))
+                .build()
+        )
+        .build()
+    val ByteStringChar8 = Symbol.builder()
+        .name("N/A")
+        .namespace("Data.ByteString.Char8", ".")
         .dependencies(
             SymbolDependency.builder()
                 .packageName("bytestring")
@@ -281,5 +298,32 @@ object Http {
     val NewManager: Symbol = HttpClientModule.toBuilder()
         .name("newManager")
         .namespace(CLIENT_MODULE, ".")
+        .build()
+
+    val POSIXTime = Symbol.builder()
+        .name("POSIXTime")
+        .namespace("Data.Time.Clock.POSIX", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("time")
+                .version(CodegenUtils.depRange("1.9", "1.15"))
+                .build()
+        )
+        .build()
+
+    val UTCTime = POSIXTime.toBuilder()
+        .name("UTCTime")
+        .namespace("Data.Time", ".")
+        .build()
+
+    val HTTPDate = Symbol.builder()
+        .name("HTTPDate")
+        .namespace("Network.HTTP.Date", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("http-date")
+                .version(CodegenUtils.depRange("0.0.8", "0.1"))
+                .build()
+        )
         .build()
 }

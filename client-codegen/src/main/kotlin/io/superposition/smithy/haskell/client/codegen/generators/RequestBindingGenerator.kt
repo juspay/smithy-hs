@@ -83,6 +83,8 @@ class RequestBindingGenerator(
                 writer.write("#{aeson:N}.encode $")
                 writer.write("#{input:N}.${payloadBinding.memberName} input")
             } else {
+                writer.putContext("encoding", EncodingUtf8)
+                writer.putContext("hdate", Http.HTTPDate)
                 writer.openBlock(
                     "#{httpClient:N}.RequestBodyLBS $ #{aeson:N}.encode $ #{aeson:N}.object [",
                     ""
@@ -91,8 +93,22 @@ class RequestBindingGenerator(
                         val memberName = binding.memberName
                         val jsonName = binding.member.getTrait(JsonNameTrait::class.java)
                             .map { it.value }.orElse(memberName)
-
-                        writer.format("\"$jsonName\" #{aeson:N}..= #{input:N}.$memberName input")
+                        val member = binding.member
+                        val sym = symbolProvider.toSymbol(member)
+                        val sb = StringBuilder()
+                            .append("${jsonName.dq} #{aeson:N}..= ")
+                        if (sym.isOrWrapped(Http.HTTPDate)) {
+                            sb.append("((#{input:N}.$memberName input) ")
+                            if (sym.isMaybe()) {
+                                sb.append("#{functor:N}.<&> ")
+                            } else {
+                                sb.append("#{and:T} ")
+                            }
+                            sb.append("(#{encoding:N}.decodeUtf8 . #{hdate:N}.formatHTTPDate))")
+                        } else {
+                            sb.append("#{input:N}.$memberName input")
+                        }
+                        writer.format(sb.toString())
                     }
                     writer.write("]")
                 }
