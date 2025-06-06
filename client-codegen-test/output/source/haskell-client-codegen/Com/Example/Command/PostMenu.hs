@@ -11,6 +11,7 @@ import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.PostMenuInput
 import qualified Com.Example.Model.PostMenuOutput
 import qualified Control.Exception
+import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
 import qualified Data.Bifunctor
@@ -160,9 +161,9 @@ deserializeResponse response = do
         Data.Function.& Data.Either.Right
     
     config_tagHeaderE :: Data.Maybe.Maybe Data.Text.Text <-
-        findHeader "x-config-tag"
-        Data.Function.& Data.Maybe.maybe Data.Maybe.Nothing (Data.Aeson.decodeStrict)
-        Data.Function.& Data.Either.Right
+        (findHeader "x-config-tag" Control.Monad.>>= Data.Aeson.decodeStrict)
+                Data.Function.& Data.Either.Right
+        
     
     httpDateRequiredHeaderE :: Network.HTTP.Date.HTTPDate <-
         findHeader "last-modified"
@@ -171,15 +172,17 @@ deserializeResponse response = do
     
     resHeadersHeaderE :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) <- do
         filterHeaderByPrefix "x-some-header-"
-        Data.Function.& Data.List.map (\(n, v) -> (stripPrefix "x-some-header-" n, Data.Text.Encoding.decodeUtf8 v))
-        Data.Function.& Data.Map.fromList
-        Data.Function.& Data.Maybe.Just
-        Data.Function.& Data.Either.Right
+                Data.Function.& Data.List.map (\(n, v) -> (stripPrefix "x-some-header-" n, Data.Text.Encoding.decodeUtf8 v))
+                Data.Function.& Data.Map.fromList
+                Data.Function.& Data.Maybe.Just
+                Data.Function.& Data.Either.Right
+        
     
     responseObject :: Data.Aeson.Object <-
         Network.HTTP.Client.responseBody response
-        Data.Function.& Data.Aeson.decode
-        Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
+                Data.Function.& Data.Aeson.decode
+                Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
+        
     
     itemsDocumentE :: Com.Example.Model.CoffeeItem.CoffeeItem <-
         Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "items") responseObject

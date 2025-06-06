@@ -5,7 +5,6 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.*
-import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.EncodingUtf8
 import io.superposition.smithy.haskell.client.codegen.language.ClientRecord
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.model.shapes.*
@@ -39,7 +38,6 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
 
     fun run() {
         val shape = directive.shape()
-
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
             val template = """
             #{operationError:C|}
@@ -78,6 +76,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             )
             writer.write(template)
             writer.addExport(functionName)
+            writer.importContainer.importSymbol(directive.context().utilitySymbol, null)
             writer.exposeModule()
             writer.popState()
         }

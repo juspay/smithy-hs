@@ -61,6 +61,8 @@ object HaskellSymbol {
         .namespace("Control.Monad", ".")
         .build()
 
+    val Bind = Monad.toBuilder().name(">>=").build()
+
     val Text = Symbol.builder()
         .name("Text")
         .namespace("Data.Text", ".")
@@ -75,6 +77,10 @@ object HaskellSymbol {
     val Generic: Symbol = Symbol.builder()
         .name("Generic")
         .namespace("GHC.Generics", ".")
+        .build()
+    val Show: Symbol = Symbol.builder()
+        .name("Show")
+        .namespace("GHC.Show", ".")
         .build()
 
     val Eq: Symbol = Symbol.builder().name("Eq").namespace("Data.Eq", ".").build()
@@ -112,9 +118,20 @@ object HaskellSymbol {
                 .build()
         )
         .build()
-    val ByteStringChar8 = Symbol.builder()
-        .name("N/A")
+    val Char8: Symbol = Symbol.builder()
+        .name("Char8")
         .namespace("Data.ByteString.Char8", ".")
+        .dependencies(
+            SymbolDependency.builder()
+                .packageName("bytestring")
+                .version(CodegenUtils.depRange("0.10.12", "0.12.0"))
+                .build()
+        )
+        .build()
+
+    val ByteStringBuilder: Symbol = Symbol.builder()
+        .name("Builder")
+        .namespace("Data.ByteString.Builder", ".")
         .dependencies(
             SymbolDependency.builder()
                 .packageName("bytestring")
@@ -153,7 +170,7 @@ object HaskellSymbol {
         .namespace("Data.Function", ".")
         .build()
     val And = Flip
-    val FlippedFmap: Symbol = Symbol.builder()
+    val FFmap: Symbol = Symbol.builder()
         .name("<&>")
         .namespace("Data.Functor", ".")
         .build()
@@ -217,6 +234,11 @@ object Http {
 
     val Query: Symbol = HttpTypesModule.toBuilder()
         .name("Query")
+        .namespace("$TYPES_MODULE.URI", ".")
+        .build()
+
+    val Path: Symbol = HttpTypesModule.toBuilder()
+        .name("Path")
         .namespace("$TYPES_MODULE.URI", ".")
         .build()
 

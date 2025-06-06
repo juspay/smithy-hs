@@ -10,8 +10,14 @@ use aws.protocols#restJson1
 service ExampleService {
     version: "2025-30-05"
     operations: [
-        GetMenu
-        PostMenu
+        TestHttpLabels
+        TestQuery
+        TestHttpHeaders
+        TestHttpPayload
+        TestHttpDocument
+        TestHttpPayloadDeserialization
+        TestHttpDocumentDeserialization
+        // TestAllFeaturesSer
     ]
     errors: [
         InternalServerError
@@ -30,23 +36,41 @@ enum CoffeeType {
     ESPRESSO
 }
 
+/// Types of milk available for coffee
+enum MilkType {
+    WHOLE
+    SKIM
+    OAT
+    ALMOND
+    SOY
+    NONE
+}
+
+/// Temperature preferences
+enum TemperaturePreference {
+    HOT
+    ICED
+    EXTRA_HOT
+}
+
 /// A structure which defines a coffee item which can be ordered
 structure CoffeeItem {
     @required
-    @jsonName("coffeeType")
-    ctype: CoffeeType
+    @jsonName("type")
+    coffeeType: CoffeeType
 
     @required
     description: String
+
+    @timestampFormat("http-date")
+    @required
+    createdAt: Timestamp
 }
 
-union SomeUnion {
-    @jsonName("stringType")
-    label1: String
-
-    label2: CoffeeType
-
-    label3: CoffeeItem
+/// Represents different types of coffee customizations
+union CoffeeCustomization {
+    milk: MilkType
+    temperature: TemperaturePreference
 }
 
 /// A list of coffee items
@@ -56,84 +80,6 @@ list CoffeeItems {
 
 list StringList {
     member: String
-}
-
-/// Retrieve the menu
-@http(method: "GET", uri: "/menu")
-@readonly
-operation GetMenu {
-    output := {
-        items: CoffeeItems
-    }
-}
-
-// Post the menu
-@http(method: "POST", uri: "/menu/{some}?myQuery=123")
-operation PostMenu {
-    input := {
-        item: CoffeeItem
-
-        unionItem: SomeUnion
-
-        // @httpQueryParams
-        // stringQueryParams: MapOfString
-        @httpQueryParams
-        listQueryParams: MapOfListString
-
-        @httpQuery("pageQuery")
-        page: Integer
-
-        @httpQuery("type")
-        @required
-        experimentType: String
-
-        @httpQuery("status")
-        @required
-        status: StringList
-
-        @httpLabel
-        @required
-        some: String
-
-        @httpHeader("x-my-header")
-        tags: String
-
-        @httpPrefixHeaders("x-useless-")
-        versions: MapOfString
-
-        @timestampFormat("date-time")
-        dateTime: Timestamp
-
-        @timestampFormat("epoch-seconds")
-        epochSeconds: Timestamp
-
-        @timestampFormat("http-date")
-        httpDate: Timestamp
-
-        @required
-        @timestampFormat("http-date")
-        httpDateRequired: Timestamp
-    }
-
-    output := {
-        @required
-        items: CoffeeItem
-
-        @httpPrefixHeaders("x-some-header-")
-        resHeaders: MapOfString
-
-        @httpHeader("x-config-tag")
-        config_tag: String
-
-        @timestampFormat("http-date")
-        @httpHeader("x-last-modified")
-        httpDateOptional: Timestamp
-
-        @required
-        @timestampFormat("http-date")
-        @httpHeader("last-modified")
-        httpDateRequired: Timestamp
-    }
 }
 
 map MapOfString {
@@ -152,3 +98,255 @@ map MapOfListString {
 structure InternalServerError {
     message: String
 }
+
+@http(method: "GET", uri: "/path_params/{identifier}/{enabled}/{name}/{time}")
+@readonly
+operation TestHttpLabels {
+    input := {
+        @httpLabel
+        @required
+        identifier: Integer
+
+        @httpLabel
+        @required
+        enabled: Boolean
+
+        @httpLabel
+        @required
+        name: String
+
+        @httpLabel
+        @required
+        @timestampFormat("http-date")
+        time: Timestamp
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@http(method: "GET", uri: "/query_params?query_literal=some_query_literal_value")
+@readonly
+operation TestQuery {
+    input := {
+        @httpQuery("page")
+        page: Integer
+
+        @httpQuery("type")
+        coffeeType: String
+
+        @httpQuery("enabled")
+        enabled: Boolean
+
+        @httpQuery("tags")
+        tags: StringList
+
+        @httpQuery("time")
+        @timestampFormat("http-date")
+        time: Timestamp
+
+        @httpQueryParams
+        mapQueryParams: MapOfString
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+// test httpHeader which can be of type int, string, bool, of a list of these types
+@http(method: "GET", uri: "/headers")
+@readonly
+operation TestHttpHeaders {
+    input := {
+        @httpHeader("x-header-int")
+        intHeader: Integer
+
+        @httpHeader("x-header-string")
+        stringHeader: String
+
+        @httpHeader("x-header-bool")
+        boolHeader: Boolean
+
+        @httpHeader("x-header-list")
+        listHeader: StringList
+
+        @httpHeader("x-header-time")
+        @timestampFormat("http-date")
+        time: Timestamp
+
+        @httpPrefixHeaders("x-prefix-")
+        prefixHeaders: MapOfString
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@http(method: "POST", uri: "/payload/{identifier}")
+operation TestHttpPayload {
+    input := {
+        @httpPayload
+        @required
+        payload: CoffeeItem
+
+        @httpLabel
+        @required
+        identifier: Integer
+
+        @httpHeader("x-header-string")
+        stringHeader: String
+
+        @httpPrefixHeaders("x-prefix-")
+        prefixHeaders: MapOfString
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@http(method: "POST", uri: "/document/{identifier}")
+operation TestHttpDocument {
+    input := {
+        payload: CoffeeItem
+
+        customization: CoffeeCustomization
+
+        @timestampFormat("http-date")
+        time: Timestamp
+
+        @httpLabel
+        @required
+        identifier: Integer
+
+        @httpHeader("x-header-string")
+        stringHeader: String
+
+        @httpPrefixHeaders("x-prefix-")
+        prefixHeaders: MapOfString
+    }
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@http(method: "GET", uri: "/payload_response")
+@readonly
+operation TestHttpPayloadDeserialization {
+    input := {
+        @httpQuery("type")
+        coffeeType: String
+    }
+
+    output := {
+        @httpHeader("x-output-header")
+        outputHeader: String
+
+        @httpHeader("x-output-header-int")
+        outputHeaderInt: Integer
+
+        @httpHeader("x-output-header-bool")
+        outputHeaderBool: Boolean
+
+        @httpHeader("x-output-header-time")
+        @timestampFormat("http-date")
+        time: Timestamp
+
+        @httpHeader("x-output-header-list")
+        outputHeaderList: StringList
+
+        @httpPrefixHeaders("x-output-prefix-")
+        outputPrefixHeaders: MapOfString
+
+        @httpPayload
+        item: CoffeeItem
+    }
+}
+
+@http(method: "GET", uri: "/document_response")
+@readonly
+operation TestHttpDocumentDeserialization {
+    input := {
+        @httpQuery("type")
+        coffeeType: String
+    }
+
+    output := {
+        @httpHeader("x-output-header")
+        outputHeader: String
+
+        @httpHeader("x-output-header-int")
+        outputHeaderInt: Integer
+
+        @httpHeader("x-output-header-bool")
+        outputHeaderBool: Boolean
+
+        @httpHeader("x-output-header-list")
+        outputHeaderList: StringList
+
+        @httpPrefixHeaders("x-output-prefix-")
+        outputPrefixHeaders: MapOfString
+
+        item: CoffeeItem
+
+        customization: CoffeeCustomization
+
+        @timestampFormat("http-date")
+        time: Timestamp
+    }
+}
+// @http(method: "POST", uri: "/all_features/{identifier}")
+// operation TestAllFeaturesSer {
+//     input := {
+//         @httpPayload
+//         @required
+//         payload: CoffeeItem
+//         @httpLabel
+//         @required
+//         identifier: Integer
+//         @httpQuery("page")
+//         page: Integer
+//         @httpQuery("type")
+//         coffeeType: CoffeeType
+//         @httpQuery("enabled")
+//         enabled: Boolean
+//         @httpQuery("tags")
+//         tags: StringList
+//         @httpQueryParams
+//         mapQueryParams: MapOfString
+//         @httpHeader("x-header-int")
+//         intHeader: Integer
+//         @httpHeader("x-header-string")
+//         stringHeader: String
+//         @httpHeader("x-header-bool")
+//         boolHeader: Boolean
+//         @httpHeader("x-header-list")
+//         listHeader: StringList
+//         @httpPrefixHeaders("x-prefix-")
+//         prefixHeaders: MapOfString
+//     }
+//     output := {
+//         // all outputs
+//         @httpHeader("x-output-header")
+//         outputHeader: String
+//         @httpHeader("x-output-header-int")
+//         outputHeaderInt: Integer
+//         @httpHeader("x-output-header-bool")
+//         outputHeaderBool: Boolean
+//         @httpHeader("x-output-header-list")
+//         outputHeaderList: StringList
+//         @httpPrefixHeaders("x-output-prefix-")
+//         outputPrefixHeaders: MapOfString
+//         item: CoffeeItem
+//         customization: CoffeeCustomization
+//     }
+// }
