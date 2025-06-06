@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Command.TestHttpLabels (
     TestHttpLabelsError(..),
     testHttpLabels
@@ -9,6 +6,7 @@ import qualified Com.Example.ExampleServiceClient
 import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestHttpLabelsInput
 import qualified Com.Example.Model.TestHttpLabelsOutput
+import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -44,6 +42,8 @@ instance RequestSegment Integer where
     toRequestSegment = Data.Text.pack . show
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+instance RequestSegment Network.HTTP.Date.HTTPDate where
+    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
 
 serTestHttpLabelsLABEL :: Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInput -> Data.ByteString.ByteString
 serTestHttpLabelsLABEL input = 
@@ -56,6 +56,9 @@ serTestHttpLabelsLABEL input =
                     Data.Function.& toRequestSegment)
         ,
         (Com.Example.Model.TestHttpLabelsInput.name input
+                    Data.Function.& toRequestSegment)
+        ,
+        (Com.Example.Model.TestHttpLabelsInput.time input
                     Data.Function.& toRequestSegment)
         
         ]

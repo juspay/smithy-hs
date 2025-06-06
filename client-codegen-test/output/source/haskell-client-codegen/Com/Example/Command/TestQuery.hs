@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Command.TestQuery (
     TestQueryError(..),
     testQuery
@@ -9,6 +6,7 @@ import qualified Com.Example.ExampleServiceClient
 import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestQueryInput
 import qualified Com.Example.Model.TestQueryOutput
+import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -45,6 +43,8 @@ instance RequestSegment Integer where
     toRequestSegment = Data.Text.pack . show
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+instance RequestSegment Network.HTTP.Date.HTTPDate where
+    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
 
 serTestQueryQUERY :: Com.Example.Model.TestQueryInput.TestQueryInput -> Data.ByteString.ByteString
 serTestQueryQUERY input =
@@ -70,6 +70,12 @@ serTestQueryQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("page", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
+        timeQuery = Com.Example.Model.TestQueryInput.time input
+                    Data.Functor.<&> (\x -> [x])
+                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (\x -> toQueryItem ("time", x))
+                    Data.Function.& Data.Maybe.maybe [] (id)
+        
         enabledQuery = Com.Example.Model.TestQueryInput.enabled input
                     Data.Functor.<&> (\x -> [x])
                     Data.Functor.<&> Data.List.map (toRequestSegment)
@@ -81,7 +87,7 @@ serTestQueryQUERY input =
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("tags", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
-        m = staticParams ++ mapParams ++ coffeeTypeQuery ++ pageQuery ++ enabledQuery ++ tagsQuery
+        m = staticParams ++ mapParams ++ coffeeTypeQuery ++ pageQuery ++ timeQuery ++ enabledQuery ++ tagsQuery
         in Network.HTTP.Types.URI.renderQuery True (Network.HTTP.Types.URI.queryTextToQuery m)
     
     where
@@ -92,6 +98,7 @@ serTestQueryQUERY input =
             "query_literal",
             "type",
             "page",
+            "time",
             "enabled",
             "tags"
             ]

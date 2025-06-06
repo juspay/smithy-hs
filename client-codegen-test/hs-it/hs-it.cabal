@@ -40,7 +40,9 @@ test-suite hs-it-test
                       http-types,
                       stm,
                       bytestring,
-                      case-insensitive
+                      case-insensitive,
+                      extra,
+                      http-date
 
     other-modules:    Message
                       HttpLabelTest

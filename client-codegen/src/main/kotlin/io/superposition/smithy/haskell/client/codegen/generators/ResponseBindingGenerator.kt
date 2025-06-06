@@ -41,9 +41,6 @@ class ResponseBindingGenerator(
     private val httpTrait = operation.getTrait(HttpTrait::class.java).orElse(null)
     private val bindings = httpBindingIndex.getResponseBindings(operation)
 
-    private val outputSymbol =
-        symbolProvider.toSymbol(model.expectShape(operation.outputShape))
-
     private val getBindings = { location: HttpBinding.Location ->
         bindings.filter { it.value.location == location }.map { it.value }
     }

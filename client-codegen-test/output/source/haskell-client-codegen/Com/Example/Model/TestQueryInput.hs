@@ -1,11 +1,9 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Model.TestQueryInput (
     setPage,
     setCoffeetype,
     setEnabled,
     setTags,
+    setTime,
     setMapqueryparams,
     build,
     TestQueryInputBuilder,
@@ -14,27 +12,34 @@ module Com.Example.Model.TestQueryInput (
     coffeeType,
     enabled,
     tags,
+    time,
     mapQueryParams
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Either
+import qualified Data.Eq
+import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
+import qualified Data.Text.Encoding
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Date
 
 data TestQueryInput = TestQueryInput {
     page :: Data.Maybe.Maybe Integer,
     coffeeType :: Data.Maybe.Maybe Data.Text.Text,
     enabled :: Data.Maybe.Maybe Bool,
     tags :: Data.Maybe.Maybe ([] Data.Text.Text),
+    time :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
     mapQueryParams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Show.Show,
+  Data.Eq.Eq,
   GHC.Generics.Generic
   )
 
@@ -44,6 +49,7 @@ instance Data.Aeson.ToJSON TestQueryInput where
         "coffeeType" Data.Aeson..= coffeeType a,
         "enabled" Data.Aeson..= enabled a,
         "tags" Data.Aeson..= tags a,
+        "time" Data.Aeson..= ((time a) Data.Functor.<&> (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate)),
         "mapQueryParams" Data.Aeson..= mapQueryParams a
         ]
     
@@ -55,6 +61,14 @@ instance Data.Aeson.FromJSON TestQueryInput where
         Control.Applicative.<*> (v Data.Aeson..: "coffeeType")
         Control.Applicative.<*> (v Data.Aeson..: "enabled")
         Control.Applicative.<*> (v Data.Aeson..: "tags")
+        Control.Applicative.<*> (v Data.Aeson..: "time"
+             >>= \t -> t
+                            Data.Functor.<&> Data.Text.Encoding.encodeUtf8
+                            Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
+                            Data.Functor.<&> Data.Maybe.maybe (fail "Failed to parse Com.Example.Model.TestQueryInput.TestQueryInput.Data.Maybe.Maybe as Network.HTTP.Date.HTTPDate") pure
+                            Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
+            
+            )
         Control.Applicative.<*> (v Data.Aeson..: "mapQueryParams")
     
 
@@ -65,6 +79,7 @@ data TestQueryInputBuilderState = TestQueryInputBuilderState {
     coffeeTypeBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     enabledBuilderState :: Data.Maybe.Maybe Bool,
     tagsBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    timeBuilderState :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
     mapQueryParamsBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Generics.Generic
@@ -76,6 +91,7 @@ defaultBuilderState = TestQueryInputBuilderState {
     coffeeTypeBuilderState = Data.Maybe.Nothing,
     enabledBuilderState = Data.Maybe.Nothing,
     tagsBuilderState = Data.Maybe.Nothing,
+    timeBuilderState = Data.Maybe.Nothing,
     mapQueryParamsBuilderState = Data.Maybe.Nothing
 }
 
@@ -116,6 +132,10 @@ setTags :: Data.Maybe.Maybe ([] Data.Text.Text) -> TestQueryInputBuilder ()
 setTags value =
    TestQueryInputBuilder (\s -> (s { tagsBuilderState = value }, ()))
 
+setTime :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate -> TestQueryInputBuilder ()
+setTime value =
+   TestQueryInputBuilder (\s -> (s { timeBuilderState = value }, ()))
+
 setMapqueryparams :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> TestQueryInputBuilder ()
 setMapqueryparams value =
    TestQueryInputBuilder (\s -> (s { mapQueryParamsBuilderState = value }, ()))
@@ -127,12 +147,14 @@ build builder = do
     coffeeType' <- Data.Either.Right (coffeeTypeBuilderState st)
     enabled' <- Data.Either.Right (enabledBuilderState st)
     tags' <- Data.Either.Right (tagsBuilderState st)
+    time' <- Data.Either.Right (timeBuilderState st)
     mapQueryParams' <- Data.Either.Right (mapQueryParamsBuilderState st)
     Data.Either.Right (TestQueryInput { 
         page = page',
         coffeeType = coffeeType',
         enabled = enabled',
         tags = tags',
+        time = time',
         mapQueryParams = mapQueryParams'
     })
 

@@ -12,84 +12,64 @@ import Com.Example.Model.TestHttpPayloadInput qualified as TestHttpPayloadInput
 import Control.Concurrent.STM qualified as Stm
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Char8 qualified as BS
-import Data.CaseInsensitive qualified as CI
-import Data.Function
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
-import Data.Text.Encoding (decodeUtf8)
-import Message (State (..), defaultResponse)
+import Message (State (..), defaultResponse, assertEqRequest, RequestInternal (RequestInternal))
+import qualified Message as RI
 import Network.HTTP.Types qualified as HTTP
-import Network.Wai qualified as Wai
 import Test.HUnit qualified as HUnit
+import Data.Either.Extra (fromRight')
+import Data.Maybe (fromJust)
+import Network.HTTP.Date (parseHTTPDate)
 
 testHttpPayload :: State -> HUnit.Test
 testHttpPayload state = HUnit.TestCase $ do
-  let identifierValue = 123
+  let dateString = "Thu, 04 Jan 2024 14:45:00 GMT"
+      identifierValue = 123
       stringHeaderValue = "test-header-value"
       prefixHeadersValue = Map.fromList [("custom", "prefix-value")]
+      time = fromJust $ parseHTTPDate dateString
 
-      expectedMethod = HTTP.methodPost
-      expectedPath = ["payload", T.pack $ show identifierValue]
-
-      -- Expected JSON payload
-      expectedPayloadJson = "{\"type\":\"LATTE\",\"description\":\"A smooth latte with silky foam\"}"
-
-      coffeeItemResult = CoffeeItem.build $ do
+      coffeeItem = fromRight' $ CoffeeItem.build $ do
         CoffeeItem.setCoffeetype CoffeeType.LATTE
         CoffeeItem.setDescription "A smooth latte with silky foam"
+        CoffeeItem.setCreatedat time
 
-  -- Set up response
+      expectedPayload = Aeson.toJSON coffeeItem
+      expectedRequest = RequestInternal {
+        RI.queryString = [],
+        RI.pathInfo = ["payload", T.pack $ show identifierValue],
+        RI.requestMethod = HTTP.methodPost,
+        RI.requestHeaders = [
+          ("x-header-string", BS.pack $ T.unpack stringHeaderValue),
+          ("x-prefix-custom", BS.pack $ T.unpack $ prefixHeadersValue Map.! "custom")
+        ]
+      }
+
   _ <- Stm.atomically $ Stm.writeTMVar (res state) defaultResponse
 
-  -- Create coffee item
+  result <- TestHttpPayload.testHttpPayload (client state) $ do
+    TestHttpPayloadInput.setPayload coffeeItem
+    TestHttpPayloadInput.setIdentifier identifierValue
+    TestHttpPayloadInput.setStringheader (Just stringHeaderValue)
+    TestHttpPayloadInput.setPrefixheaders (Just prefixHeadersValue)
 
-  case coffeeItemResult of
-    Left err ->
-      HUnit.assertFailure ("Failed to create coffee item: " ++ T.unpack err)
-    Right coffeeItem -> do
-      -- Execute the operation
-      result <- TestHttpPayload.testHttpPayload (client state) $ do
-        TestHttpPayloadInput.setPayload coffeeItem
-        TestHttpPayloadInput.setIdentifier identifierValue
-        TestHttpPayloadInput.setStringheader (Just stringHeaderValue)
-        TestHttpPayloadInput.setPrefixheaders (Just prefixHeadersValue)
+  actualReq <- Stm.atomically $ Stm.takeTMVar (req state)
+  actualPayload <- Stm.atomically $ Stm.takeTMVar (rBody state)
 
-      -- Take the request and compare it
-      actualReq <- Stm.atomically $ Stm.takeTMVar (req state)
-      actualPayload <- Stm.atomically $ Stm.takeTMVar (rBody state)
+  assertEqRequest expectedRequest actualReq
 
-      -- Verify path is correct
-      HUnit.assertEqual "Path should match" expectedPath (Wai.pathInfo actualReq)
+  case Aeson.decodeStrict actualPayload of
+    Just actualJson -> do
+      HUnit.assertEqual "Payload JSON should match" expectedPayload actualJson
+    _ -> HUnit.assertFailure "Failed to parse JSON payload"
 
-      -- Verify HTTP method is correct
-      HUnit.assertEqual "HTTP method should be POST" expectedMethod (Wai.requestMethod actualReq)
-
-      -- Verify headers
-      let actualHeaders =
-            Wai.requestHeaders actualReq
-              & map (\(n, v) -> (decodeUtf8 (CI.original n), v))
-
-      HUnit.assertBool "String header should be present with correct value" $
-        any (\(n, v) -> n == "x-header-string" && v == BS.pack (T.unpack stringHeaderValue)) actualHeaders
-
-      HUnit.assertBool "Prefix header should be present with correct value" $
-        any (\(n, v) -> n == "x-prefix-custom" && v == BS.pack (T.unpack $ prefixHeadersValue Map.! "custom")) actualHeaders
-
-      -- Parse both as JSON and compare to handle potential formatting differences
-      case (Aeson.decodeStrict actualPayload, Aeson.decodeStrict expectedPayloadJson) of
-        (Just actualJson, Just expectedJson) -> do
-          putStrLn $ "\nPAYLOAD_TEST :: Expected payload: " ++ show expectedJson
-          putStrLn $ "\nPAYLOAD_TEST :: Actual payload: " ++ show actualJson
-          HUnit.assertEqual "Payload JSON should match" (expectedJson :: Aeson.Value) actualJson
-        _ -> HUnit.assertFailure "Failed to parse JSON payload"
-
-      -- Verify operation result
-      case result of
-        Left (TestHttpPayload.BuilderError err) ->
-          HUnit.assertFailure $ "Builder error: " ++ T.unpack err
-        Left (TestHttpPayload.RequestError err) ->
-          HUnit.assertFailure $ "Request error: " ++ T.unpack err
-        Left (TestHttpPayload.InternalServerError _) ->
-          HUnit.assertFailure "Unexpected server error"
-        Right _ ->
-          HUnit.assertBool "TestHttpPayload operation successful" True
+  case result of
+    Left (TestHttpPayload.BuilderError err) ->
+      HUnit.assertFailure $ "Builder error: " ++ T.unpack err
+    Left (TestHttpPayload.RequestError err) ->
+      HUnit.assertFailure $ "Request error: " ++ T.unpack err
+    Left (TestHttpPayload.InternalServerError _) ->
+      HUnit.assertFailure "Unexpected server error"
+    Right _ ->
+      HUnit.assertBool "TestHttpPayload operation successful" True

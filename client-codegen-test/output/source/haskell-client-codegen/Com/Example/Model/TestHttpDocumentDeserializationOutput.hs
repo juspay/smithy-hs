@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Model.TestHttpDocumentDeserializationOutput (
     setOutputheader,
     setOutputheaderint,
@@ -9,6 +6,7 @@ module Com.Example.Model.TestHttpDocumentDeserializationOutput (
     setOutputprefixheaders,
     setItem,
     setCustomization,
+    setTime,
     build,
     TestHttpDocumentDeserializationOutputBuilder,
     TestHttpDocumentDeserializationOutput,
@@ -18,7 +16,8 @@ module Com.Example.Model.TestHttpDocumentDeserializationOutput (
     outputHeaderList,
     outputPrefixHeaders,
     item,
-    customization
+    customization,
+    time
 ) where
 import qualified Com.Example.Model.CoffeeCustomization
 import qualified Com.Example.Model.CoffeeItem
@@ -26,12 +25,16 @@ import qualified Control.Applicative
 import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Either
+import qualified Data.Eq
+import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
+import qualified Data.Text.Encoding
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Date
 
 data TestHttpDocumentDeserializationOutput = TestHttpDocumentDeserializationOutput {
     outputHeader :: Data.Maybe.Maybe Data.Text.Text,
@@ -40,9 +43,11 @@ data TestHttpDocumentDeserializationOutput = TestHttpDocumentDeserializationOutp
     outputHeaderList :: Data.Maybe.Maybe ([] Data.Text.Text),
     outputPrefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     item :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
-    customization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization
+    customization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization,
+    time :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate
 } deriving (
   GHC.Show.Show,
+  Data.Eq.Eq,
   GHC.Generics.Generic
   )
 
@@ -54,7 +59,8 @@ instance Data.Aeson.ToJSON TestHttpDocumentDeserializationOutput where
         "outputHeaderList" Data.Aeson..= outputHeaderList a,
         "outputPrefixHeaders" Data.Aeson..= outputPrefixHeaders a,
         "item" Data.Aeson..= item a,
-        "customization" Data.Aeson..= customization a
+        "customization" Data.Aeson..= customization a,
+        "time" Data.Aeson..= ((time a) Data.Functor.<&> (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate))
         ]
     
 
@@ -68,6 +74,14 @@ instance Data.Aeson.FromJSON TestHttpDocumentDeserializationOutput where
         Control.Applicative.<*> (v Data.Aeson..: "outputPrefixHeaders")
         Control.Applicative.<*> (v Data.Aeson..: "item")
         Control.Applicative.<*> (v Data.Aeson..: "customization")
+        Control.Applicative.<*> (v Data.Aeson..: "time"
+             >>= \t -> t
+                            Data.Functor.<&> Data.Text.Encoding.encodeUtf8
+                            Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
+                            Data.Functor.<&> Data.Maybe.maybe (fail "Failed to parse Com.Example.Model.TestHttpDocumentDeserializationOutput.TestHttpDocumentDeserializationOutput.Data.Maybe.Maybe as Network.HTTP.Date.HTTPDate") pure
+                            Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
+            
+            )
     
 
 
@@ -79,7 +93,8 @@ data TestHttpDocumentDeserializationOutputBuilderState = TestHttpDocumentDeseria
     outputHeaderListBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     outputPrefixHeadersBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
     itemBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
-    customizationBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization
+    customizationBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization,
+    timeBuilderState :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate
 } deriving (
   GHC.Generics.Generic
   )
@@ -92,7 +107,8 @@ defaultBuilderState = TestHttpDocumentDeserializationOutputBuilderState {
     outputHeaderListBuilderState = Data.Maybe.Nothing,
     outputPrefixHeadersBuilderState = Data.Maybe.Nothing,
     itemBuilderState = Data.Maybe.Nothing,
-    customizationBuilderState = Data.Maybe.Nothing
+    customizationBuilderState = Data.Maybe.Nothing,
+    timeBuilderState = Data.Maybe.Nothing
 }
 
 newtype TestHttpDocumentDeserializationOutputBuilder a = TestHttpDocumentDeserializationOutputBuilder {
@@ -144,6 +160,10 @@ setCustomization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.Coffe
 setCustomization value =
    TestHttpDocumentDeserializationOutputBuilder (\s -> (s { customizationBuilderState = value }, ()))
 
+setTime :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate -> TestHttpDocumentDeserializationOutputBuilder ()
+setTime value =
+   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { timeBuilderState = value }, ()))
+
 build :: TestHttpDocumentDeserializationOutputBuilder () -> Data.Either.Either Data.Text.Text TestHttpDocumentDeserializationOutput
 build builder = do
     let (st, _) = runTestHttpDocumentDeserializationOutputBuilder builder defaultBuilderState
@@ -154,6 +174,7 @@ build builder = do
     outputPrefixHeaders' <- Data.Either.Right (outputPrefixHeadersBuilderState st)
     item' <- Data.Either.Right (itemBuilderState st)
     customization' <- Data.Either.Right (customizationBuilderState st)
+    time' <- Data.Either.Right (timeBuilderState st)
     Data.Either.Right (TestHttpDocumentDeserializationOutput { 
         outputHeader = outputHeader',
         outputHeaderInt = outputHeaderInt',
@@ -161,7 +182,8 @@ build builder = do
         outputHeaderList = outputHeaderList',
         outputPrefixHeaders = outputPrefixHeaders',
         item = item',
-        customization = customization'
+        customization = customization',
+        time = time'
     })
 
 

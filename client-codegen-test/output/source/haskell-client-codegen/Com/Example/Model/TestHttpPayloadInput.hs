@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Model.TestHttpPayloadInput (
     setPayload,
     setIdentifier,
@@ -19,6 +16,7 @@ import qualified Control.Applicative
 import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Either
+import qualified Data.Eq
 import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Maybe
@@ -33,6 +31,7 @@ data TestHttpPayloadInput = TestHttpPayloadInput {
     prefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Show.Show,
+  Data.Eq.Eq,
   GHC.Generics.Generic
   )
 

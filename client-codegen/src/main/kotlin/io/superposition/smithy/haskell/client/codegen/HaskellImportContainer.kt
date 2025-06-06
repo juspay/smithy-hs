@@ -36,7 +36,6 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
     }
 
     override fun toString(): String {
-        println("${imports.values}")
         val orderedImports = imports.values
             .flatten()
             .filter { s -> s.namespace != modName }

@@ -61,6 +61,10 @@ structure CoffeeItem {
 
     @required
     description: String
+
+    @timestampFormat("http-date")
+    @required
+    createdAt: Timestamp
 }
 
 /// Represents different types of coffee customizations
@@ -95,7 +99,7 @@ structure InternalServerError {
     message: String
 }
 
-@http(method: "GET", uri: "/path_params/{identifier}/{enabled}/{name}")
+@http(method: "GET", uri: "/path_params/{identifier}/{enabled}/{name}/{time}")
 @readonly
 operation TestHttpLabels {
     input := {
@@ -110,6 +114,11 @@ operation TestHttpLabels {
         @httpLabel
         @required
         name: String
+
+        @httpLabel
+        @required
+        @timestampFormat("http-date")
+        time: Timestamp
     }
 
     output := {
@@ -133,6 +142,10 @@ operation TestQuery {
 
         @httpQuery("tags")
         tags: StringList
+
+        @httpQuery("time")
+        @timestampFormat("http-date")
+        time: Timestamp
 
         @httpQueryParams
         mapQueryParams: MapOfString
@@ -160,6 +173,10 @@ operation TestHttpHeaders {
 
         @httpHeader("x-header-list")
         listHeader: StringList
+
+        @httpHeader("x-header-time")
+        @timestampFormat("http-date")
+        time: Timestamp
 
         @httpPrefixHeaders("x-prefix-")
         prefixHeaders: MapOfString
@@ -202,6 +219,9 @@ operation TestHttpDocument {
 
         customization: CoffeeCustomization
 
+        @timestampFormat("http-date")
+        time: Timestamp
+
         @httpLabel
         @required
         identifier: Integer
@@ -236,6 +256,10 @@ operation TestHttpPayloadDeserialization {
 
         @httpHeader("x-output-header-bool")
         outputHeaderBool: Boolean
+
+        @httpHeader("x-output-header-time")
+        @timestampFormat("http-date")
+        time: Timestamp
 
         @httpHeader("x-output-header-list")
         outputHeaderList: StringList
@@ -275,6 +299,9 @@ operation TestHttpDocumentDeserialization {
         item: CoffeeItem
 
         customization: CoffeeCustomization
+
+        @timestampFormat("http-date")
+        time: Timestamp
     }
 }
 // @http(method: "POST", uri: "/all_features/{identifier}")

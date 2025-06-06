@@ -9,17 +9,33 @@ import Com.Example.Command.TestHttpLabels qualified as TestHttpLabels
 import Com.Example.Model.TestHttpLabelsInput qualified as TestHttpLabelsInput
 import Control.Concurrent.STM qualified as Stm
 import Data.Text qualified as T
-import Message (State (..), defaultResponse)
+import Message (State (..), defaultResponse, assertEqRequest, RequestInternal (RequestInternal))
+import qualified Message as RI
 import Network.HTTP.Types qualified as HTTP
-import Network.Wai qualified as Wai
 import Test.HUnit qualified as HUnit
+import Network.HTTP.Date (parseHTTPDate)
+import Data.Maybe (fromJust)
+import Data.Text.Encoding (decodeUtf8)
 
 testHttpLabels :: State -> HUnit.Test
 testHttpLabels state = HUnit.TestCase $ do
-  let identifierValue = 42
+  let dateString = "Mon, 01 Jan 2024 12:00:00 GMT"
+      identifierValue = 42
       enabledValue = True
       nameValue = "test-name"
-      expectedPath = ["path_params", T.pack $ show identifierValue, T.toLower (T.pack $ show enabledValue), nameValue]
+
+      time = fromJust $ parseHTTPDate dateString
+      expectedRequest = RequestInternal
+        { RI.queryString = [],
+          RI.pathInfo =
+            [ "path_params"
+            , T.pack $ show identifierValue 
+            , T.toLower (T.pack $ show enabledValue) 
+            , nameValue
+            , decodeUtf8 dateString
+            ],
+          RI.requestMethod = HTTP.methodGet,
+          RI.requestHeaders = [] }
 
   _ <- Stm.atomically $ Stm.writeTMVar (res state) defaultResponse
 
@@ -27,13 +43,11 @@ testHttpLabels state = HUnit.TestCase $ do
     TestHttpLabelsInput.setIdentifier identifierValue
     TestHttpLabelsInput.setEnabled enabledValue
     TestHttpLabelsInput.setName nameValue
+    TestHttpLabelsInput.setTime time
 
   actualReq <- Stm.atomically $ Stm.takeTMVar (req state)
 
-  HUnit.assertEqual "Path should be equal" expectedPath (Wai.pathInfo actualReq)
-
-  HUnit.assertEqual "HTTP method should be GET" HTTP.methodGet (Wai.requestMethod actualReq)
-
+  assertEqRequest expectedRequest actualReq
   case result of
     Left (TestHttpLabels.BuilderError err) ->
       HUnit.assertFailure $ "Builder error: " ++ T.unpack err

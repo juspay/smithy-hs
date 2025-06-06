@@ -56,7 +56,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             )
             writer.putContext(
                 "derives",
-                Runnable { writer.writeDerives(listOf(HaskellSymbol.Generic, HaskellSymbol.Show)) }
+                Runnable { writer.writeDerives(listOf(HaskellSymbol.Generic, HaskellSymbol.Show, HaskellSymbol.Eq)) }
             )
             writer.putContext(
                 "deserializer",

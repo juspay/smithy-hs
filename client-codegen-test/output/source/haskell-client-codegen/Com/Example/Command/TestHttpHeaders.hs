@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Command.TestHttpHeaders (
     TestHttpHeadersError(..),
     testHttpHeaders
@@ -9,6 +6,7 @@ import qualified Com.Example.ExampleServiceClient
 import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestHttpHeadersInput
 import qualified Com.Example.Model.TestHttpHeadersOutput
+import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -46,6 +44,8 @@ instance RequestSegment Integer where
     toRequestSegment = Data.Text.pack . show
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+instance RequestSegment Network.HTTP.Date.HTTPDate where
+    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
 
 serTestHttpHeadersHEADER :: Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInput -> Network.HTTP.Types.Header.RequestHeaders
 serTestHttpHeadersHEADER input =
@@ -66,6 +66,11 @@ serTestHttpHeadersHEADER input =
                     Data.Functor.<&> Data.Text.intercalate ","
                     Data.Functor.<&> \x -> [("x-header-list", Data.Text.Encoding.encodeUtf8 x)]
         
+        timeHeader = (Com.Example.Model.TestHttpHeadersInput.time input
+                    Data.Functor.<&> toRequestSegment)
+        
+                    Data.Functor.<&> \x -> [("x-header-time", Data.Text.Encoding.encodeUtf8 x)]
+        
         stringHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.stringHeader input
                     Data.Functor.<&> toRequestSegment)
         
@@ -79,6 +84,7 @@ serTestHttpHeadersHEADER input =
             boolHeaderHeader,
             intHeaderHeader,
             listHeaderHeader,
+            timeHeader,
             stringHeaderHeader,
             prefixHeadersHeader
             ]

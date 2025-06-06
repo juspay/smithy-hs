@@ -1,11 +1,9 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Model.TestHttpHeadersInput (
     setIntheader,
     setStringheader,
     setBoolheader,
     setListheader,
+    setTime,
     setPrefixheaders,
     build,
     TestHttpHeadersInputBuilder,
@@ -14,27 +12,34 @@ module Com.Example.Model.TestHttpHeadersInput (
     stringHeader,
     boolHeader,
     listHeader,
+    time,
     prefixHeaders
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Either
+import qualified Data.Eq
+import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
+import qualified Data.Text.Encoding
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Date
 
 data TestHttpHeadersInput = TestHttpHeadersInput {
     intHeader :: Data.Maybe.Maybe Integer,
     stringHeader :: Data.Maybe.Maybe Data.Text.Text,
     boolHeader :: Data.Maybe.Maybe Bool,
     listHeader :: Data.Maybe.Maybe ([] Data.Text.Text),
+    time :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
     prefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Show.Show,
+  Data.Eq.Eq,
   GHC.Generics.Generic
   )
 
@@ -44,6 +49,7 @@ instance Data.Aeson.ToJSON TestHttpHeadersInput where
         "stringHeader" Data.Aeson..= stringHeader a,
         "boolHeader" Data.Aeson..= boolHeader a,
         "listHeader" Data.Aeson..= listHeader a,
+        "time" Data.Aeson..= ((time a) Data.Functor.<&> (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate)),
         "prefixHeaders" Data.Aeson..= prefixHeaders a
         ]
     
@@ -55,6 +61,14 @@ instance Data.Aeson.FromJSON TestHttpHeadersInput where
         Control.Applicative.<*> (v Data.Aeson..: "stringHeader")
         Control.Applicative.<*> (v Data.Aeson..: "boolHeader")
         Control.Applicative.<*> (v Data.Aeson..: "listHeader")
+        Control.Applicative.<*> (v Data.Aeson..: "time"
+             >>= \t -> t
+                            Data.Functor.<&> Data.Text.Encoding.encodeUtf8
+                            Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
+                            Data.Functor.<&> Data.Maybe.maybe (fail "Failed to parse Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInput.Data.Maybe.Maybe as Network.HTTP.Date.HTTPDate") pure
+                            Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
+            
+            )
         Control.Applicative.<*> (v Data.Aeson..: "prefixHeaders")
     
 
@@ -65,6 +79,7 @@ data TestHttpHeadersInputBuilderState = TestHttpHeadersInputBuilderState {
     stringHeaderBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     boolHeaderBuilderState :: Data.Maybe.Maybe Bool,
     listHeaderBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    timeBuilderState :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
     prefixHeadersBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
   GHC.Generics.Generic
@@ -76,6 +91,7 @@ defaultBuilderState = TestHttpHeadersInputBuilderState {
     stringHeaderBuilderState = Data.Maybe.Nothing,
     boolHeaderBuilderState = Data.Maybe.Nothing,
     listHeaderBuilderState = Data.Maybe.Nothing,
+    timeBuilderState = Data.Maybe.Nothing,
     prefixHeadersBuilderState = Data.Maybe.Nothing
 }
 
@@ -116,6 +132,10 @@ setListheader :: Data.Maybe.Maybe ([] Data.Text.Text) -> TestHttpHeadersInputBui
 setListheader value =
    TestHttpHeadersInputBuilder (\s -> (s { listHeaderBuilderState = value }, ()))
 
+setTime :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate -> TestHttpHeadersInputBuilder ()
+setTime value =
+   TestHttpHeadersInputBuilder (\s -> (s { timeBuilderState = value }, ()))
+
 setPrefixheaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> TestHttpHeadersInputBuilder ()
 setPrefixheaders value =
    TestHttpHeadersInputBuilder (\s -> (s { prefixHeadersBuilderState = value }, ()))
@@ -127,12 +147,14 @@ build builder = do
     stringHeader' <- Data.Either.Right (stringHeaderBuilderState st)
     boolHeader' <- Data.Either.Right (boolHeaderBuilderState st)
     listHeader' <- Data.Either.Right (listHeaderBuilderState st)
+    time' <- Data.Either.Right (timeBuilderState st)
     prefixHeaders' <- Data.Either.Right (prefixHeadersBuilderState st)
     Data.Either.Right (TestHttpHeadersInput { 
         intHeader = intHeader',
         stringHeader = stringHeader',
         boolHeader = boolHeader',
         listHeader = listHeader',
+        time = time',
         prefixHeaders = prefixHeaders'
     })
 

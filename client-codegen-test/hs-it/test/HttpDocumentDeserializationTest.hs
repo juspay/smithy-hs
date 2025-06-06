@@ -19,22 +19,21 @@ import Data.Char (toLower)
 import Data.Function
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
-import Message (State (..))
+import Message (State (..), RequestInternal (RequestInternal), assertEqRequest)
+import qualified Message as RI
 import Network.HTTP.Types qualified as HTTP
-import Network.HTTP.Types.URI (parseQuery, queryToQueryText)
 import Network.Wai qualified as Wai
 import Test.HUnit qualified as HUnit
+import Network.HTTP.Date (parseHTTPDate)
+import Data.Either.Extra (fromRight')
+import Data.Maybe (fromJust)
+import Data.Text.Encoding (decodeUtf8)
 
 testHttpDocumentDeserialization :: State -> HUnit.Test
 testHttpDocumentDeserialization state = HUnit.TestCase $ do
   let coffeeTypeValue = "POUR_OVER"
-
-      expectedMethod = HTTP.methodGet
-      expectedPath = ["document_response"]
-
-      expectedQueryItems =
-        [ ("type", Just coffeeTypeValue)
-        ]
+      dateString = "Fri, 05 Jan 2024 16:20:00 GMT"
+      expectedTimeValue = fromJust $ parseHTTPDate dateString
 
       expectedOutputHeader = "test-document-output-header"
       expectedOutputHeaderInt = 789
@@ -42,19 +41,19 @@ testHttpDocumentDeserialization state = HUnit.TestCase $ do
       expectedOutputHeaderList = ["doc1", "doc2", "doc3"]
       expectedOutputPrefixHeaders = Map.fromList [("metadata", "doc-metadata"), ("version", "doc-v1")]
 
-      expectedDocumentJson =
-        Aeson.object
-          [ "item"
-              Aeson..= Aeson.object
-                [ "type" Aeson..= CoffeeType.POUR_OVER,
-                  "description" Aeson..= Aeson.String "Hand-poured coffee for document test"
-                ],
-            "customization"
-              Aeson..= Aeson.object
-                [ "temperature" Aeson..= TemperaturePreference.HOT
-                ]
-          ]
-          & Aeson.encode
+      expectedCoffeeItem = fromRight' $ CoffeeItem.build $ do
+        CoffeeItem.setCoffeetype CoffeeType.POUR_OVER
+        CoffeeItem.setDescription "Hand-poured coffee for document test"
+        CoffeeItem.setCreatedat expectedTimeValue
+      
+      expectedCustomization = CoffeeCustomization.Temperature TemperaturePreference.HOT
+
+      expectedRequest = RequestInternal {
+        RI.queryString = [ ("type", Just coffeeTypeValue) ],
+        RI.pathInfo = ["document_response"],
+        RI.requestMethod = HTTP.methodGet,
+        RI.requestHeaders = []
+      }
 
       mockResponse =
         Wai.responseLBS
@@ -65,29 +64,35 @@ testHttpDocumentDeserialization state = HUnit.TestCase $ do
             ("x-output-header-list", BS.pack $ T.unpack $ T.intercalate "," expectedOutputHeaderList),
             ("x-output-prefix-metadata", BS.pack $ T.unpack $ expectedOutputPrefixHeaders Map.! "metadata"),
             ("x-output-prefix-version", BS.pack $ T.unpack $ expectedOutputPrefixHeaders Map.! "version"),
+            ("x-output-header-time", dateString),
             ("Content-Type", "application/json")
           ]
-          expectedDocumentJson
+          (Aeson.object
+            [ "item" Aeson..= expectedCoffeeItem
+            , "customization" Aeson..= expectedCustomization
+            , "time" Aeson..= decodeUtf8 dateString
+            ]
+            & Aeson.encode)
+      
+      expectedOutput = fromRight' $ TestHttpDocumentDeserializationOutput.build $ do
+        TestHttpDocumentDeserializationOutput.setOutputheader (Just $ T.pack expectedOutputHeader)
+        TestHttpDocumentDeserializationOutput.setOutputheaderint (Just expectedOutputHeaderInt)
+        TestHttpDocumentDeserializationOutput.setOutputheaderbool (Just expectedOutputHeaderBool)
+        TestHttpDocumentDeserializationOutput.setOutputheaderlist (Just expectedOutputHeaderList)
+        TestHttpDocumentDeserializationOutput.setOutputprefixheaders (Just expectedOutputPrefixHeaders)
+        TestHttpDocumentDeserializationOutput.setTime (Just expectedTimeValue)
+        TestHttpDocumentDeserializationOutput.setItem (Just expectedCoffeeItem)
+        TestHttpDocumentDeserializationOutput.setCustomization (Just expectedCustomization)
+        
 
   _ <- Stm.atomically $ Stm.writeTMVar (res state) mockResponse
 
   result <- TestHttpDocumentDeserialization.testHttpDocumentDeserialization (client state) $ do
-    TestHttpDocumentDeserializationInput.setCoffeetype (Just coffeeTypeValue)
+    TestHttpDocumentDeserializationInput.setCoffeetype (Just $ decodeUtf8 coffeeTypeValue)
 
   actualReq <- Stm.atomically $ Stm.takeTMVar (req state)
 
-  HUnit.assertEqual "Path should match" expectedPath (Wai.pathInfo actualReq)
-
-  HUnit.assertEqual "HTTP method should be GET" expectedMethod (Wai.requestMethod actualReq)
-
-  let queryBytes = Wai.rawQueryString actualReq
-      actualQueryItems = queryToQueryText $ parseQuery queryBytes
-
-  putStrLn $ "Actual query string: " ++ show queryBytes
-  putStrLn $ "Parsed query items: " ++ show actualQueryItems
-
-  HUnit.assertBool "All expected query parameters should be present" $
-    all (\expectedItem -> expectedItem `elem` actualQueryItems) expectedQueryItems
+  assertEqRequest expectedRequest actualReq
 
   case result of
     Left (TestHttpDocumentDeserialization.BuilderError err) ->
@@ -97,83 +102,4 @@ testHttpDocumentDeserialization state = HUnit.TestCase $ do
     Left (TestHttpDocumentDeserialization.InternalServerError _) ->
       HUnit.assertFailure "Unexpected server error"
     Right output -> do
-      putStrLn "=== HEADER VALIDATION ==="
-      putStrLn $ "Expected outputHeader: " ++ show (Just $ T.pack expectedOutputHeader)
-      putStrLn $ "Actual outputHeader: " ++ show (TestHttpDocumentDeserializationOutput.outputHeader output)
-
-      putStrLn $ "Expected outputHeaderInt: " ++ show (Just expectedOutputHeaderInt)
-      putStrLn $ "Actual outputHeaderInt: " ++ show (TestHttpDocumentDeserializationOutput.outputHeaderInt output)
-
-      putStrLn $ "Expected outputHeaderBool: " ++ show (Just expectedOutputHeaderBool)
-      putStrLn $ "Actual outputHeaderBool: " ++ show (TestHttpDocumentDeserializationOutput.outputHeaderBool output)
-
-      putStrLn $ "Expected outputHeaderList: " ++ show (Just expectedOutputHeaderList)
-      putStrLn $ "Actual outputHeaderList: " ++ show (TestHttpDocumentDeserializationOutput.outputHeaderList output)
-
-      putStrLn $ "Expected outputPrefixHeaders: " ++ show (Just expectedOutputPrefixHeaders)
-      putStrLn $ "Actual outputPrefixHeaders: " ++ show (TestHttpDocumentDeserializationOutput.outputPrefixHeaders output)
-
-      HUnit.assertEqual
-        "Output header should match"
-        (Just $ T.pack expectedOutputHeader)
-        (TestHttpDocumentDeserializationOutput.outputHeader output)
-
-      HUnit.assertEqual
-        "Output header int should match"
-        (Just expectedOutputHeaderInt)
-        (TestHttpDocumentDeserializationOutput.outputHeaderInt output)
-
-      HUnit.assertEqual
-        "Output header bool should match"
-        (Just expectedOutputHeaderBool)
-        (TestHttpDocumentDeserializationOutput.outputHeaderBool output)
-
-      HUnit.assertEqual
-        "Output header list should match"
-        (Just expectedOutputHeaderList)
-        (TestHttpDocumentDeserializationOutput.outputHeaderList output)
-
-      HUnit.assertEqual
-        "Output prefix headers should match"
-        (Just expectedOutputPrefixHeaders)
-        (TestHttpDocumentDeserializationOutput.outputPrefixHeaders output)
-
-      putStrLn "=== DOCUMENT FIELD VALIDATION ==="
-
-      case TestHttpDocumentDeserializationOutput.item output of
-        Nothing -> do
-          putStrLn "Expected item: CoffeeItem with type=POUR_OVER, description=\"Hand-poured coffee for document test\""
-          putStrLn "Actual item: Nothing"
-          HUnit.assertFailure "Coffee item should be present in document"
-        Just actualCoffeeItem -> do
-          putStrLn $ "Expected item: CoffeeItem with type=POUR_OVER, description=\"Hand-poured coffee for document test\""
-          putStrLn $ "Actual item: " ++ show actualCoffeeItem
-
-          let expectedCoffeeType = CoffeeType.POUR_OVER
-              expectedDescription = "Hand-poured coffee for document test"
-              actualCoffeeType = CoffeeItem.coffeeType actualCoffeeItem
-              actualDescription = CoffeeItem.description actualCoffeeItem
-
-          putStrLn $ "Expected coffee type: " ++ show expectedCoffeeType
-          putStrLn $ "Actual coffee type: " ++ show actualCoffeeType
-          putStrLn $ "Expected description: " ++ show expectedDescription
-          putStrLn $ "Actual description: " ++ show actualDescription
-
-          HUnit.assertEqual "Coffee type should match" expectedCoffeeType actualCoffeeType
-          HUnit.assertEqual "Coffee description should match" expectedDescription actualDescription
-
-      case TestHttpDocumentDeserializationOutput.customization output of
-        Nothing -> do
-          putStrLn "Expected customization: CoffeeCustomization with temperature=HOT"
-          putStrLn "Actual customization: Nothing"
-          HUnit.assertFailure "Coffee customization should be present in document"
-        Just actualCustomization -> do
-          putStrLn "Expected customization: CoffeeCustomization with temperature=HOT"
-          putStrLn $ "Actual customization: " ++ show actualCustomization
-
-          let expectedTemperature = TemperaturePreference.HOT
-          case actualCustomization of
-            CoffeeCustomization.Temperature t -> do
-              HUnit.assertEqual "Temperature should match" expectedTemperature t
-            _ ->
-              HUnit.assertFailure "Unexpected customization type, expected Temperature"
+      HUnit.assertEqual "Output should match" expectedOutput output

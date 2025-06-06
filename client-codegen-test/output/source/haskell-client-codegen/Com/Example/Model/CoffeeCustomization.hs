@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Model.CoffeeCustomization (
     CoffeeCustomization(..)
 ) where
@@ -8,6 +5,7 @@ import qualified Com.Example.Model.MilkType
 import qualified Com.Example.Model.TemperaturePreference
 import qualified Control.Applicative
 import qualified Data.Aeson
+import qualified Data.Eq
 import qualified Data.Functor
 import qualified GHC.Generics
 import qualified GHC.Show
@@ -18,7 +16,8 @@ data CoffeeCustomization =
     | Temperature (Com.Example.Model.TemperaturePreference.TemperaturePreference)
     deriving (
     GHC.Generics.Generic,
-    GHC.Show.Show
+    GHC.Show.Show,
+    Data.Eq.Eq
     )
 
 instance Data.Aeson.ToJSON CoffeeCustomization where

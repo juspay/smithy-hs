@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Command.TestHttpDocument (
     TestHttpDocumentError(..),
     testHttpDocument
@@ -9,6 +6,7 @@ import qualified Com.Example.ExampleServiceClient
 import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestHttpDocumentInput
 import qualified Com.Example.Model.TestHttpDocumentOutput
+import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -46,12 +44,15 @@ instance RequestSegment Integer where
     toRequestSegment = Data.Text.pack . show
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+instance RequestSegment Network.HTTP.Date.HTTPDate where
+    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
 
 serTestHttpDocumentPAYLOAD:: Com.Example.Model.TestHttpDocumentInput.TestHttpDocumentInput -> Network.HTTP.Client.RequestBody
 serTestHttpDocumentPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $ Data.Aeson.encode $ Data.Aeson.object [
         "payload" Data.Aeson..= Com.Example.Model.TestHttpDocumentInput.payload input,
-        "customization" Data.Aeson..= Com.Example.Model.TestHttpDocumentInput.customization input
+        "customization" Data.Aeson..= Com.Example.Model.TestHttpDocumentInput.customization input,
+        "time" Data.Aeson..= ((Com.Example.Model.TestHttpDocumentInput.time input) Data.Functor.<&> (Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate))
         ]
     
 

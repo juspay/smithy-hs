@@ -29,7 +29,7 @@ class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
             val record = Record(
                 symbol.name,
                 shape.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) },
-                listOf(HaskellSymbol.Show)
+                listOf(HaskellSymbol.Show, HaskellSymbol.Eq),
             )
 
             writer.pushState()

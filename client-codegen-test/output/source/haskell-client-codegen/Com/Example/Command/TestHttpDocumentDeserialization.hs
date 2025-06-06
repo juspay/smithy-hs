@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Command.TestHttpDocumentDeserialization (
     TestHttpDocumentDeserializationError(..),
     testHttpDocumentDeserialization
@@ -11,6 +8,7 @@ import qualified Com.Example.Model.CoffeeItem
 import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestHttpDocumentDeserializationInput
 import qualified Com.Example.Model.TestHttpDocumentDeserializationOutput
+import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Aeson.Types
@@ -47,6 +45,8 @@ instance RequestSegment Integer where
     toRequestSegment = Data.Text.pack . show
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+instance RequestSegment Network.HTTP.Date.HTTPDate where
+    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
 
 serTestHttpDocumentDeserializationQUERY :: Com.Example.Model.TestHttpDocumentDeserializationInput.TestHttpDocumentDeserializationInput -> Data.ByteString.ByteString
 serTestHttpDocumentDeserializationQUERY input =
@@ -154,6 +154,13 @@ deserializeResponse response = do
             Data.Either.Right value -> Data.Either.Right value
         
     
+    timeDocumentE :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate <-
+        Data.Aeson.Types.parseEither (flip (Data.Aeson..:?) "time") responseObject
+        Data.Function.& \case
+            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
+            Data.Either.Right value -> Data.Either.Right value
+        
+    
     Com.Example.Model.TestHttpDocumentDeserializationOutput.build $ do
         Com.Example.Model.TestHttpDocumentDeserializationOutput.setOutputheader outputHeaderHeaderE
         Com.Example.Model.TestHttpDocumentDeserializationOutput.setOutputheaderbool outputHeaderBoolHeaderE
@@ -162,6 +169,7 @@ deserializeResponse response = do
         Com.Example.Model.TestHttpDocumentDeserializationOutput.setOutputprefixheaders outputPrefixHeadersHeaderE
         Com.Example.Model.TestHttpDocumentDeserializationOutput.setItem itemDocumentE
         Com.Example.Model.TestHttpDocumentDeserializationOutput.setCustomization customizationDocumentE
+        Com.Example.Model.TestHttpDocumentDeserializationOutput.setTime timeDocumentE
     
     where
         headers = Network.HTTP.Client.responseHeaders response

@@ -57,6 +57,7 @@ class RequestBindingGenerator(
 
     override fun run() {
         writer.pushState()
+        writer.putContext("httpDate", Http.HTTPDate)
         writer.write(
             """
             class RequestSegment a where
@@ -67,6 +68,8 @@ class RequestBindingGenerator(
                 toRequestSegment = #{text:N}.pack . show
             instance RequestSegment Bool where
                 toRequestSegment = #{text:N}.toLower . #{text:N}.pack . show
+            instance RequestSegment #{httpDate:T} where
+                toRequestSegment = #{encoding:N}.decodeUtf8 . #{httpDate:N}.formatHTTPDate
             """.trimIndent()
         )
         writer.write("")
@@ -114,7 +117,6 @@ class RequestBindingGenerator(
                 writer.write("#{input:N}.${payloadBinding.memberName} input")
             } else {
                 writer.putContext("encoding", EncodingUtf8)
-                writer.putContext("hdate", Http.HTTPDate)
                 writer.openBlock(
                     "#{httpClient:N}.RequestBodyLBS $ #{aeson:N}.encode $ #{aeson:N}.object [",
                     ""
@@ -134,7 +136,7 @@ class RequestBindingGenerator(
                             } else {
                                 sb.append("#{and:T} ")
                             }
-                            sb.append("(#{encoding:N}.decodeUtf8 . #{hdate:N}.formatHTTPDate))")
+                            sb.append("(#{encoding:N}.decodeUtf8 . #{httpDate:N}.formatHTTPDate))")
                         } else {
                             sb.append("#{input:N}.$memberName input")
                         }

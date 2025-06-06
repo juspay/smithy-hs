@@ -9,6 +9,10 @@ import Data.ByteString (ByteString)
 import Network.HTTP.Types qualified as Http
 import Network.Wai qualified as Wai
 import Network.Wai qualified as Wai.Request
+import qualified Test.HUnit as HUnit
+import Test.HUnit (Assertion)
+import qualified Data.Text as T
+import Network.HTTP.Types.Header (HeaderName)
 
 data State = State
   { req :: Stm.TMVar Wai.Request,
@@ -17,17 +21,26 @@ data State = State
     client :: Client.ExampleServiceClient
   }
 
-compareRequest :: Wai.Request -> Wai.Request -> IO Bool
-compareRequest a b = do
-  bodyA <- Wai.Request.strictRequestBody a
-  bodyB <- Wai.Request.strictRequestBody b
+data RequestInternal = RequestInternal
+  { pathInfo :: [T.Text],
+    queryString :: Http.Query,
+    requestMethod :: Http.Method,
+    requestHeaders :: Http.RequestHeaders
+  }
 
-  pure $
-    Wai.Request.rawQueryString a == Wai.Request.rawQueryString b
-      && (Wai.Request.rawPathInfo a == Wai.Request.rawPathInfo b)
-      && (Wai.Request.requestMethod a == Wai.Request.requestMethod b)
-      && (Wai.Request.requestHeaders a == Wai.Request.requestHeaders b)
-      && bodyA == bodyB
+defaultHeaderNames :: [HeaderName]
+defaultHeaderNames =
+  [ "Host",
+    "Accept-Encoding",
+    "Content-Length"
+  ]
+
+assertEqRequest :: RequestInternal -> Wai.Request -> Assertion
+assertEqRequest a b = do
+  HUnit.assertEqual "Raw path infos should be equal" (pathInfo a) (Wai.Request.pathInfo b)
+  HUnit.assertEqual "Raw query strings should be equal" (queryString a) (Wai.Request.queryString b)
+  HUnit.assertEqual "Request methods should be equal" (requestMethod a) (Wai.Request.requestMethod b)
+  HUnit.assertEqual "Request headers should be equal" (requestHeaders a) (filter (\(h, _) -> h `notElem` defaultHeaderNames) (Wai.Request.requestHeaders b))
 
 defaultResponse :: Wai.Response
 defaultResponse = Wai.responseLBS Http.ok200 [] "{ \"message\": \"Success\" }"

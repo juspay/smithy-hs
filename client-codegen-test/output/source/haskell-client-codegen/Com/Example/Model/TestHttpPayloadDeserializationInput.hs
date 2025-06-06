@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Model.TestHttpPayloadDeserializationInput (
     setCoffeetype,
     build,
@@ -12,6 +9,7 @@ import qualified Control.Applicative
 import qualified Control.Monad
 import qualified Data.Aeson
 import qualified Data.Either
+import qualified Data.Eq
 import qualified Data.Functor
 import qualified Data.Maybe
 import qualified Data.Text
@@ -22,6 +20,7 @@ data TestHttpPayloadDeserializationInput = TestHttpPayloadDeserializationInput {
     coffeeType :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
+  Data.Eq.Eq,
   GHC.Generics.Generic
   )
 

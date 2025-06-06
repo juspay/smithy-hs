@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Com.Example.Command.TestHttpPayloadDeserialization (
     TestHttpPayloadDeserializationError(..),
     testHttpPayloadDeserialization
@@ -10,6 +7,7 @@ import qualified Com.Example.Model.CoffeeItem
 import qualified Com.Example.Model.InternalServerError
 import qualified Com.Example.Model.TestHttpPayloadDeserializationInput
 import qualified Com.Example.Model.TestHttpPayloadDeserializationOutput
+import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
 import qualified Data.Bifunctor
@@ -45,6 +43,8 @@ instance RequestSegment Integer where
     toRequestSegment = Data.Text.pack . show
 instance RequestSegment Bool where
     toRequestSegment = Data.Text.toLower . Data.Text.pack . show
+instance RequestSegment Network.HTTP.Date.HTTPDate where
+    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
 
 serTestHttpPayloadDeserializationQUERY :: Com.Example.Model.TestHttpPayloadDeserializationInput.TestHttpPayloadDeserializationInput -> Data.ByteString.ByteString
 serTestHttpPayloadDeserializationQUERY input =
@@ -114,6 +114,11 @@ deserializeResponse response = do
                 Data.Function.& sequence
         
     
+    timeHeaderE :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate <-
+        (findHeader "x-output-header-time" Data.Functor.<&> parseTimestampHeader)
+                Data.Function.& sequence
+        
+    
     outputHeaderListHeaderE :: Data.Maybe.Maybe ([] Data.Text.Text) <-
         (findHeader "x-output-header-list" Data.Functor.<&> parseHeaderList parseTextHeader)
                 Data.Function.& sequence
@@ -140,6 +145,7 @@ deserializeResponse response = do
     Com.Example.Model.TestHttpPayloadDeserializationOutput.build $ do
         Com.Example.Model.TestHttpPayloadDeserializationOutput.setOutputheader outputHeaderHeaderE
         Com.Example.Model.TestHttpPayloadDeserializationOutput.setOutputheaderbool outputHeaderBoolHeaderE
+        Com.Example.Model.TestHttpPayloadDeserializationOutput.setTime timeHeaderE
         Com.Example.Model.TestHttpPayloadDeserializationOutput.setOutputheaderlist outputHeaderListHeaderE
         Com.Example.Model.TestHttpPayloadDeserializationOutput.setOutputheaderint outputHeaderIntHeaderE
         Com.Example.Model.TestHttpPayloadDeserializationOutput.setOutputprefixheaders outputPrefixHeadersHeaderE
