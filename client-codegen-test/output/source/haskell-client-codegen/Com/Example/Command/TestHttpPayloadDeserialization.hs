@@ -151,8 +151,8 @@ deserializeResponse response = do
             Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
             Data.Either.Right value -> Data.Either.Right value
         
-        parseTimestampHeader :: Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text Network.HTTP.Date.HTTPDate
-        parseTimestampHeader v = Data.Maybe.maybe (Data.Either.Left "failed to parse http datetime") (Data.Either.Right) $ Network.HTTP.Date.parseHTTPDate v
+        parseTimestampHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
+        parseTimestampHeader v = Com.Example.Utility.mapLeft (Data.Text.pack) $ Data.Aeson.eitherDecodeStrict' v
         parseHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
         parseHeader v = Data.Aeson.eitherDecodeStrict v Data.Function.& \ case
             Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err

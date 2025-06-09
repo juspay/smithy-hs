@@ -19,7 +19,6 @@ import software.amazon.smithy.model.traits.HttpBearerAuthTrait
 import software.amazon.smithy.model.traits.HttpHeaderTrait
 import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
 import software.amazon.smithy.model.traits.HttpTrait
-import software.amazon.smithy.model.traits.JsonNameTrait
 
 private fun bindingSerializeFnName(
     operationName: String,
@@ -73,7 +72,7 @@ class RequestBindingGenerator(
         binding: HttpBinding,
         formatter: (String) -> String
     ): String {
-        val name = binding.memberName
+        val name = binding.fieldName
         val chainFn = if (binding.member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
 
         val chain = writer.newCallChain("(#{input:N}.$name input", chainFn)
@@ -100,7 +99,7 @@ class RequestBindingGenerator(
             if (payloadBinding != null) {
                 writer.write("#{httpClient:N}.RequestBodyLBS $")
                 writer.write("#{aeson:N}.encode $")
-                writer.write("#{input:N}.${payloadBinding.memberName} input")
+                writer.write("#{input:N}.${payloadBinding.fieldName} input")
             } else {
                 writer.putContext("encoding", EncodingUtf8)
                 writer.openBlock(
@@ -108,15 +107,14 @@ class RequestBindingGenerator(
                     ""
                 ) {
                     writer.writeList(documentBindings) { binding ->
-                        val memberName = binding.memberName
-                        val jsonName = binding.member.getTrait(JsonNameTrait::class.java)
-                            .map { it.value }.orElse(memberName)
+                        val fieldName = binding.fieldName
+                        val jsonName = binding.jsonName
                         val member = binding.member
                         val sym = symbolProvider.toSymbol(member)
                         val sb = StringBuilder()
                             .append("${jsonName.dq} #{aeson:N}..= ")
                         if (sym.isOrWrapped(Http.HTTPDate)) {
-                            sb.append("((#{input:N}.$memberName input) ")
+                            sb.append("((#{input:N}.$fieldName input) ")
                             if (sym.isMaybe()) {
                                 sb.append("#{functor:N}.<&> ")
                             } else {
@@ -124,7 +122,7 @@ class RequestBindingGenerator(
                             }
                             sb.append("(#{encoding:N}.decodeUtf8 . #{httpDate:N}.formatHTTPDate))")
                         } else {
-                            sb.append("#{input:N}.$memberName input")
+                            sb.append("#{input:N}.$fieldName input")
                         }
                         writer.format(sb.toString())
                     }
@@ -171,13 +169,13 @@ class RequestBindingGenerator(
                 if (mapBinding != null) {
                     vars.add("mapParams")
                     val memberShape = mapBinding.member
-                    val memberName = symbolProvider.toMemberName(memberShape)
+                    val fieldName = memberShape.fieldName
                     val valueMember = model.expectShape(
                         memberShape?.target,
                         MapShape::class.java
                     ).value
 
-                    writer.newCallChain("mapParams = #{input:N}.$memberName input")
+                    writer.newCallChain("mapParams = #{input:N}.$fieldName input")
                         .chainIf("#{maybe:N}.maybe [] (#{map:N}.toList)", memberShape.isOptional)
                         .chainIf("#{map:N}.toList", !memberShape.isOptional)
                         .chain(
@@ -187,12 +185,10 @@ class RequestBindingGenerator(
                         .close()
                 }
 
+                // implement RequestSegment for DateTime, UTCTime
                 for (param in queryBindings) {
                     val member = param.member
-                    val name = symbolProvider.toMemberName(member)
-                    val target = model.expectShape(
-                        member?.target
-                    )
+                    val name = member.fieldName
 
                     val query = param.locationName.dq
 
@@ -276,7 +272,7 @@ class RequestBindingGenerator(
                 for (binding in headerBindings) {
                     val member = binding.member
                     val hName = (binding.bindingTrait.get() as HttpHeaderTrait).value
-                    val name = member.memberName
+                    val name = member.fieldName
 
                     val varName = "${name}Header"
                     val chainFn = if (member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
@@ -294,7 +290,7 @@ class RequestBindingGenerator(
                 for (binding in prefixHeaderBindings) {
                     val member = binding.member
                     val hPrefix = (binding.bindingTrait.get() as HttpPrefixHeadersTrait).value
-                    val name = member.memberName
+                    val name = member.fieldName
                     val valueMember = model.expectShape(
                         member?.target,
                         MapShape::class.java

@@ -2,14 +2,11 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
+import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
-import io.superposition.smithy.haskell.client.codegen.HaskellContext
-import io.superposition.smithy.haskell.client.codegen.HaskellSettings
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Eq
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Generic
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Show
-import io.superposition.smithy.haskell.client.codegen.HaskellWriter
-import io.superposition.smithy.haskell.client.codegen.enumValue
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.Shape
@@ -63,9 +60,9 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
     ) {
         for ((i, member) in shape.members().withIndex()) {
             if (i == 0) {
-                writer.write(member.memberName)
+                writer.write(member.fieldName)
             } else {
-                writer.write("| ${member.memberName}")
+                writer.write("| ${member.fieldName}")
             }
         }
     }
@@ -91,7 +88,7 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
             ) {
                 writer.openBlock("case v of", "") {
                     for (member in shape.members()) {
-                        val constructor = member.memberName
+                        val constructor = member.fieldName
                         writer.write(
                             "${member.enumValue.dq} -> pure $constructor"
                         )
@@ -111,7 +108,7 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
             for (member in shape.members()) {
                 val enumValue = member.enumValue.dq
                 writer.write(
-                    "toJSON ${member.memberName} = #{aeson:N}.String $ #{text:N}.pack $enumValue"
+                    "toJSON ${member.fieldName} = #{aeson:N}.String $ #{text:N}.pack $enumValue"
                 )
             }
         }

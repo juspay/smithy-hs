@@ -2,13 +2,10 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
-import io.superposition.smithy.haskell.client.codegen.CodegenUtils
+import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Char8
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ParseEither
-import io.superposition.smithy.haskell.client.codegen.HaskellWriter
-import io.superposition.smithy.haskell.client.codegen.Http
-import io.superposition.smithy.haskell.client.codegen.isMemberListShape
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.knowledge.HttpBinding
@@ -20,8 +17,6 @@ import software.amazon.smithy.model.shapes.StringShape
 import software.amazon.smithy.model.shapes.TimestampShape
 import software.amazon.smithy.model.traits.HttpHeaderTrait
 import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
-import software.amazon.smithy.model.traits.HttpTrait
-import software.amazon.smithy.model.traits.JsonNameTrait
 
 private typealias MemberToVariable = Pair<MemberShape, String>
 
@@ -38,7 +33,6 @@ class ResponseBindingGenerator(
     private val symbolProvider: SymbolProvider,
 ) : Runnable {
     private val httpBindingIndex = HttpBindingIndex.of(model)
-    private val httpTrait = operation.getTrait(HttpTrait::class.java).orElse(null)
     private val bindings = httpBindingIndex.getResponseBindings(operation)
 
     private val getBindings = { location: HttpBinding.Location ->
@@ -65,7 +59,7 @@ class ResponseBindingGenerator(
             val member = binding.member
             val hName = (binding.bindingTrait.get() as HttpHeaderTrait).value
 
-            val name = member.memberName
+            val name = member.fieldName
             val symbol = symbolProvider.toSymbol(member)
 
             val innerType = if (member.isMemberListShape(model)) {
@@ -103,7 +97,7 @@ class ResponseBindingGenerator(
             val member = binding.member
             val hPrefix = (binding.bindingTrait.get() as HttpPrefixHeadersTrait).value
 
-            val name = member.memberName
+            val name = member.fieldName
             val symbol = symbolProvider.toSymbol(member)
 
             vars.add(member to "${name}HeaderE")
@@ -142,7 +136,7 @@ class ResponseBindingGenerator(
 
         if (payloadBinding != null) {
             val member = payloadBinding.member
-            val name = member.memberName
+            val name = member.fieldName
             val symbol = symbolProvider.toSymbol(member)
 
             vars.add(member to "${name}PayloadE")
@@ -174,9 +168,8 @@ class ResponseBindingGenerator(
 
             for (binding in documentBindings) {
                 val member = binding.member
-                val name = member.memberName
-                val jsonName = binding.member.getTrait(JsonNameTrait::class.java)
-                    .map { it.value }.orElse(name)
+                val name = member.fieldName
+                val jsonName = binding.jsonName
 
                 val symbol = symbolProvider.toSymbol(member)
 
@@ -207,12 +200,16 @@ class ResponseBindingGenerator(
     }
 
     private fun renderOutput(writer: HaskellWriter, vars: List<MemberToVariable>) {
+        val outputShape = model.expectShape(operation.outputShape)
         writer.openBlock(
             "#{output:N}.build $ do",
             "",
         ) {
+            if (outputShape.members().isEmpty()) {
+                writer.write("pure ()")
+            }
             for ((member, variable) in vars) {
-                val setter = CodegenUtils.getSetterName(member.memberName)
+                val setter = CodegenUtils.getSetterName(member.fieldName)
                 writer.write("#{output:N}.$setter $variable")
             }
         }
@@ -274,9 +271,11 @@ class ResponseBindingGenerator(
                     )
                 }
 
-                writer.write("parseTimestampHeader :: #{byteString:T} -> #{either:T} #{text:T} #{httpDate:T}")
                 writer.write(
-                    "parseTimestampHeader v = #{maybe:N}.maybe (#{left:T} ${"failed to parse http datetime".dq}) (#{right:T}) $ #{httpDate:N}.parseHTTPDate v"
+                    "parseTimestampHeader :: #{aeson:N}.FromJSON a => #{byteString:T} -> #{either:T} #{text:T} a"
+                )
+                writer.write(
+                    "parseTimestampHeader v = #{utility:N}.mapLeft (#{text:N}.pack) $ #{aeson:N}.eitherDecodeStrict' v"
                 )
 
                 writer.write("parseHeader :: #{aeson:N}.FromJSON a => #{byteString:T} -> #{either:T} #{text:T} a")

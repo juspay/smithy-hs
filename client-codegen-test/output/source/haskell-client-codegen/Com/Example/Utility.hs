@@ -1,6 +1,7 @@
 module Com.Example.Utility (
     RequestSegment,
-    toRequestSegment
+    toRequestSegment,
+    mapLeft
 ) where
 
 
@@ -29,5 +30,8 @@ instance RequestSegment Bool where
     toRequestSegment = toLower . pack . show
 instance RequestSegment HTTPDate where
     toRequestSegment = decodeUtf8 . formatHTTPDate
+
+mapLeft :: (a -> b) -> Either a c -> Either b c
+mapLeft f = either (Left . f) Right
 
 

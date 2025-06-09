@@ -22,6 +22,7 @@ import HttpLabelTest (testHttpLabels)
 import HttpPayloadDeserializationTest (testHttpPayloadDeserialization)
 import HttpPayloadTest (testHttpPayload)
 import HttpQueryTest (testHttpQuery)
+import ReservedWordsTest (testReservedWords)
 import Message (State (..))
 import Network.HTTP.Client.TLS qualified as TLS
 import Network.URI qualified as URI
@@ -61,7 +62,8 @@ tests state =
       HUnit.TestLabel "HttpPayload Operation" $ testHttpPayload state,
       HUnit.TestLabel "HttpDocument Operation" $ testHttpDocument state,
       HUnit.TestLabel "HttpPayloadDeserialization Operation" $ testHttpPayloadDeserialization state,
-      HUnit.TestLabel "HttpDocumentDeserialization Operation" $ testHttpDocumentDeserialization state
+      HUnit.TestLabel "HttpDocumentDeserialization Operation" $ testHttpDocumentDeserialization state,
+      HUnit.TestLabel "ReservedWords Operation" $ testReservedWords state
     ]
 
 app :: State -> Wai.Application

@@ -17,6 +17,7 @@ service ExampleService {
         TestHttpDocument
         TestHttpPayloadDeserialization
         TestHttpDocumentDeserialization
+        TestReservedWords
         // TestAllFeaturesSer
     ]
     errors: [
@@ -119,11 +120,6 @@ operation TestHttpLabels {
         @required
         @timestampFormat("http-date")
         time: Timestamp
-    }
-
-    output := {
-        @required
-        message: String
     }
 }
 
@@ -304,49 +300,155 @@ operation TestHttpDocumentDeserialization {
         time: Timestamp
     }
 }
-// @http(method: "POST", uri: "/all_features/{identifier}")
-// operation TestAllFeaturesSer {
-//     input := {
-//         @httpPayload
-//         @required
-//         payload: CoffeeItem
-//         @httpLabel
-//         @required
-//         identifier: Integer
-//         @httpQuery("page")
-//         page: Integer
-//         @httpQuery("type")
-//         coffeeType: CoffeeType
-//         @httpQuery("enabled")
-//         enabled: Boolean
-//         @httpQuery("tags")
-//         tags: StringList
-//         @httpQueryParams
-//         mapQueryParams: MapOfString
-//         @httpHeader("x-header-int")
-//         intHeader: Integer
-//         @httpHeader("x-header-string")
-//         stringHeader: String
-//         @httpHeader("x-header-bool")
-//         boolHeader: Boolean
-//         @httpHeader("x-header-list")
-//         listHeader: StringList
-//         @httpPrefixHeaders("x-prefix-")
-//         prefixHeaders: MapOfString
-//     }
-//     output := {
-//         // all outputs
-//         @httpHeader("x-output-header")
-//         outputHeader: String
-//         @httpHeader("x-output-header-int")
-//         outputHeaderInt: Integer
-//         @httpHeader("x-output-header-bool")
-//         outputHeaderBool: Boolean
-//         @httpHeader("x-output-header-list")
-//         outputHeaderList: StringList
-//         @httpPrefixHeaders("x-output-prefix-")
-//         outputPrefixHeaders: MapOfString
-//         item: CoffeeItem
-//         customization: CoffeeCustomization
-//     }
-// }
+
+@http(method: "POST", uri: "/reserved-words")
+operation TestReservedWords {
+    input := {
+        @required
+        type: String
+
+        @required
+        data: String
+
+        @required
+        as: String
+
+        @required
+        case: String
+
+        @required
+        class: String
+
+        @required
+        default: String
+
+        @required
+        deriving: String
+
+        @required
+        do: String
+
+        @required
+        else: String
+
+        @required
+        hiding: String
+
+        @required
+        if: String
+
+        @required
+        import: String
+
+        @required
+        in: String
+
+        @required
+        infix: String
+
+        @required
+        infixl: String
+
+        @required
+        infixr: String
+
+        @required
+        instance: String
+
+        @required
+        let: String
+
+        @required
+        module: String
+
+        @required
+        newtype: String
+
+        @required
+        of: String
+
+        @required
+        qualified: String
+
+        @required
+        then: String
+
+        @required
+        where: String
+    }
+
+    output := {
+        @required
+        type: String
+
+        @required
+        data: String
+
+        @required
+        as: String
+
+        @required
+        case: String
+
+        @required
+        class: String
+
+        @required
+        default: String
+
+        @required
+        deriving: String
+
+        @required
+        do: String
+
+        @required
+        else: String
+
+        @required
+        hiding: String
+
+        @required
+        if: String
+
+        @required
+        import: String
+
+        @required
+        in: String
+
+        @required
+        infix: String
+
+        @required
+        infixl: String
+
+        @required
+        infixr: String
+
+        @required
+        instance: String
+
+        @required
+        let: String
+
+        @required
+        module: String
+
+        @required
+        newtype: String
+
+        @required
+        of: String
+
+        @required
+        qualified: String
+
+        @required
+        then: String
+
+        @httpLabel
+        @required
+        where: String
+    }
+}

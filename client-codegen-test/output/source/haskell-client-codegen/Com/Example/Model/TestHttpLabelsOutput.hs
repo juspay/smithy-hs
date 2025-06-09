@@ -1,9 +1,7 @@
 module Com.Example.Model.TestHttpLabelsOutput (
-    setMessage,
     build,
     TestHttpLabelsOutputBuilder,
-    TestHttpLabelsOutput,
-    message
+    TestHttpLabelsOutput
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad
@@ -11,13 +9,11 @@ import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
-import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
 
 data TestHttpLabelsOutput = TestHttpLabelsOutput {
-    message :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -26,27 +22,22 @@ data TestHttpLabelsOutput = TestHttpLabelsOutput {
 
 instance Data.Aeson.ToJSON TestHttpLabelsOutput where
     toJSON a = Data.Aeson.object [
-        "message" Data.Aeson..= message a
         ]
     
 
 
 instance Data.Aeson.FromJSON TestHttpLabelsOutput where
-    parseJSON = Data.Aeson.withObject "TestHttpLabelsOutput" $ \v -> TestHttpLabelsOutput
-        Data.Functor.<$> (v Data.Aeson..: "message")
-    
+    parseJSON = Data.Aeson.withObject "TestHttpLabelsOutput" $ \_ -> pure $ TestHttpLabelsOutput
 
 
 
 data TestHttpLabelsOutputBuilderState = TestHttpLabelsOutputBuilderState {
-    messageBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
 
 defaultBuilderState :: TestHttpLabelsOutputBuilderState
 defaultBuilderState = TestHttpLabelsOutputBuilderState {
-    messageBuilderState = Data.Maybe.Nothing
 }
 
 newtype TestHttpLabelsOutputBuilder a = TestHttpLabelsOutputBuilder {
@@ -70,16 +61,11 @@ instance Control.Monad.Monad TestHttpLabelsOutputBuilder where
             (TestHttpLabelsOutputBuilder h) = g a
         in h s')
 
-setMessage :: Data.Text.Text -> TestHttpLabelsOutputBuilder ()
-setMessage value =
-   TestHttpLabelsOutputBuilder (\s -> (s { messageBuilderState = Data.Maybe.Just value }, ()))
 
 build :: TestHttpLabelsOutputBuilder () -> Data.Either.Either Data.Text.Text TestHttpLabelsOutput
 build builder = do
     let (st, _) = runTestHttpLabelsOutputBuilder builder defaultBuilderState
-    message' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestHttpLabelsOutput.TestHttpLabelsOutput.message is a required property.") Data.Either.Right (messageBuilderState st)
     Data.Either.Right (TestHttpLabelsOutput { 
-        message = message'
     })
 
 

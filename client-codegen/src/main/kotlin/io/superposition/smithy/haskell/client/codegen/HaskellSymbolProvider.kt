@@ -43,7 +43,7 @@ class HaskellSymbolProvider(
     }
 
     override fun structureShape(shape: StructureShape): Symbol {
-        val name = CodegenUtils.getDefaultName(shape, service)
+        val name = CodegenUtils.getValidName(shape)
         val symbol =
             Symbol.builder().name(name).putProperty(SymbolProperties.IS_PRIMITIVE, false)
                 .projectNamespace("$namespace.Model.$name")
@@ -170,28 +170,28 @@ class HaskellSymbolProvider(
     }
 
     override fun resourceShape(shape: ResourceShape): Symbol {
-        val name = CodegenUtils.getDefaultName(shape, service)
+        val name = CodegenUtils.getValidName(shape)
         return Symbol.builder().name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name").build()
     }
 
     override fun operationShape(shape: OperationShape): Symbol {
-        val name = CodegenUtils.getDefaultName(shape, service)
+        val name = CodegenUtils.getValidName(shape)
         return Symbol.builder().name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Command.$name").build()
     }
 
     override fun enumShape(shape: EnumShape): Symbol {
-        val name = CodegenUtils.getDefaultName(shape, service)
+        val name = CodegenUtils.getValidName(shape)
         return Symbol.builder().name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name").build()
     }
 
     override fun unionShape(shape: UnionShape): Symbol {
-        val name = CodegenUtils.getDefaultName(shape, service)
+        val name = CodegenUtils.getValidName(shape)
         return Symbol.builder().name(name)
             .putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .projectNamespace("$namespace.Model.$name").build()

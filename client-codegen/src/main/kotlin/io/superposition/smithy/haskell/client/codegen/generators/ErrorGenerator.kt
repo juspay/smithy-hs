@@ -3,6 +3,7 @@
 package io.superposition.smithy.haskell.client.codegen.generators
 
 import io.superposition.smithy.haskell.client.codegen.HaskellShapeDirective
+import io.superposition.smithy.haskell.client.codegen.fieldName
 import io.superposition.smithy.haskell.client.codegen.language.Record
 import software.amazon.smithy.model.shapes.StructureShape
 import java.util.function.Consumer
@@ -19,7 +20,8 @@ class ErrorGenerator<T : HaskellShapeDirective<StructureShape>> : Consumer<T> {
         context.writerDelegator().useShapeWriter(error) { writer ->
             val record = Record(
                 symbol.name,
-                error.members().map { Record.Field(it.memberName, symbolProvider.toSymbol(it)) }
+                error.members()
+                    .map { Record.Field(it.fieldName, symbolProvider.toSymbol(it)) }
             )
             writer.writeRecord(record)
             writer.addExport(record.name)

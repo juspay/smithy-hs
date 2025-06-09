@@ -20,7 +20,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
         private fun getConstructorName(
             member: MemberShape
         ): String {
-            return CaseUtils.toPascalCase(member.memberName)
+            return CaseUtils.toPascalCase(member.fieldName)
         }
     }
 
@@ -105,7 +105,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
     ) {
         val errMsg =
             "Could not parse ${symbol.name}. Expected an object with one of keys: ${
-                shape.members().joinToString { it.memberName }
+                shape.members().joinToString { it.fieldName }
             }.".dq
         val structName = symbol.name
         writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {

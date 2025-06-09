@@ -9,7 +9,6 @@ import qualified Com.Example.Model.TestHttpLabelsOutput
 import qualified Com.Example.Utility
 import qualified Control.Exception
 import qualified Data.Aeson
-import qualified Data.Aeson.Types
 import qualified Data.Bifunctor
 import qualified Data.ByteString
 import qualified Data.ByteString.Builder
@@ -20,11 +19,9 @@ import qualified Data.Either
 import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.List
-import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
 import qualified Network.HTTP.Client
-import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
 
@@ -84,21 +81,9 @@ testHttpLabels client inputB = do
 deserializeResponse :: Network.HTTP.Client.Response Data.ByteString.Lazy.ByteString -> Data.Either.Either Data.Text.Text Com.Example.Model.TestHttpLabelsOutput.TestHttpLabelsOutput
 deserializeResponse response = do
     
-    responseObject :: Data.Aeson.Object <-
-        Network.HTTP.Client.responseBody response
-                Data.Function.& Data.Aeson.decode
-                Data.Function.& Data.Maybe.maybe (Data.Either.Left "failed to parse response body") (Data.Either.Right)
-        
-    
-    messageDocumentE :: Data.Text.Text <-
-        Data.Aeson.Types.parseEither (flip (Data.Aeson..:) "message") responseObject
-        Data.Function.& \case
-            Data.Either.Left err -> Data.Either.Left (Data.Text.pack err)
-            Data.Either.Right value -> Data.Either.Right value
-        
     
     Com.Example.Model.TestHttpLabelsOutput.build $ do
-        Com.Example.Model.TestHttpLabelsOutput.setMessage messageDocumentE
+        pure ()
     
     where
         headers = Network.HTTP.Client.responseHeaders response
@@ -110,8 +95,8 @@ deserializeResponse response = do
             Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
             Data.Either.Right value -> Data.Either.Right value
         
-        parseTimestampHeader :: Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text Network.HTTP.Date.HTTPDate
-        parseTimestampHeader v = Data.Maybe.maybe (Data.Either.Left "failed to parse http datetime") (Data.Either.Right) $ Network.HTTP.Date.parseHTTPDate v
+        parseTimestampHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
+        parseTimestampHeader v = Com.Example.Utility.mapLeft (Data.Text.pack) $ Data.Aeson.eitherDecodeStrict' v
         parseHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
         parseHeader v = Data.Aeson.eitherDecodeStrict v Data.Function.& \ case
             Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
