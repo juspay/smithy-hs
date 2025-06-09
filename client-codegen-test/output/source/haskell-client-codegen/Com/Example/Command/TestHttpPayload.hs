@@ -36,17 +36,6 @@ data TestHttpPayloadError =
     | RequestError Data.Text.Text
 
 
-class RequestSegment a where
-    toRequestSegment :: Show a => a -> Data.Text.Text
-instance RequestSegment Data.Text.Text where
-    toRequestSegment = id
-instance RequestSegment Integer where
-    toRequestSegment = Data.Text.pack . show
-instance RequestSegment Bool where
-    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
-instance RequestSegment Network.HTTP.Date.HTTPDate where
-    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
-
 serTestHttpPayloadPAYLOAD:: Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInput -> Network.HTTP.Client.RequestBody
 serTestHttpPayloadPAYLOAD input =
     Network.HTTP.Client.RequestBodyLBS $
@@ -57,7 +46,7 @@ serTestHttpPayloadHEADER :: Com.Example.Model.TestHttpPayloadInput.TestHttpPaylo
 serTestHttpPayloadHEADER input =
     let 
         stringHeaderHeader = (Com.Example.Model.TestHttpPayloadInput.stringHeader input
-                    Data.Functor.<&> toRequestSegment)
+                    Data.Functor.<&> Com.Example.Utility.toRequestSegment)
         
                     Data.Functor.<&> \x -> [("x-header-string", Data.Text.Encoding.encodeUtf8 x)]
         
@@ -80,7 +69,7 @@ serTestHttpPayloadLABEL input =
     Data.ByteString.toStrict $ Data.ByteString.Builder.toLazyByteString $ Network.HTTP.Types.URI.encodePathSegmentsRelative [
         "payload",
         (Com.Example.Model.TestHttpPayloadInput.identifier input
-                    Data.Function.& toRequestSegment)
+                    Data.Function.& Com.Example.Utility.toRequestSegment)
         
         ]
     

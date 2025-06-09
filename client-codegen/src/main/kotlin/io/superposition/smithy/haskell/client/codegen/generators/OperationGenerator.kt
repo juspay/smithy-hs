@@ -57,6 +57,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             writer.putContext("ci", HaskellSymbol.Misc.CaseInsensitive)
             writer.putContext("someException", HaskellSymbol.SomeException)
             writer.putContext("encoding", HaskellSymbol.EncodingUtf8)
+            writer.putContext("utility", directive.context().utilitySymbol)
             writer.putContext(
                 "operationError",
                 Runnable { operationErrorGenerator(writer) }
@@ -76,7 +77,6 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             )
             writer.write(template)
             writer.addExport(functionName)
-            writer.importContainer.importSymbol(directive.context().utilitySymbol, null)
             writer.exposeModule()
             writer.popState()
         }

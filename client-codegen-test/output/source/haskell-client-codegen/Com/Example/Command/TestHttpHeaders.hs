@@ -36,43 +36,32 @@ data TestHttpHeadersError =
     | RequestError Data.Text.Text
 
 
-class RequestSegment a where
-    toRequestSegment :: Show a => a -> Data.Text.Text
-instance RequestSegment Data.Text.Text where
-    toRequestSegment = id
-instance RequestSegment Integer where
-    toRequestSegment = Data.Text.pack . show
-instance RequestSegment Bool where
-    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
-instance RequestSegment Network.HTTP.Date.HTTPDate where
-    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
-
 serTestHttpHeadersHEADER :: Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInput -> Network.HTTP.Types.Header.RequestHeaders
 serTestHttpHeadersHEADER input =
     let 
         boolHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.boolHeader input
-                    Data.Functor.<&> toRequestSegment)
+                    Data.Functor.<&> Com.Example.Utility.toRequestSegment)
         
                     Data.Functor.<&> \x -> [("x-header-bool", Data.Text.Encoding.encodeUtf8 x)]
         
         intHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.intHeader input
-                    Data.Functor.<&> toRequestSegment)
+                    Data.Functor.<&> Com.Example.Utility.toRequestSegment)
         
                     Data.Functor.<&> \x -> [("x-header-int", Data.Text.Encoding.encodeUtf8 x)]
         
         listHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.listHeader input
-                    Data.Functor.<&> Data.List.map (toRequestSegment))
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment))
         
                     Data.Functor.<&> Data.Text.intercalate ","
                     Data.Functor.<&> \x -> [("x-header-list", Data.Text.Encoding.encodeUtf8 x)]
         
         timeHeader = (Com.Example.Model.TestHttpHeadersInput.time input
-                    Data.Functor.<&> toRequestSegment)
+                    Data.Functor.<&> Com.Example.Utility.toRequestSegment)
         
                     Data.Functor.<&> \x -> [("x-header-time", Data.Text.Encoding.encodeUtf8 x)]
         
         stringHeaderHeader = (Com.Example.Model.TestHttpHeadersInput.stringHeader input
-                    Data.Functor.<&> toRequestSegment)
+                    Data.Functor.<&> Com.Example.Utility.toRequestSegment)
         
                     Data.Functor.<&> \x -> [("x-header-string", Data.Text.Encoding.encodeUtf8 x)]
         

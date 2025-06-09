@@ -58,22 +58,6 @@ class RequestBindingGenerator(
     override fun run() {
         writer.pushState()
         writer.putContext("httpDate", Http.HTTPDate)
-        writer.write(
-            """
-            class RequestSegment a where
-                toRequestSegment :: Show a => a -> #{text:T}
-            instance RequestSegment #{text:T} where
-                toRequestSegment = id
-            instance RequestSegment Integer where
-                toRequestSegment = #{text:N}.pack . show
-            instance RequestSegment Bool where
-                toRequestSegment = #{text:N}.toLower . #{text:N}.pack . show
-            instance RequestSegment #{httpDate:T} where
-                toRequestSegment = #{encoding:N}.decodeUtf8 . #{httpDate:N}.formatHTTPDate
-            """.trimIndent()
-        )
-        writer.write("")
-
         writer.putContext("requestHeaders", HaskellSymbol.Http.RequestHeaders)
         val payloadGeneratorStatus = serializePayloadFn()
         val queryGeneratorStatus = serializeQueryFn()
@@ -91,8 +75,8 @@ class RequestBindingGenerator(
         val chainFn = if (binding.member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
 
         val chain = writer.newCallChain("(#{input:N}.$name input", chainFn)
-            .chainIf("#{list:N}.map (toRequestSegment))", binding.member.isMemberListShape(model))
-            .chainIf("toRequestSegment)", !binding.member.isMemberListShape(model))
+            .chainIf("#{list:N}.map (#{utility:N}.toRequestSegment))", binding.member.isMemberListShape(model))
+            .chainIf("#{utility:N}.toRequestSegment)", !binding.member.isMemberListShape(model))
             .toString()
 
         return formatter(chain)
@@ -214,7 +198,7 @@ class RequestBindingGenerator(
                     val chainFn = if (member.isOptional) HaskellSymbol.FFmap else HaskellSymbol.And
                     writer.newCallChain("$varName = #{input:N}.$name input", chainFn)
                         .chainIf("(\\x -> [x])", !member.isMemberListShape(model))
-                        .chain("#{list:N}.map (toRequestSegment)")
+                        .chain("#{list:N}.map (#{utility:N}.toRequestSegment)")
                         .chain("#{list:N}.map (\\x -> toQueryItem ($query, x))")
                         .setChainFn(HaskellSymbol.And)
                         .chainIf("#{maybe:N}.maybe [] (id)", member.isOptional)

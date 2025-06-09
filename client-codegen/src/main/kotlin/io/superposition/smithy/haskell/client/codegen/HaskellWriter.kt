@@ -75,7 +75,8 @@ class HaskellWriter(
         putContext("text", HaskellSymbol.Text)
         putContext(
             "textenc",
-            HaskellSymbol.Text.toBuilder().name("INVALID").namespace("Data.Text.Encoding", ".").build()
+            HaskellSymbol.Text.toBuilder().name("INVALID")
+                .namespace("Data.Text.Encoding", ".").build()
         )
         putContext("just", HaskellSymbol.Maybe.toBuilder().name("Just").build())
         putContext("nothing", HaskellSymbol.Maybe.toBuilder().name("Nothing").build())
@@ -182,7 +183,11 @@ class HaskellWriter(
         return CallChain(chainHead, indentLevel + 1, chainFn)
     }
 
-    inner class CallChain(private val chainHead: String, private val indentLevel: Int, private var chainFn: Symbol) {
+    inner class CallChain(
+        private val chainHead: String,
+        private val indentLevel: Int,
+        private var chainFn: Symbol
+    ) {
         private val buf: MutableList<String> = mutableListOf(chainHead)
         private var closed = false
 

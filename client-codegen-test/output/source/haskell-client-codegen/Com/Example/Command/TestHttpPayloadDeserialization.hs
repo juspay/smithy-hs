@@ -35,17 +35,6 @@ data TestHttpPayloadDeserializationError =
     | RequestError Data.Text.Text
 
 
-class RequestSegment a where
-    toRequestSegment :: Show a => a -> Data.Text.Text
-instance RequestSegment Data.Text.Text where
-    toRequestSegment = id
-instance RequestSegment Integer where
-    toRequestSegment = Data.Text.pack . show
-instance RequestSegment Bool where
-    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
-instance RequestSegment Network.HTTP.Date.HTTPDate where
-    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
-
 serTestHttpPayloadDeserializationQUERY :: Com.Example.Model.TestHttpPayloadDeserializationInput.TestHttpPayloadDeserializationInput -> Data.ByteString.ByteString
 serTestHttpPayloadDeserializationQUERY input =
     let
@@ -54,7 +43,7 @@ serTestHttpPayloadDeserializationQUERY input =
         
         coffeeTypeQuery = Com.Example.Model.TestHttpPayloadDeserializationInput.coffeeType input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("type", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         

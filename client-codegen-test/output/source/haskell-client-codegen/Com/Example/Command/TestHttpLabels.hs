@@ -34,32 +34,21 @@ data TestHttpLabelsError =
     | RequestError Data.Text.Text
 
 
-class RequestSegment a where
-    toRequestSegment :: Show a => a -> Data.Text.Text
-instance RequestSegment Data.Text.Text where
-    toRequestSegment = id
-instance RequestSegment Integer where
-    toRequestSegment = Data.Text.pack . show
-instance RequestSegment Bool where
-    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
-instance RequestSegment Network.HTTP.Date.HTTPDate where
-    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
-
 serTestHttpLabelsLABEL :: Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInput -> Data.ByteString.ByteString
 serTestHttpLabelsLABEL input = 
     Data.ByteString.toStrict $ Data.ByteString.Builder.toLazyByteString $ Network.HTTP.Types.URI.encodePathSegmentsRelative [
         "path_params",
         (Com.Example.Model.TestHttpLabelsInput.identifier input
-                    Data.Function.& toRequestSegment)
+                    Data.Function.& Com.Example.Utility.toRequestSegment)
         ,
         (Com.Example.Model.TestHttpLabelsInput.enabled input
-                    Data.Function.& toRequestSegment)
+                    Data.Function.& Com.Example.Utility.toRequestSegment)
         ,
         (Com.Example.Model.TestHttpLabelsInput.name input
-                    Data.Function.& toRequestSegment)
+                    Data.Function.& Com.Example.Utility.toRequestSegment)
         ,
         (Com.Example.Model.TestHttpLabelsInput.time input
-                    Data.Function.& toRequestSegment)
+                    Data.Function.& Com.Example.Utility.toRequestSegment)
         
         ]
     

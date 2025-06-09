@@ -1,9 +1,3 @@
-module Com.Example.Utility (
-    RequestSegment,
-    toRequestSegment
-) where
-
-
 import Data.Aeson
 import Data.Function
 import Data.Maybe
@@ -29,5 +23,3 @@ instance RequestSegment Bool where
     toRequestSegment = toLower . pack . show
 instance RequestSegment HTTPDate where
     toRequestSegment = decodeUtf8 . formatHTTPDate
-
-

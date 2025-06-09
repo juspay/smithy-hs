@@ -35,17 +35,6 @@ data TestQueryError =
     | RequestError Data.Text.Text
 
 
-class RequestSegment a where
-    toRequestSegment :: Show a => a -> Data.Text.Text
-instance RequestSegment Data.Text.Text where
-    toRequestSegment = id
-instance RequestSegment Integer where
-    toRequestSegment = Data.Text.pack . show
-instance RequestSegment Bool where
-    toRequestSegment = Data.Text.toLower . Data.Text.pack . show
-instance RequestSegment Network.HTTP.Date.HTTPDate where
-    toRequestSegment = Data.Text.Encoding.decodeUtf8 . Network.HTTP.Date.formatHTTPDate
-
 serTestQueryQUERY :: Com.Example.Model.TestQueryInput.TestQueryInput -> Data.ByteString.ByteString
 serTestQueryQUERY input =
     let
@@ -60,30 +49,30 @@ serTestQueryQUERY input =
         
         coffeeTypeQuery = Com.Example.Model.TestQueryInput.coffeeType input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("type", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         pageQuery = Com.Example.Model.TestQueryInput.page input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("page", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         timeQuery = Com.Example.Model.TestQueryInput.time input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("time", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         enabledQuery = Com.Example.Model.TestQueryInput.enabled input
                     Data.Functor.<&> (\x -> [x])
-                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("enabled", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
         tagsQuery = Com.Example.Model.TestQueryInput.tags input
-                    Data.Functor.<&> Data.List.map (toRequestSegment)
+                    Data.Functor.<&> Data.List.map (Com.Example.Utility.toRequestSegment)
                     Data.Functor.<&> Data.List.map (\x -> toQueryItem ("tags", x))
                     Data.Function.& Data.Maybe.maybe [] (id)
         
