@@ -67,7 +67,6 @@ testHttpPayloadDeserialization :: Com.Example.ExampleServiceClient.ExampleServic
 testHttpPayloadDeserialization client inputB = do
     let inputE = Com.Example.Model.TestHttpPayloadDeserializationInput.build inputB
         baseUri = Com.Example.ExampleServiceClient.endpointUri client
-        token = Com.Example.ExampleServiceClient.token client
         httpManager = Com.Example.ExampleServiceClient.httpManager client
         requestE = Network.HTTP.Client.requestFromURI @(Data.Either.Either Control.Exception.SomeException) baseUri
     
@@ -81,11 +80,13 @@ testHttpPayloadDeserialization client inputB = do
     
     where
         method = Network.HTTP.Types.Method.methodGet
+        token = Data.Text.Encoding.encodeUtf8 $ Com.Example.ExampleServiceClient.token client
         toRequest input req =
             req {
                 Network.HTTP.Client.path = serTestHttpPayloadDeserializationLABEL input
                 , Network.HTTP.Client.method = method
                 , Network.HTTP.Client.queryString = serTestHttpPayloadDeserializationQUERY input
+                , Network.HTTP.Client.requestHeaders = [("Authorization", "Bearer " <> token)]
             }
         
     

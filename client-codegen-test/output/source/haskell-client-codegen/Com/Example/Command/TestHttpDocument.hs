@@ -81,7 +81,6 @@ testHttpDocument :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com
 testHttpDocument client inputB = do
     let inputE = Com.Example.Model.TestHttpDocumentInput.build inputB
         baseUri = Com.Example.ExampleServiceClient.endpointUri client
-        token = Com.Example.ExampleServiceClient.token client
         httpManager = Com.Example.ExampleServiceClient.httpManager client
         requestE = Network.HTTP.Client.requestFromURI @(Data.Either.Either Control.Exception.SomeException) baseUri
     
@@ -95,12 +94,13 @@ testHttpDocument client inputB = do
     
     where
         method = Network.HTTP.Types.Method.methodPost
+        token = Data.Text.Encoding.encodeUtf8 $ Com.Example.ExampleServiceClient.token client
         toRequest input req =
             req {
                 Network.HTTP.Client.path = serTestHttpDocumentLABEL input
                 , Network.HTTP.Client.method = method
                 , Network.HTTP.Client.requestBody = serTestHttpDocumentPAYLOAD input
-                , Network.HTTP.Client.requestHeaders = serTestHttpDocumentHEADER input
+                , Network.HTTP.Client.requestHeaders = (serTestHttpDocumentHEADER input) ++ [("Authorization", "Bearer " <> token)]
             }
         
     

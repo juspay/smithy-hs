@@ -29,13 +29,16 @@ testHttpLabels state = HUnit.TestCase $ do
         { RI.queryString = [],
           RI.pathInfo =
             [ "path_params"
-            , T.pack $ show identifierValue 
-            , T.toLower (T.pack $ show enabledValue) 
+            , T.pack $ show identifierValue
+            , T.toLower (T.pack $ show enabledValue)
             , nameValue
             , decodeUtf8 dateString
             ],
           RI.requestMethod = HTTP.methodGet,
-          RI.requestHeaders = [] }
+          RI.requestHeaders = [
+            ("Authorization", "Bearer test-token")
+          ]
+        }
 
   _ <- Stm.atomically $ Stm.writeTMVar (res state) defaultResponse
 

@@ -105,7 +105,6 @@ testQuery :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.Exampl
 testQuery client inputB = do
     let inputE = Com.Example.Model.TestQueryInput.build inputB
         baseUri = Com.Example.ExampleServiceClient.endpointUri client
-        token = Com.Example.ExampleServiceClient.token client
         httpManager = Com.Example.ExampleServiceClient.httpManager client
         requestE = Network.HTTP.Client.requestFromURI @(Data.Either.Either Control.Exception.SomeException) baseUri
     
@@ -119,11 +118,13 @@ testQuery client inputB = do
     
     where
         method = Network.HTTP.Types.Method.methodGet
+        token = Data.Text.Encoding.encodeUtf8 $ Com.Example.ExampleServiceClient.token client
         toRequest input req =
             req {
                 Network.HTTP.Client.path = serTestQueryLABEL input
                 , Network.HTTP.Client.method = method
                 , Network.HTTP.Client.queryString = serTestQueryQUERY input
+                , Network.HTTP.Client.requestHeaders = [("Authorization", "Bearer " <> token)]
             }
         
     

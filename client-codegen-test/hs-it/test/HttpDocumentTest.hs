@@ -44,14 +44,15 @@ testHttpDocument state = HUnit.TestCase $ do
         , "customization" Aeson..= customization
         , "time" Aeson..= decodeUtf8 dateString
         ]
-      
+
       expectedRequest = RequestInternal {
         RI.queryString = [],
         RI.pathInfo = ["document", T.pack $ show identifierValue],
         RI.requestMethod = HTTP.methodPost,
         RI.requestHeaders = [
           ("x-header-string", BS.pack $ T.unpack stringHeaderValue),
-          ("x-prefix-doc", BS.pack $ T.unpack $ prefixHeadersValue Map.! "doc")
+          ("x-prefix-doc", BS.pack $ T.unpack $ prefixHeadersValue Map.! "doc"),
+          ("Authorization", "Bearer test-token")
         ]
       }
 
@@ -74,7 +75,7 @@ testHttpDocument state = HUnit.TestCase $ do
     Just actualJson -> do
       HUnit.assertEqual "Payload should match" expectedPayloadJson actualJson
     _ -> HUnit.assertFailure "Failed to parse JSON document"
-    
+
   -- Verify operation result
   case result of
     Left (TestHttpDocument.BuilderError err) ->

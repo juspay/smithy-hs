@@ -15,6 +15,7 @@ import software.amazon.smithy.model.knowledge.HttpBinding
 import software.amazon.smithy.model.knowledge.HttpBindingIndex
 import software.amazon.smithy.model.shapes.MapShape
 import software.amazon.smithy.model.shapes.OperationShape
+import software.amazon.smithy.model.traits.HttpBearerAuthTrait
 import software.amazon.smithy.model.traits.HttpHeaderTrait
 import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
 import software.amazon.smithy.model.traits.HttpTrait
@@ -43,6 +44,7 @@ class RequestBindingGenerator(
 ) : Runnable {
     private val httpBindingIndex = HttpBindingIndex.of(model)
     private val httpTrait = operation.getTrait(HttpTrait::class.java).orElse(null)
+    private val bearerAuthTrait = operation.getTrait(HttpBearerAuthTrait::class.java).orElse(null)
 
     private val operationSymbol = symbolProvider.toSymbol(operation)
     private val bindings = httpBindingIndex.getRequestBindings(operation)
@@ -267,7 +269,6 @@ class RequestBindingGenerator(
             return false
         }
 
-        // TODO handle non string labels
         writer.write("$fnName :: #{input:T} -> #{requestHeaders:T}")
         writer.openBlock("$fnName input =", "") {
             val vars = mutableListOf<String>()
@@ -365,9 +366,6 @@ class RequestBindingGenerator(
             val method = toHaskellHttpMethod(httpTrait.method)
             writer.openBlock("let inputE = #{input:N}.build inputB", "") {
                 writer.write("baseUri = #{client:N}.${client.uri.name} client")
-                client.token?.let {
-                    writer.write("token = #{client:N}.${it.name} client")
-                }
                 writer.write("httpManager = #{client:N}.${client.httpManager.name} client")
                 writer.write(
                     "requestE = #{httpClient:N}.requestFromURI @(#{either:T} #{someException:T}) baseUri"
@@ -387,6 +385,21 @@ class RequestBindingGenerator(
                 } else {
                     writer.write("method = #T", method)
                 }
+
+                client.token?.let {
+                    writer.write("token = #{encoding:N}.encodeUtf8 $ #{client:N}.${it.name} client")
+                }
+
+                val headers = if (client.token != null && headerGeneratorStatus) {
+                    "($headerSerializeFn input) ++ [(${"Authorization".dq}, ${"Bearer ".dq} <> token)]"
+                } else if (headerGeneratorStatus) {
+                    "$headerSerializeFn input"
+                } else if (client.token != null) {
+                    "[(${"Authorization".dq}, ${"Bearer ".dq} <> token)]"
+                } else {
+                    "[]"
+                }
+
                 writer.openBlock("toRequest input req =", "") {
                     writer.openBlock("req {", "}") {
                         writer.write("#T = $labelSerializeFn input", Http.rqPath)
@@ -403,12 +416,7 @@ class RequestBindingGenerator(
                                 Http.rqBody
                             )
                         }
-                        if (headerGeneratorStatus) {
-                            writer.write(
-                                ", #T = $headerSerializeFn input",
-                                Http.rqHeaders
-                            )
-                        }
+                        writer.write(", #T = $headers", Http.rqHeaders)
                     }
                 }
             }

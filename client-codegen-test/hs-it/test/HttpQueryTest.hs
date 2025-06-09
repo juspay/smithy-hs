@@ -44,7 +44,9 @@ testHttpQuery state = HUnit.TestCase $ do
               ],
             RI.pathInfo = ["query_params"],
             RI.requestMethod = HTTP.methodGet,
-            RI.requestHeaders = []
+            RI.requestHeaders = [
+              ("Authorization", "Bearer test-token")
+            ]
           }
 
   _ <- Stm.atomically $ Stm.writeTMVar (res state) defaultResponse

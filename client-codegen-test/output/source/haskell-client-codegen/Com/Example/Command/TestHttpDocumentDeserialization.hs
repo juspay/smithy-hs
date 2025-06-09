@@ -69,7 +69,6 @@ testHttpDocumentDeserialization :: Com.Example.ExampleServiceClient.ExampleServi
 testHttpDocumentDeserialization client inputB = do
     let inputE = Com.Example.Model.TestHttpDocumentDeserializationInput.build inputB
         baseUri = Com.Example.ExampleServiceClient.endpointUri client
-        token = Com.Example.ExampleServiceClient.token client
         httpManager = Com.Example.ExampleServiceClient.httpManager client
         requestE = Network.HTTP.Client.requestFromURI @(Data.Either.Either Control.Exception.SomeException) baseUri
     
@@ -83,11 +82,13 @@ testHttpDocumentDeserialization client inputB = do
     
     where
         method = Network.HTTP.Types.Method.methodGet
+        token = Data.Text.Encoding.encodeUtf8 $ Com.Example.ExampleServiceClient.token client
         toRequest input req =
             req {
                 Network.HTTP.Client.path = serTestHttpDocumentDeserializationLABEL input
                 , Network.HTTP.Client.method = method
                 , Network.HTTP.Client.queryString = serTestHttpDocumentDeserializationQUERY input
+                , Network.HTTP.Client.requestHeaders = [("Authorization", "Bearer " <> token)]
             }
         
     

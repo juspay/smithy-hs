@@ -45,14 +45,14 @@ testHttpDocumentDeserialization state = HUnit.TestCase $ do
         CoffeeItem.setCoffeetype CoffeeType.POUR_OVER
         CoffeeItem.setDescription "Hand-poured coffee for document test"
         CoffeeItem.setCreatedat expectedTimeValue
-      
+
       expectedCustomization = CoffeeCustomization.Temperature TemperaturePreference.HOT
 
       expectedRequest = RequestInternal {
         RI.queryString = [ ("type", Just coffeeTypeValue) ],
         RI.pathInfo = ["document_response"],
         RI.requestMethod = HTTP.methodGet,
-        RI.requestHeaders = []
+        RI.requestHeaders = [("Authorization", "Bearer test-token")]
       }
 
       mockResponse =
@@ -73,7 +73,7 @@ testHttpDocumentDeserialization state = HUnit.TestCase $ do
             , "time" Aeson..= decodeUtf8 dateString
             ]
             & Aeson.encode)
-      
+
       expectedOutput = fromRight' $ TestHttpDocumentDeserializationOutput.build $ do
         TestHttpDocumentDeserializationOutput.setOutputheader (Just $ T.pack expectedOutputHeader)
         TestHttpDocumentDeserializationOutput.setOutputheaderint (Just expectedOutputHeaderInt)
@@ -83,7 +83,7 @@ testHttpDocumentDeserialization state = HUnit.TestCase $ do
         TestHttpDocumentDeserializationOutput.setTime (Just expectedTimeValue)
         TestHttpDocumentDeserializationOutput.setItem (Just expectedCoffeeItem)
         TestHttpDocumentDeserializationOutput.setCustomization (Just expectedCustomization)
-        
+
 
   _ <- Stm.atomically $ Stm.writeTMVar (res state) mockResponse
 

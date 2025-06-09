@@ -50,12 +50,14 @@ testHttpPayloadDeserialization state = HUnit.TestCase $ do
         TestHttpPayloadDeserializationOutput.setTime (Just expectedTimeValue)
         TestHttpPayloadDeserializationOutput.setOutputprefixheaders (Just expectedOutputPrefixHeaders)
         TestHttpPayloadDeserializationOutput.setItem (Just expectedCoffeeItem)
-      
+
       expectedReq = RequestInternal {
           RI.requestMethod = HTTP.methodGet,
           RI.pathInfo = ["payload_response"],
           RI.queryString = [ ("type", Just coffeeTypeValue) ],
-          RI.requestHeaders = []
+          RI.requestHeaders = [
+            ("Authorization", "Bearer test-token")
+          ]
         }
 
       mockResponse =
@@ -79,7 +81,7 @@ testHttpPayloadDeserialization state = HUnit.TestCase $ do
 
   actualReq <- Stm.atomically $ Stm.takeTMVar (req state)
 
-  assertEqRequest expectedReq actualReq 
+  assertEqRequest expectedReq actualReq
   case result of
     Left (TestHttpPayloadDeserialization.BuilderError err) ->
       HUnit.assertFailure $ "Builder error: " ++ T.unpack err

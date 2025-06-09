@@ -41,8 +41,8 @@ testHttpHeaders state = HUnit.TestCase $ do
                 ("x-header-time", dateString),
                 ("x-header-string", BS.pack $ T.unpack stringHeaderValue),
                 ("x-prefix-custom1", BS.pack $ T.unpack $ prefixHeadersValue Map.! "custom1"),
-                ("x-prefix-custom2", BS.pack $ T.unpack $ prefixHeadersValue Map.! "custom2")
-                -- ("authorization", "Bearer test-token")
+                ("x-prefix-custom2", BS.pack $ T.unpack $ prefixHeadersValue Map.! "custom2"),
+                ("Authorization", "Bearer test-token")
               ]
           }
 
