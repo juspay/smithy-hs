@@ -34,6 +34,8 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
 
             writer.pushState()
             writer.putContext("shape", directive.symbol())
+            writer.putContext("utility", directive.context().utilitySymbol)
+            writer.putContext("encoding", HaskellSymbol.EncodingUtf8)
             writer.putContext(
                 "constructors",
                 Runnable { generateConstructors(writer, shape) }
@@ -97,6 +99,24 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
                 }
             }
         }
+        writer.openBlock(
+            "instance #{utility:N}.ResponseSegment ${symbol.name} where",
+            ""
+        ) {
+            writer.openBlock(
+                "fromResponseSegment b = case (#{encoding:N}.decodeUtf8' b) of",
+                ""
+            ) {
+                for (member in shape.members()) {
+                    val constructor = member.fieldName
+                    writer.write(
+                        "#{right:T} ${member.enumValue.dq} -> #{right:T} $constructor"
+                    )
+                }
+                writer.write("#{right:T} s -> #{left:T} $ ${"Not a valid enum constructor: ".dq} <> s")
+                writer.write("#{left:T} err -> #{left:T} $ #{text:N}.pack $ show err")
+            }
+        }
     }
 
     private fun serializerGenerator(
@@ -110,6 +130,15 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
                 writer.write(
                     "toJSON ${member.fieldName} = #{aeson:N}.String $ #{text:N}.pack $enumValue"
                 )
+            }
+        }
+        writer.openBlock(
+            "instance #{utility:N}.RequestSegment ${symbol.name} where",
+            ""
+        ) {
+            for (member in shape.members()) {
+                val enumValue = member.enumValue.dq
+                writer.write("toRequestSegment ${member.fieldName} = $enumValue")
             }
         }
     }

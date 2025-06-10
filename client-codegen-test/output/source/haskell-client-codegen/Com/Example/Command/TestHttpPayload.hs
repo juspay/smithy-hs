@@ -126,18 +126,6 @@ deserializeResponse response = do
                     Data.Function.& Data.List.map (\(n, v) -> (Data.Text.Encoding.decodeUtf8 (Data.CaseInsensitive.original n), v))
         
         findHeader name = snd Data.Functor.<$> Data.List.find ((name ==) . fst) headers
-        parseTextHeader :: Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text Data.Text.Text
-        parseTextHeader v = Data.Text.Encoding.decodeUtf8' v Data.Function.& \ case
-            Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
-            Data.Either.Right value -> Data.Either.Right value
-        
-        parseTimestampHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
-        parseTimestampHeader v = Com.Example.Utility.mapLeft (Data.Text.pack) $ Data.Aeson.eitherDecodeStrict' v
-        parseHeader :: Data.Aeson.FromJSON a => Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a
-        parseHeader v = Data.Aeson.eitherDecodeStrict v Data.Function.& \ case
-            Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
-            Data.Either.Right value -> Data.Either.Right value
-        
         parseHeaderList :: Data.Aeson.FromJSON a => (Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text a) -> Data.ByteString.ByteString -> Data.Either.Either Data.Text.Text [a]
         parseHeaderList parser = sequence . Data.List.map (parser) . Data.ByteString.Char8.split ','
     

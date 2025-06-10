@@ -447,7 +447,6 @@ operation TestReservedWords {
         @required
         then: String
 
-        @httpLabel
         @required
         where: String
     }

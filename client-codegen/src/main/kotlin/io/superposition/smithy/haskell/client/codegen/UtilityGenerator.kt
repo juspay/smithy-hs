@@ -18,9 +18,13 @@ class UtilityGenerator(
 
                 writer.addExport("RequestSegment")
                 writer.addExport("toRequestSegment")
+                writer.addExport("ResponseSegment")
+                writer.addExport("fromResponseSegment")
                 writer.addExport("mapLeft")
                 writer.addDependency(HaskellSymbol.Map)
                 writer.addDependency(Http.HTTPDate)
+                writer.addDependency(Http.UTCTime)
+                writer.addDependency(Http.POSIXTime)
                 writer.write(content)
             }
     }

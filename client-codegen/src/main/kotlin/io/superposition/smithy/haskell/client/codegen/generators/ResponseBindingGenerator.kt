@@ -13,8 +13,6 @@ import software.amazon.smithy.model.knowledge.HttpBindingIndex
 import software.amazon.smithy.model.shapes.ListShape
 import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.shapes.OperationShape
-import software.amazon.smithy.model.shapes.StringShape
-import software.amazon.smithy.model.shapes.TimestampShape
 import software.amazon.smithy.model.traits.HttpHeaderTrait
 import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
 
@@ -74,11 +72,7 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                var parser = when (innerType) {
-                    is StringShape -> "parseTextHeader"
-                    is TimestampShape -> "parseTimestampHeader"
-                    else -> "parseHeader"
-                }
+                var parser = "#{utility:N}.fromResponseSegment"
                 if (member.isMemberListShape(model)) {
                     parser = "parseHeaderList $parser"
                 }
@@ -260,34 +254,6 @@ class ResponseBindingGenerator(
                     .close()
 
                 writer.write("findHeader name = snd #{functor:N}.<$> #{list:N}.find ((name ==) . fst) headers")
-
-                writer.write("parseTextHeader :: #{byteString:T} -> #{either:T} #{text:T} #{text:T}")
-                writer.openBlock("parseTextHeader v = #{encoding:N}.decodeUtf8' v #{and:T} \\ case", "") {
-                    writer.write(
-                        "#{left:T} err -> #{left:T} $ #{text:N}.pack $ show err"
-                    )
-                    writer.write(
-                        "#{right:T} value -> #{right:T} value"
-                    )
-                }
-
-                writer.write(
-                    "parseTimestampHeader :: #{aeson:N}.FromJSON a => #{byteString:T} -> #{either:T} #{text:T} a"
-                )
-                writer.write(
-                    "parseTimestampHeader v = #{utility:N}.mapLeft (#{text:N}.pack) $ #{aeson:N}.eitherDecodeStrict' v"
-                )
-
-                writer.write("parseHeader :: #{aeson:N}.FromJSON a => #{byteString:T} -> #{either:T} #{text:T} a")
-                writer.openBlock("parseHeader v = #{aeson:N}.eitherDecodeStrict v #{and:T} \\ case", "") {
-                    writer.write(
-                        "#{left:T} err -> #{left:T} $ #{text:N}.pack $ show err"
-                    )
-                    writer.write(
-                        "#{right:T} value -> #{right:T} value"
-                    )
-                }
-
                 writer.write(
                     "parseHeaderList :: #{aeson:N}.FromJSON a => (#{byteString:T} -> #{either:T} #{text:T} a) -> #{byteString:T} -> #{either:T} #{text:T} [a]"
                 )
