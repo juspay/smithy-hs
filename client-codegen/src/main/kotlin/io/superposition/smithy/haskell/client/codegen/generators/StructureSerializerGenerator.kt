@@ -21,7 +21,7 @@ class StructureSerializerGenerator(
                     val sb = StringBuilder()
                         .append("${it.jsonName.dq} #{aeson:N}..= ")
                     if (sym.isOrWrapped(Http.HTTPDate)) {
-                        sb.append("((${it.memberName} a) ")
+                        sb.append("((${it.fieldName} a) ")
                         if (sym.isMaybe()) {
                             sb.append("#{functor:N}.<&> ")
                         } else {
@@ -29,7 +29,7 @@ class StructureSerializerGenerator(
                         }
                         sb.append("(#{encoding:N}.decodeUtf8 . #{hdate:N}.formatHTTPDate))")
                     } else {
-                        sb.append("${it.memberName} a")
+                        sb.append("${it.fieldName} a")
                     }
                     writer.format(sb.toString())
                 }

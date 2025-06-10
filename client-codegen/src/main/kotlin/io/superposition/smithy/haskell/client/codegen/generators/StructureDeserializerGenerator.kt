@@ -35,7 +35,7 @@ class StructureDeserializerGenerator(
                     if (isHDate) {
                         val err = "Failed to parse $symbol.$ms as ${Http.HTTPDate}"
                         val chainFn = if (ms.isMaybe()) {
-                            HaskellSymbol.FlippedFmap
+                            HaskellSymbol.FFmap
                         } else {
                             HaskellSymbol.And
                         }

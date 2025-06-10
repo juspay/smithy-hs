@@ -19,21 +19,6 @@ class HaskellWriter(
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val exports: MutableList<String> = ArrayList()
     private val isSourceFile = fileName.endsWith(".hs")
-    private val languageExts: List<String> = listOf(
-        "DeriveGeneric",
-        // "DeriveAnyClass",
-        "OverloadedStrings",
-        // "DuplicateRecordFields",
-        // "RecordWildCards",
-        // "NamedFieldPuns",
-        // "TypeApplications",
-        // "FlexibleContexts",
-        // "MultiParamTypeClasses",
-        // "FunctionalDependencies",
-        // "TypeFamilies",
-        // "GADTs",
-        // "GeneralizedNewtypeDeriving",
-    )
 
     init {
         setExpressionStart('#')
@@ -53,11 +38,6 @@ class HaskellWriter(
         }
 
         val sb = StringBuilder()
-
-        for (langExt in languageExts) {
-            sb.appendLine("{-# LANGUAGE $langExt #-}")
-        }
-        sb.appendLine()
 
         sb.appendLine("module $modName (")
         sb.appendLine(exports.map { "    " + it }.joinToString(",\n"))
@@ -95,7 +75,8 @@ class HaskellWriter(
         putContext("text", HaskellSymbol.Text)
         putContext(
             "textenc",
-            HaskellSymbol.Text.toBuilder().name("INVALID").namespace("Data.Text.Encoding", ".").build()
+            HaskellSymbol.Text.toBuilder().name("INVALID")
+                .namespace("Data.Text.Encoding", ".").build()
         )
         putContext("just", HaskellSymbol.Maybe.toBuilder().name("Just").build())
         putContext("nothing", HaskellSymbol.Maybe.toBuilder().name("Nothing").build())
@@ -106,10 +87,14 @@ class HaskellWriter(
         putContext("map", HaskellSymbol.Map)
         putContext("aeson", HaskellSymbol.Aeson)
         putContext("byteString", HaskellSymbol.ByteString)
+        putContext("char8", HaskellSymbol.Char8)
+        putContext("byteStringBuilder", HaskellSymbol.ByteStringBuilder)
         putContext("lazyByteString", HaskellSymbol.LazyByteString)
         putContext("flip", HaskellSymbol.Flip)
         putContext("and", HaskellSymbol.And)
+        putContext("bind", HaskellSymbol.Bind)
         putContext("query", Http.Query)
+        putContext("path", Http.Path)
         putContext("httpClient", Http.HttpClient)
         putContext("first", BiFunctor.first)
     }
@@ -172,7 +157,7 @@ class HaskellWriter(
         }
     }
 
-    private fun writeDerives(derives: List<Symbol>) {
+    fun writeDerives(derives: List<Symbol>) {
         write("deriving (")
         writeList(derives) { super.format("#T", it) }
         write(")")
@@ -190,16 +175,20 @@ class HaskellWriter(
         chainFn: Symbol = HaskellSymbol.And,
         vararg args: Any
     ): CallChain {
-        if (args.isEmpty()) {
-            write(template)
+        val chainHead = if (args.isEmpty()) {
+            format(template)
         } else {
-            write(template, args)
+            format(template, args)
         }
-        return CallChain(indentLevel + 1, chainFn)
+        return CallChain(chainHead, indentLevel + 1, chainFn)
     }
 
-    inner class CallChain(private val indentLevel: Int, private var chainFn: Symbol) {
-        private val buf: MutableList<String> = ArrayList()
+    inner class CallChain(
+        private val chainHead: String,
+        private val indentLevel: Int,
+        private var chainFn: Symbol
+    ) {
+        private val buf: MutableList<String> = mutableListOf(chainHead)
         private var closed = false
 
         @Throws(IllegalStateException::class)
@@ -227,6 +216,12 @@ class HaskellWriter(
 
         override fun toString(): String {
             val sb = StringBuilder()
+
+            val head = buf.removeFirstOrNull()
+            if (head != null) {
+                sb.appendLine(head)
+            }
+
             buf.forEach {
                 repeat(indentLevel) {
                     sb.append("    ")

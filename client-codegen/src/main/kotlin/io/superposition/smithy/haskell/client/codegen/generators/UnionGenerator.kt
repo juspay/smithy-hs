@@ -2,11 +2,8 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
+import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
-import io.superposition.smithy.haskell.client.codegen.HaskellContext
-import io.superposition.smithy.haskell.client.codegen.HaskellSettings
-import io.superposition.smithy.haskell.client.codegen.HaskellWriter
-import io.superposition.smithy.haskell.client.codegen.jsonName
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.directed.ShapeDirective
@@ -23,7 +20,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
         private fun getConstructorName(
             member: MemberShape
         ): String {
-            return CaseUtils.toPascalCase(member.memberName)
+            return CaseUtils.toPascalCase(member.fieldName)
         }
     }
 
@@ -35,6 +32,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             -- Union implementation for #{shape:T}
             data #{shape:T} =
                 #{constructors:C|}
+                #{derives:C|}
 
             #{serializer:C|}
             #{deserializer:C|}
@@ -57,13 +55,17 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
                 Runnable { generateSerializer(writer, union, directive.symbol()) }
             )
             writer.putContext(
+                "derives",
+                Runnable { writer.writeDerives(listOf(HaskellSymbol.Generic, HaskellSymbol.Show, HaskellSymbol.Eq)) }
+            )
+            writer.putContext(
                 "deserializer",
                 Runnable { generateDeserializer(writer, union, directive.symbol()) }
             )
             writer.write(template)
             writer.popState()
+            writer.addExport("${directive.symbol().name}(..)")
             writer.exposeModule()
-            writer.addExport(directive.symbol().name)
         }
     }
 
@@ -76,7 +78,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
             val memberSymbol = symbolProvider.toSymbol(member)
             val constructor = getConstructorName(member)
             if (i != 0) {
-                writer.write("| ")
+                writer.writeInline("| ")
             }
             writer.write("$constructor (#T)", memberSymbol)
         }
@@ -103,7 +105,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
     ) {
         val errMsg =
             "Could not parse ${symbol.name}. Expected an object with one of keys: ${
-                shape.members().joinToString { it.memberName }
+                shape.members().joinToString { it.fieldName }
             }.".dq
         val structName = symbol.name
         writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {

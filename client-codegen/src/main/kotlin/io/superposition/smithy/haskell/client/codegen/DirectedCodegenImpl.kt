@@ -2,7 +2,9 @@
 
 package io.superposition.smithy.haskell.client.codegen
 
+import io.superposition.smithy.haskell.client.codegen.CodegenUtils.toModName
 import io.superposition.smithy.haskell.client.codegen.generators.*
+import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.WriterDelegator
 import software.amazon.smithy.codegen.core.directed.*
@@ -35,13 +37,20 @@ class DirectedCodegenImpl :
                 HaskellWriter.Factory(directive.settings())
             )
 
+        val serviceModule = toModName(directive.service().id.namespace)
+        val utilitySymbol = Symbol.builder().name("Utility")
+            .definitionFile(serviceModule.replace(".", "/") + "/Utility.hs")
+            .namespace("$serviceModule.Utility", ".")
+            .build()
+
         return HaskellContext(
             model = directive.model(),
             settings = directive.settings(),
             symbolProvider = sp,
             fileManifest = directive.fileManifest(),
-            writerDeligator = writerDelegator,
-            integrations = directive.integrations()
+            writerDelegator = writerDelegator,
+            integrations = directive.integrations(),
+            utilitySymbol = utilitySymbol
         )
     }
 
@@ -90,6 +99,7 @@ class DirectedCodegenImpl :
         directive: CustomizeDirective<HaskellContext, HaskellSettings>
     ) {
         super.customizeAfterIntegrations(directive)
+        UtilityGenerator(directive).run()
         CabalGenerator(directive).run()
     }
 }

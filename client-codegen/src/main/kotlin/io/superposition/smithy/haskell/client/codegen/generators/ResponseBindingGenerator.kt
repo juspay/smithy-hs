@@ -2,23 +2,19 @@
 
 package io.superposition.smithy.haskell.client.codegen.generators
 
-import io.superposition.smithy.haskell.client.codegen.CodegenUtils
+import io.superposition.smithy.haskell.client.codegen.*
 import io.superposition.smithy.haskell.client.codegen.CodegenUtils.dq
-import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ByteStringChar8
+import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.Char8
 import io.superposition.smithy.haskell.client.codegen.HaskellSymbol.ParseEither
-import io.superposition.smithy.haskell.client.codegen.HaskellWriter
-import io.superposition.smithy.haskell.client.codegen.Http
-import io.superposition.smithy.haskell.client.codegen.isOrWrapped
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.knowledge.HttpBinding
 import software.amazon.smithy.model.knowledge.HttpBindingIndex
+import software.amazon.smithy.model.shapes.ListShape
 import software.amazon.smithy.model.shapes.MemberShape
 import software.amazon.smithy.model.shapes.OperationShape
 import software.amazon.smithy.model.traits.HttpHeaderTrait
 import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
-import software.amazon.smithy.model.traits.HttpTrait
-import software.amazon.smithy.model.traits.JsonNameTrait
 
 private typealias MemberToVariable = Pair<MemberShape, String>
 
@@ -35,11 +31,7 @@ class ResponseBindingGenerator(
     private val symbolProvider: SymbolProvider,
 ) : Runnable {
     private val httpBindingIndex = HttpBindingIndex.of(model)
-    private val httpTrait = operation.getTrait(HttpTrait::class.java).orElse(null)
     private val bindings = httpBindingIndex.getResponseBindings(operation)
-
-    private val outputSymbol =
-        symbolProvider.toSymbol(model.expectShape(operation.outputShape))
 
     private val getBindings = { location: HttpBinding.Location ->
         bindings.filter { it.value.location == location }.map { it.value }
@@ -48,6 +40,8 @@ class ResponseBindingGenerator(
     override fun run() {
         writer.pushState()
         writer.putContext("parseEither", ParseEither)
+        writer.putContext("httpDate", Http.HTTPDate)
+        writer.putContext("char8", Char8)
         deserializeResponseFn()
         writer.popState()
     }
@@ -59,14 +53,18 @@ class ResponseBindingGenerator(
         val headerBindings = getBindings(HttpBinding.Location.HEADER)
         val prefixHeaderBindings = getBindings(HttpBinding.Location.PREFIX_HEADERS)
 
-        writer.putContext("httpDate", Http.HTTPDate)
-        writer.putContext("bsChar8", ByteStringChar8)
         for (binding in headerBindings) {
             val member = binding.member
             val hName = (binding.bindingTrait.get() as HttpHeaderTrait).value
 
-            val name = member.memberName
+            val name = member.fieldName
             val symbol = symbolProvider.toSymbol(member)
+
+            val innerType = if (member.isMemberListShape(model)) {
+                model.expectShape(model.expectShape(member.target, ListShape::class.java).member.target)
+            } else {
+                model.expectShape(member.target)
+            }
 
             vars.add(member to "${name}HeaderE")
             writer.openBlock(
@@ -74,21 +72,18 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("findHeader ${hName.dq}")
-                val decode = if (symbol.isOrWrapped(Http.HTTPDate)) {
-                    "#{httpDate:N}.parseHTTPDate"
-                } else {
-                    "#{aeson:N}.decodeStrict"
+                var parser = "#{utility:N}.fromResponseSegment"
+                if (member.isMemberListShape(model)) {
+                    parser = "parseHeaderList $parser"
                 }
-                writer.write("#{flip:T} #{maybe:N}.maybe #{nothing:T} ($decode)")
 
-                if (member.isOptional) {
-                    writer.write("#{flip:T} #{right:T}")
-                } else {
-                    writer.write(
-                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"$name not found in header".dq}) (#{right:T})"
+                writer.newCallChain("(findHeader ${hName.dq} #{functor:N}.<&> $parser)")
+                    .chainIf("sequence", member.isOptional)
+                    .chainIf(
+                        "#{maybe:N}.maybe (#{left:T} ${"$name not found in header".dq}) (id)",
+                        !member.isOptional
                     )
-                }
+                    .close()
             }
         }
 
@@ -96,7 +91,7 @@ class ResponseBindingGenerator(
             val member = binding.member
             val hPrefix = (binding.bindingTrait.get() as HttpPrefixHeadersTrait).value
 
-            val name = member.memberName
+            val name = member.fieldName
             val symbol = symbolProvider.toSymbol(member)
 
             vars.add(member to "${name}HeaderE")
@@ -105,20 +100,19 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("filterHeaderByPrefix ${hPrefix.dq}")
-                writer.write(
-                    "#{flip:T} #{list:N}.map #C",
-                    Runnable {
-                        writer.write(
-                            "(\\(n, v) -> (stripPrefix ${hPrefix.dq} n, #{encoding:N}.decodeUtf8 v))"
-                        )
-                    }
-                )
-                writer.write("#{flip:T} #{map:N}.fromList")
-                if (member.isOptional) {
-                    writer.write("#{flip:T} #{just:T}")
-                }
-                writer.write("#{flip:T} #{right:T}")
+                writer.newCallChain("filterHeaderByPrefix ${hPrefix.dq}")
+                    .chain(
+                        "#{list:N}.map #C",
+                        Runnable {
+                            writer.write(
+                                "(\\(n, v) -> (stripPrefix ${hPrefix.dq} n, #{encoding:N}.decodeUtf8 v))"
+                            )
+                        }
+                    )
+                    .chain("#{map:N}.fromList")
+                    .chainIf("#{just:T}", member.isOptional)
+                    .chain("#{right:T}")
+                    .close()
             }
         }
     }
@@ -136,7 +130,7 @@ class ResponseBindingGenerator(
 
         if (payloadBinding != null) {
             val member = payloadBinding.member
-            val name = member.memberName
+            val name = member.fieldName
             val symbol = symbolProvider.toSymbol(member)
 
             vars.add(member to "${name}PayloadE")
@@ -145,32 +139,31 @@ class ResponseBindingGenerator(
                 "",
                 symbol
             ) {
-                writer.write("#{aeson:N}.decode (#{httpClient:N}.responseBody response)")
-                if (member.isOptional) {
-                    writer.write("#{flip:T} #{right:T}")
-                } else {
-                    writer.write(
-                        "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response".dq}) (#{right:T})"
+                writer.newCallChain("#{aeson:N}.decode (#{httpClient:N}.responseBody response)")
+                    .chainIf("#{right:T}", member.isOptional)
+                    .chainIf(
+                        "#{maybe:N}.maybe (#{left:T} ${"$name not found in payload".dq}) (#{right:T})",
+                        !member.isOptional
                     )
-                }
+                    .close()
             }
         } else {
             writer.openBlock(
                 "responseObject :: #{aeson:N}.Object <-",
                 ""
             ) {
-                writer.write("#{httpClient:N}.responseBody response")
-                writer.write("#{flip:T} #{aeson:N}.decode")
-                writer.write(
-                    "#{flip:T} #{maybe:N}.maybe (#{left:T} ${"failed to parse response body".dq}) (#{right:T})"
-                )
+                writer.newCallChain("#{httpClient:N}.responseBody response")
+                    .chain("#{aeson:N}.decode")
+                    .chain(
+                        "#{maybe:N}.maybe (#{left:T} ${"failed to parse response body".dq}) (#{right:T})"
+                    )
+                    .close()
             }
 
             for (binding in documentBindings) {
                 val member = binding.member
-                val name = member.memberName
-                val jsonName = binding.member.getTrait(JsonNameTrait::class.java)
-                    .map { it.value }.orElse(name)
+                val name = member.fieldName
+                val jsonName = binding.jsonName
 
                 val symbol = symbolProvider.toSymbol(member)
 
@@ -201,12 +194,16 @@ class ResponseBindingGenerator(
     }
 
     private fun renderOutput(writer: HaskellWriter, vars: List<MemberToVariable>) {
+        val outputShape = model.expectShape(operation.outputShape)
         writer.openBlock(
             "#{output:N}.build $ do",
             "",
         ) {
+            if (outputShape.members().isEmpty()) {
+                writer.write("pure ()")
+            }
             for ((member, variable) in vars) {
-                val setter = CodegenUtils.getSetterName(member.memberName)
+                val setter = CodegenUtils.getSetterName(member.fieldName)
                 writer.write("#{output:N}.$setter $variable")
             }
         }
@@ -214,7 +211,6 @@ class ResponseBindingGenerator(
 
     private fun deserializeResponseFn() {
         val prefixHeaderBindings = getBindings(HttpBinding.Location.PREFIX_HEADERS)
-        val payloadBinding = getBindings(HttpBinding.Location.PAYLOAD).firstOrNull()
 
         writer.write(
             "deserializeResponse :: #{httpClient:N}.Response #{lazyByteString:T} -> #{either:T} #{text:T} #{output:T}"
@@ -253,15 +249,17 @@ class ResponseBindingGenerator(
             writer.popState()
 
             writer.openBlock("where", "") {
-                writer.openBlock(
-                    "headers = #{httpClient:N}.responseHeaders response",
-                    ""
-                ) {
-                    writer.write(
-                        "#{flip:T} #{list:N}.map (\\(n, v) -> (#{encoding:N}.decodeUtf8 (#{ci:N}.original n), v))"
-                    )
-                }
+                writer.newCallChain("headers = #{httpClient:N}.responseHeaders response")
+                    .chain("#{list:N}.map (\\(n, v) -> (#{encoding:N}.decodeUtf8 (#{ci:N}.original n), v))")
+                    .close()
+
                 writer.write("findHeader name = snd #{functor:N}.<$> #{list:N}.find ((name ==) . fst) headers")
+                writer.write(
+                    "parseHeaderList :: #{aeson:N}.FromJSON a => (#{byteString:T} -> #{either:T} #{text:T} a) -> #{byteString:T} -> #{either:T} #{text:T} [a]"
+                )
+                writer.write(
+                    "parseHeaderList parser = sequence . #{list:N}.map (parser) . #{char8:N}.split ','"
+                )
                 if (prefixHeaderBindings.isNotEmpty()) {
                     writer.write(
                         "filterHeaderByPrefix prefix = #{list:N}.filter (#{text:N}.isPrefixOf prefix . fst) headers"

@@ -22,3 +22,5 @@ qualified
 then
 type
 where
+all
+id
