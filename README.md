@@ -1,9 +1,6 @@
 # <img alt="Smithy" src="https://github.com/smithy-lang/smithy/blob/main/docs/_static/smithy-anvil.svg?raw=true" width="32"> Smithy Haskell
 [Smithy](https://smithy.io/2.0/index.html) code generators for [Haskell](https://www.haskell.org/).
 
-> [!WARNING]
-> This project is still in development and is not intended for use in production.
-
 ## Setup
 This projects dev environment is setup with `nix`. To get started just run `nix develop` & you will get all the tooling required to build & test the project.
 
