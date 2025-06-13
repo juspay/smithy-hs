@@ -16,9 +16,9 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "io.superposition.smithy.haskell"
+            groupId = "in.juspay.smithy.haskell"
             artifactId = "client-codegen"
-            version = "0.0.1-rc1"
+            version = "0.0.1-dev"
 
             from(components["kotlin"])
         }

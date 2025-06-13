@@ -1,9 +1,9 @@
-# Smithy Haskell Client Codegen Test
+# Client Codegen Test
 
-This module is primarily used during development to test changes to the code generator. When you make changes to the Haskell codegen implementation, you can run the build in this module to see how those changes affect the generated Haskell code.
+This module is primarily used during development to test changes to the code generator.
+When you make changes to the Haskell codegen implementation, you can run the build in this module to see how those changes affect the generated Haskell code.
 
-To build the test model and generate Haskell code:
+We are using the smithy development plugin which automatically runs as part of the `build` task. You can see the generated code in
+`output/haskell-client-codegen`.
 
-```bash
-gradle :client-codegen-test:build
-```
+Apart from that, we have a Haskell module which imports this generated client & runs tests on it in `hs-it`.
