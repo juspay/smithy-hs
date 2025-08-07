@@ -24,6 +24,8 @@ import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Method
@@ -33,7 +35,10 @@ data TestHttpHeadersError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON TestHttpHeadersError
+instance Data.Aeson.FromJSON TestHttpHeadersError
 
 serTestHttpHeadersHEADER :: Com.Example.Model.TestHttpHeadersInput.TestHttpHeadersInput -> Network.HTTP.Types.Header.RequestHeaders
 serTestHttpHeadersHEADER input =

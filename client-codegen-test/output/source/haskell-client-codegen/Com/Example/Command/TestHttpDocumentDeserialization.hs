@@ -26,6 +26,8 @@ import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Method
@@ -35,7 +37,10 @@ data TestHttpDocumentDeserializationError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON TestHttpDocumentDeserializationError
+instance Data.Aeson.FromJSON TestHttpDocumentDeserializationError
 
 serTestHttpDocumentDeserializationQUERY :: Com.Example.Model.TestHttpDocumentDeserializationInput.TestHttpDocumentDeserializationInput -> Data.ByteString.ByteString
 serTestHttpDocumentDeserializationQUERY input =

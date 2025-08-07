@@ -96,7 +96,12 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             }
             writer.write("${if (opShape.errors.isNotEmpty()) "| " else ""}BuilderError #{text:T}")
             writer.write("| RequestError #{text:T}")
+            // FIXME Not a good way to scale things out. We should be able to use `EnumGenerator` here
+            // but it's too coupled to `Shape` for us to use it in a stable way right now. RIP.
+            writer.write("   deriving (#T, #T)", HaskellSymbol.Generic, HaskellSymbol.Show)
         }
+        writer.write("instance #{aeson:N}.ToJSON $operationErrorName")
+        writer.write("instance #{aeson:N}.FromJSON $operationErrorName")
         writer.addExport("$operationErrorName(..)")
     }
 }
