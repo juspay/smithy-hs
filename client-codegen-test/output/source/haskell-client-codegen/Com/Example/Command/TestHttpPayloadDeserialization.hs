@@ -24,6 +24,8 @@ import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Method
@@ -33,7 +35,10 @@ data TestHttpPayloadDeserializationError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON TestHttpPayloadDeserializationError
+instance Data.Aeson.FromJSON TestHttpPayloadDeserializationError
 
 serTestHttpPayloadDeserializationQUERY :: Com.Example.Model.TestHttpPayloadDeserializationInput.TestHttpPayloadDeserializationInput -> Data.ByteString.ByteString
 serTestHttpPayloadDeserializationQUERY input =

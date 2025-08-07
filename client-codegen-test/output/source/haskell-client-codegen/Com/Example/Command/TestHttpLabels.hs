@@ -21,6 +21,8 @@ import qualified Data.Functor
 import qualified Data.List
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Types.Method
 import qualified Network.HTTP.Types.URI
@@ -29,7 +31,10 @@ data TestHttpLabelsError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON TestHttpLabelsError
+instance Data.Aeson.FromJSON TestHttpLabelsError
 
 serTestHttpLabelsLABEL :: Com.Example.Model.TestHttpLabelsInput.TestHttpLabelsInput -> Data.ByteString.ByteString
 serTestHttpLabelsLABEL input = 

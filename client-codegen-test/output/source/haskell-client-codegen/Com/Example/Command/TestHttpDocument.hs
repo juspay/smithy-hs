@@ -24,6 +24,8 @@ import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified Data.Text.Encoding
+import qualified GHC.Generics
+import qualified GHC.Show
 import qualified Network.HTTP.Client
 import qualified Network.HTTP.Date
 import qualified Network.HTTP.Types.Header
@@ -34,7 +36,10 @@ data TestHttpDocumentError =
     InternalServerError Com.Example.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | RequestError Data.Text.Text
+       deriving (GHC.Generics.Generic, GHC.Show.Show)
 
+instance Data.Aeson.ToJSON TestHttpDocumentError
+instance Data.Aeson.FromJSON TestHttpDocumentError
 
 serTestHttpDocumentPAYLOAD:: Com.Example.Model.TestHttpDocumentInput.TestHttpDocumentInput -> Network.HTTP.Client.RequestBody
 serTestHttpDocumentPAYLOAD input =
