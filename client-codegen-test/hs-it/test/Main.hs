@@ -66,6 +66,8 @@ tests state =
       HUnit.TestLabel "ReservedWords Operation" $ testReservedWords state
     ]
 
+{- TODO Add HTTP semantic assertions for things like `content-type`.
+ - These kind of assertions don't belong in the test-defintions. -}
 app :: State -> Wai.Application
 app state request responder = do
   body <- Wai.consumeRequestBodyStrict request <&> BS.toStrict

@@ -58,9 +58,11 @@ serTestHttpPayloadHEADER input =
                     Data.Functor.<&> Data.Map.toList
                     Data.Functor.<&> Data.List.map (\(n, v) -> (toHeaderName "x-prefix-" n, Data.Text.Encoding.encodeUtf8 v))
         
+        contentType = Just [("content-type", "application/json")]
         in Data.List.concat $ Data.Maybe.catMaybes [
             stringHeaderHeader,
-            prefixHeadersHeader
+            prefixHeadersHeader,
+            contentType
             ]
         
     

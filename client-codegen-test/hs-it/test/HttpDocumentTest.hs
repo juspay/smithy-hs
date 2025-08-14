@@ -52,6 +52,7 @@ testHttpDocument state = HUnit.TestCase $ do
         RI.requestHeaders = [
           ("x-header-string", BS.pack $ T.unpack stringHeaderValue),
           ("x-prefix-doc", BS.pack $ T.unpack $ prefixHeadersValue Map.! "doc"),
+          ("content-type", "application/json"),
           ("Authorization", "Bearer test-token")
         ]
       }

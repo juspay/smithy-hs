@@ -19,6 +19,7 @@ import software.amazon.smithy.model.traits.HttpBearerAuthTrait
 import software.amazon.smithy.model.traits.HttpHeaderTrait
 import software.amazon.smithy.model.traits.HttpPrefixHeadersTrait
 import software.amazon.smithy.model.traits.HttpTrait
+import kotlin.jvm.optionals.getOrNull
 
 private fun bindingSerializeFnName(
     operationName: String,
@@ -42,6 +43,9 @@ class RequestBindingGenerator(
     private val client: ClientRecord,
 ) : Runnable {
     private val httpBindingIndex = HttpBindingIndex.of(model)
+    private val contentType = httpBindingIndex
+        .determineRequestContentType(operation, "application/json")
+        .getOrNull()
     private val httpTrait = operation.getTrait(HttpTrait::class.java).orElse(null)
     private val bearerAuthTrait = operation.getTrait(HttpBearerAuthTrait::class.java).orElse(null)
 
@@ -311,6 +315,11 @@ class RequestBindingGenerator(
                         .chainIf("#{just:T}", !member.isOptional)
                         .close()
                     vars.add(varName)
+                }
+
+                if (contentType != null) {
+                    writer.write("contentType = Just [(${"content-type".dq}, ${contentType.dq})]")
+                    vars.add("contentType")
                 }
 
                 writer.openBlock("in #{list:N}.concat $ #{maybe:N}.catMaybes [", "") {
