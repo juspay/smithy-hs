@@ -12,21 +12,24 @@ module Com.Example.Model.TestHttpPayloadInput (
     prefixHeaders
 ) where
 import qualified Com.Example.Model.CoffeeItem
+import qualified Com.Example.Utility
 import qualified Control.Applicative
-import qualified Control.Monad
+import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Functor
+import qualified Data.Int
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Types.Method
 
 data TestHttpPayloadInput = TestHttpPayloadInput {
     payload :: Com.Example.Model.CoffeeItem.CoffeeItem,
-    identifier :: Integer,
+    identifier :: Data.Int.Int32,
     stringHeader :: Data.Maybe.Maybe Data.Text.Text,
     prefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
@@ -44,6 +47,7 @@ instance Data.Aeson.ToJSON TestHttpPayloadInput where
         ]
     
 
+instance Com.Example.Utility.SerializeBody TestHttpPayloadInput
 
 instance Data.Aeson.FromJSON TestHttpPayloadInput where
     parseJSON = Data.Aeson.withObject "TestHttpPayloadInput" $ \v -> TestHttpPayloadInput
@@ -57,7 +61,7 @@ instance Data.Aeson.FromJSON TestHttpPayloadInput where
 
 data TestHttpPayloadInputBuilderState = TestHttpPayloadInputBuilderState {
     payloadBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
-    identifierBuilderState :: Data.Maybe.Maybe Integer,
+    identifierBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     stringHeaderBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixHeadersBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
@@ -72,46 +76,27 @@ defaultBuilderState = TestHttpPayloadInputBuilderState {
     prefixHeadersBuilderState = Data.Maybe.Nothing
 }
 
-newtype TestHttpPayloadInputBuilder a = TestHttpPayloadInputBuilder {
-    runTestHttpPayloadInputBuilder :: TestHttpPayloadInputBuilderState -> (TestHttpPayloadInputBuilderState, a)
-}
-
-instance Data.Functor.Functor TestHttpPayloadInputBuilder where
-    fmap f (TestHttpPayloadInputBuilder g) =
-        TestHttpPayloadInputBuilder (\s -> let (s', a) = g s in (s', f a))
-
-instance Control.Applicative.Applicative TestHttpPayloadInputBuilder where
-    pure a = TestHttpPayloadInputBuilder (\s -> (s, a))
-    (TestHttpPayloadInputBuilder f) <*> (TestHttpPayloadInputBuilder g) = TestHttpPayloadInputBuilder (\s ->
-        let (s', h) = f s
-            (s'', a) = g s'
-        in (s'', h a))
-
-instance Control.Monad.Monad TestHttpPayloadInputBuilder where
-    (TestHttpPayloadInputBuilder f) >>= g = TestHttpPayloadInputBuilder (\s ->
-        let (s', a) = f s
-            (TestHttpPayloadInputBuilder h) = g a
-        in h s')
+type TestHttpPayloadInputBuilder = Control.Monad.State.Strict.State TestHttpPayloadInputBuilderState
 
 setPayload :: Com.Example.Model.CoffeeItem.CoffeeItem -> TestHttpPayloadInputBuilder ()
 setPayload value =
-   TestHttpPayloadInputBuilder (\s -> (s { payloadBuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { payloadBuilderState = Data.Maybe.Just value }))
 
-setIdentifier :: Integer -> TestHttpPayloadInputBuilder ()
+setIdentifier :: Data.Int.Int32 -> TestHttpPayloadInputBuilder ()
 setIdentifier value =
-   TestHttpPayloadInputBuilder (\s -> (s { identifierBuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { identifierBuilderState = Data.Maybe.Just value }))
 
 setStringheader :: Data.Maybe.Maybe Data.Text.Text -> TestHttpPayloadInputBuilder ()
 setStringheader value =
-   TestHttpPayloadInputBuilder (\s -> (s { stringHeaderBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { stringHeaderBuilderState = value }))
 
 setPrefixheaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> TestHttpPayloadInputBuilder ()
 setPrefixheaders value =
-   TestHttpPayloadInputBuilder (\s -> (s { prefixHeadersBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { prefixHeadersBuilderState = value }))
 
 build :: TestHttpPayloadInputBuilder () -> Data.Either.Either Data.Text.Text TestHttpPayloadInput
 build builder = do
-    let (st, _) = runTestHttpPayloadInputBuilder builder defaultBuilderState
+    let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     payload' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInput.payload is a required property.") Data.Either.Right (payloadBuilderState st)
     identifier' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestHttpPayloadInput.TestHttpPayloadInput.identifier is a required property.") Data.Either.Right (identifierBuilderState st)
     stringHeader' <- Data.Either.Right (stringHeaderBuilderState st)
@@ -123,4 +108,16 @@ build builder = do
         prefixHeaders = prefixHeaders'
     })
 
+
+instance Com.Example.Utility.IntoRequestBuilder TestHttpPayloadInput where
+    intoRequestBuilder self = do
+        Com.Example.Utility.setMethod Network.HTTP.Types.Method.methodPost
+        Com.Example.Utility.setPath [
+            "payload",
+            Com.Example.Utility.serializeElement (identifier self)
+            ]
+        
+        Com.Example.Utility.serHeaderMap "x-prefix-" (prefixHeaders self)
+        Com.Example.Utility.serHeader "x-header-string" (stringHeader self)
+        Com.Example.Utility.serBody "application/json" (payload self)
 

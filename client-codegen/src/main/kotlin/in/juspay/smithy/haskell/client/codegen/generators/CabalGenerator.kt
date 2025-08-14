@@ -11,7 +11,7 @@ class CabalGenerator(directive: CustomizeDirective<HaskellContext, HaskellSettin
     Runnable {
     private val ctx = directive.context()
     override fun run() {
-        ctx.writerDelegator().useFileWriter(HaskellWriter.CABAL_FILE) { writer ->
+        ctx.writerDelegator().useFileWriter("${ctx.settings.packageName}.cabal") { writer ->
             writer.putContext("dependencies", Runnable { dependencyWriter(writer) })
             // REVIEW Maybe we can use a list formatter for such cases.
             writer.putContext("publicModules", Runnable { moduleWriter(writer, PUBLIC) })
@@ -36,7 +36,18 @@ class CabalGenerator(directive: CustomizeDirective<HaskellContext, HaskellSettin
                     other-modules:      #{privateModules:C|}
                 #{/privateModules}
                     default-language:   Haskell2010
-                    default-extensions: DeriveGeneric, OverloadedStrings, TypeApplications, ScopedTypeVariables, LambdaCase, ConstrainedClassMethods, TypeSynonymInstances
+                    default-extensions: DeriveGeneric,
+                                        OverloadedStrings,
+                                        TypeApplications,
+                                        ScopedTypeVariables,
+                                        LambdaCase,
+                                        ConstrainedClassMethods,
+                                        TypeSynonymInstances,
+                                        AllowAmbiguousTypes,
+                                        DefaultSignatures,
+                                        FlexibleInstances,
+                                        TupleSections,
+                                        UndecidableInstances
                 """.trimIndent()
             )
         }

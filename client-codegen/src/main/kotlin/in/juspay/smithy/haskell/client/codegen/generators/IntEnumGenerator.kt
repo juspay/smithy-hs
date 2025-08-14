@@ -12,11 +12,12 @@ class IntEnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings
     override fun accept(directive: T) {
         val shape = directive.shape()
 
+        error("intEnum is not supported yet!")
         // Generate operation code
-        directive.context().writerDelegator().useShapeWriter(shape) { writer ->
-            // Write operation implementation
-            writer.write("-- IntEnum implementation for ${shape.id.name}")
-            writer.write("-- TODO: Implement IntEnum")
-        }
+        // directive.context().writerDelegator().useShapeWriter(shape) { writer ->
+        //     // Write operation implementation
+        //     writer.write("-- IntEnum implementation for ${shape.id.name}")
+        //     writer.write("-- TODO: Implement IntEnum")
+        // }
     }
 }

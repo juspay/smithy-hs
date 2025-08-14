@@ -21,13 +21,15 @@ module Com.Example.Model.TestHttpDocumentDeserializationOutput (
 ) where
 import qualified Com.Example.Model.CoffeeCustomization
 import qualified Com.Example.Model.CoffeeItem
+import qualified Com.Example.Utility
 import qualified Control.Applicative
-import qualified Control.Monad
+import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Function
 import qualified Data.Functor
+import qualified Data.Int
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
@@ -35,10 +37,11 @@ import qualified Data.Text.Encoding
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Network.HTTP.Date
+import qualified Network.HTTP.Types
 
 data TestHttpDocumentDeserializationOutput = TestHttpDocumentDeserializationOutput {
     outputHeader :: Data.Maybe.Maybe Data.Text.Text,
-    outputHeaderInt :: Data.Maybe.Maybe Integer,
+    outputHeaderInt :: Data.Maybe.Maybe Data.Int.Int32,
     outputHeaderBool :: Data.Maybe.Maybe Bool,
     outputHeaderList :: Data.Maybe.Maybe ([] Data.Text.Text),
     outputPrefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
@@ -64,6 +67,7 @@ instance Data.Aeson.ToJSON TestHttpDocumentDeserializationOutput where
         ]
     
 
+instance Com.Example.Utility.SerializeBody TestHttpDocumentDeserializationOutput
 
 instance Data.Aeson.FromJSON TestHttpDocumentDeserializationOutput where
     parseJSON = Data.Aeson.withObject "TestHttpDocumentDeserializationOutput" $ \v -> TestHttpDocumentDeserializationOutput
@@ -88,7 +92,7 @@ instance Data.Aeson.FromJSON TestHttpDocumentDeserializationOutput where
 
 data TestHttpDocumentDeserializationOutputBuilderState = TestHttpDocumentDeserializationOutputBuilderState {
     outputHeaderBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    outputHeaderIntBuilderState :: Data.Maybe.Maybe Integer,
+    outputHeaderIntBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     outputHeaderBoolBuilderState :: Data.Maybe.Maybe Bool,
     outputHeaderListBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     outputPrefixHeadersBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text),
@@ -111,62 +115,43 @@ defaultBuilderState = TestHttpDocumentDeserializationOutputBuilderState {
     timeBuilderState = Data.Maybe.Nothing
 }
 
-newtype TestHttpDocumentDeserializationOutputBuilder a = TestHttpDocumentDeserializationOutputBuilder {
-    runTestHttpDocumentDeserializationOutputBuilder :: TestHttpDocumentDeserializationOutputBuilderState -> (TestHttpDocumentDeserializationOutputBuilderState, a)
-}
-
-instance Data.Functor.Functor TestHttpDocumentDeserializationOutputBuilder where
-    fmap f (TestHttpDocumentDeserializationOutputBuilder g) =
-        TestHttpDocumentDeserializationOutputBuilder (\s -> let (s', a) = g s in (s', f a))
-
-instance Control.Applicative.Applicative TestHttpDocumentDeserializationOutputBuilder where
-    pure a = TestHttpDocumentDeserializationOutputBuilder (\s -> (s, a))
-    (TestHttpDocumentDeserializationOutputBuilder f) <*> (TestHttpDocumentDeserializationOutputBuilder g) = TestHttpDocumentDeserializationOutputBuilder (\s ->
-        let (s', h) = f s
-            (s'', a) = g s'
-        in (s'', h a))
-
-instance Control.Monad.Monad TestHttpDocumentDeserializationOutputBuilder where
-    (TestHttpDocumentDeserializationOutputBuilder f) >>= g = TestHttpDocumentDeserializationOutputBuilder (\s ->
-        let (s', a) = f s
-            (TestHttpDocumentDeserializationOutputBuilder h) = g a
-        in h s')
+type TestHttpDocumentDeserializationOutputBuilder = Control.Monad.State.Strict.State TestHttpDocumentDeserializationOutputBuilderState
 
 setOutputheader :: Data.Maybe.Maybe Data.Text.Text -> TestHttpDocumentDeserializationOutputBuilder ()
 setOutputheader value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { outputHeaderBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { outputHeaderBuilderState = value }))
 
-setOutputheaderint :: Data.Maybe.Maybe Integer -> TestHttpDocumentDeserializationOutputBuilder ()
+setOutputheaderint :: Data.Maybe.Maybe Data.Int.Int32 -> TestHttpDocumentDeserializationOutputBuilder ()
 setOutputheaderint value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { outputHeaderIntBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { outputHeaderIntBuilderState = value }))
 
 setOutputheaderbool :: Data.Maybe.Maybe Bool -> TestHttpDocumentDeserializationOutputBuilder ()
 setOutputheaderbool value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { outputHeaderBoolBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { outputHeaderBoolBuilderState = value }))
 
 setOutputheaderlist :: Data.Maybe.Maybe ([] Data.Text.Text) -> TestHttpDocumentDeserializationOutputBuilder ()
 setOutputheaderlist value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { outputHeaderListBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { outputHeaderListBuilderState = value }))
 
 setOutputprefixheaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> TestHttpDocumentDeserializationOutputBuilder ()
 setOutputprefixheaders value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { outputPrefixHeadersBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { outputPrefixHeadersBuilderState = value }))
 
 setItem :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem -> TestHttpDocumentDeserializationOutputBuilder ()
 setItem value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { itemBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { itemBuilderState = value }))
 
 setCustomization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization -> TestHttpDocumentDeserializationOutputBuilder ()
 setCustomization value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { customizationBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { customizationBuilderState = value }))
 
 setTime :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate -> TestHttpDocumentDeserializationOutputBuilder ()
 setTime value =
-   TestHttpDocumentDeserializationOutputBuilder (\s -> (s { timeBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { timeBuilderState = value }))
 
 build :: TestHttpDocumentDeserializationOutputBuilder () -> Data.Either.Either Data.Text.Text TestHttpDocumentDeserializationOutput
 build builder = do
-    let (st, _) = runTestHttpDocumentDeserializationOutputBuilder builder defaultBuilderState
+    let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     outputHeader' <- Data.Either.Right (outputHeaderBuilderState st)
     outputHeaderInt' <- Data.Either.Right (outputHeaderIntBuilderState st)
     outputHeaderBool' <- Data.Either.Right (outputHeaderBoolBuilderState st)
@@ -186,4 +171,26 @@ build builder = do
         time = time'
     })
 
+
+instance Com.Example.Utility.FromResponseParser TestHttpDocumentDeserializationOutput where
+    expectedStatus = Network.HTTP.Types.status200
+    responseParser = do
+        var0 <- Com.Example.Utility.deSerHeaderMap "x-output-prefix-"
+        var1 <- Com.Example.Utility.deSerHeader "x-output-header"
+        var2 <- Com.Example.Utility.deSerHeader "x-output-header-bool"
+        var3 <- Com.Example.Utility.deSerHeader "x-output-header-list"
+        var4 <- Com.Example.Utility.deSerHeader "x-output-header-int"
+        var5 <- Com.Example.Utility.deSerField "item"
+        var6 <- Com.Example.Utility.deSerField "customization"
+        var7 <- Com.Example.Utility.deSerField "time"
+        pure $ TestHttpDocumentDeserializationOutput {
+            outputHeader = var1,
+            outputHeaderInt = var4,
+            outputHeaderBool = var2,
+            outputHeaderList = var3,
+            outputPrefixHeaders = var0,
+            item = var5,
+            customization = var6,
+            time = var7
+        }
 

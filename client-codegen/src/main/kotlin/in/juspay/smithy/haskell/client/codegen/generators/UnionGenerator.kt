@@ -40,6 +40,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
 
             writer.pushState()
             writer.putContext("shape", directive.symbol())
+            writer.putContext("utility", directive.context().utilitySymbol)
             writer.putContext(
                 "constructors",
                 Runnable {
@@ -96,6 +97,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
                 writer.write("toJSON ($constructor a) = #{aeson:N}.object [ ${jsonName.dq} #{aeson:N}..= a ]")
             }
         }
+        writer.write("instance #{utility:N}.SerializeBody ${symbol.name}")
     }
 
     private fun generateDeserializer(

@@ -3,7 +3,6 @@ module Com.Example.Model.MilkType (
 ) where
 import qualified Com.Example.Utility
 import qualified Data.Aeson
-import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Text
 import qualified Data.Text.Encoding
@@ -32,14 +31,6 @@ instance Data.Aeson.ToJSON MilkType where
     toJSON SOY = Data.Aeson.String $ Data.Text.pack "SOY"
     toJSON NONE = Data.Aeson.String $ Data.Text.pack "NONE"
 
-instance Com.Example.Utility.RequestSegment MilkType where
-    toRequestSegment WHOLE = "WHOLE"
-    toRequestSegment SKIM = "SKIM"
-    toRequestSegment OAT = "OAT"
-    toRequestSegment ALMOND = "ALMOND"
-    toRequestSegment SOY = "SOY"
-    toRequestSegment NONE = "NONE"
-
 instance Data.Aeson.FromJSON MilkType where
     parseJSON = Data.Aeson.withText "MilkType" $ \v ->
         case v of
@@ -53,16 +44,21 @@ instance Data.Aeson.FromJSON MilkType where
         
     
 
-instance Com.Example.Utility.ResponseSegment MilkType where
-    fromResponseSegment b = case (Data.Text.Encoding.decodeUtf8' b) of
-        Data.Either.Right "WHOLE" -> Data.Either.Right WHOLE
-        Data.Either.Right "SKIM" -> Data.Either.Right SKIM
-        Data.Either.Right "OAT" -> Data.Either.Right OAT
-        Data.Either.Right "ALMOND" -> Data.Either.Right ALMOND
-        Data.Either.Right "SOY" -> Data.Either.Right SOY
-        Data.Either.Right "NONE" -> Data.Either.Right NONE
-        Data.Either.Right s -> Data.Either.Left $ "Not a valid enum constructor: " <> s
-        Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
+instance Com.Example.Utility.SerDe MilkType where
+    serializeElement WHOLE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "WHOLE"
+    serializeElement SKIM = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "SKIM"
+    serializeElement OAT = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "OAT"
+    serializeElement ALMOND = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "ALMOND"
+    serializeElement SOY = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "SOY"
+    serializeElement NONE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "NONE"
+    deSerializeElement bs = case Data.Text.Encoding.decodeUtf8 bs of
+        "WHOLE" -> Right WHOLE
+        "SKIM" -> Right SKIM
+        "OAT" -> Right OAT
+        "ALMOND" -> Right ALMOND
+        "SOY" -> Right SOY
+        "NONE" -> Right NONE
+        e -> Left ("Failed to de-serialize MilkType, encountered unknown variant: " ++ (show bs))
     
 
 

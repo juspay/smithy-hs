@@ -1,52 +1,58 @@
 {
   inputs = {
-    utils.url = "github:numtide/flake-utils";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    haskell-flake.url = "github:srid/haskell-flake";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
   outputs =
-    {
-      self,
-      nixpkgs,
-      utils,
-    }:
-    utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        ## In nixpkgs, `gradle` is a wrapped bin & resets the JAVA_HOME env.
-        ## So to workaround it using a gradle property to point to the
-        ## nix store jdk.
-        ## FIXME Figure out a way to avoid this.
-        gradle = (
-          pkgs.writeShellScriptBin "gradle" "${pkgs.gradle_8}/bin/gradle -Porg.gradle.java.installations.paths=${pkgs.jdk17}/lib/openjdk \${@}"
-        );
-        hpkgs = pkgs.haskell.packages.ghc964;
-        codegen-dir = ./client-codegen-test/output/source/haskell-client-codegen;
-        haskell-client-codegen = hpkgs.callCabal2nix "haskell-client-codegen" codegen-dir { };
-        hshell = hpkgs.developPackage {
-          root = ./client-codegen-test/hs-it;
-          source-overrides = {
-            test-client-sdk = codegen-dir;
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      imports = [
+        inputs.haskell-flake.flakeModule
+      ];
+      perSystem =
+        {
+          self',
+          system,
+          lib,
+          config,
+          pkgs,
+          ...
+        }:
+        {
+          haskellProjects.default = {
+            basePackages = pkgs.haskell.packages.ghc964;
+            devShell = {
+              hlsCheck.enable = false;
+            };
+            autoWire = [
+              "packages"
+              "apps"
+              "checks"
+            ];
           };
-          modifier = drv: pkgs.haskell.lib.addBuildTools drv (with hpkgs; [
-            cabal-install
-          ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [
-            hpkgs.haskell-language-server
-          ]);
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [
+              config.haskellProjects.default.outputs.devShell
+            ];
+            packages =
+              let
+                jdk = pkgs.jdk17;
+              in
+              with pkgs;
+              [
+                (callPackage gradle-packages.gradle_8 {
+                  java = jdk;
+                })
+                jdk
+              ];
+          };
         };
-      in
-      {
-        devShells.default = hshell.env.overrideAttrs (old:  {
-          buildInputs = (old.buildInputs or []) ++ [
-            gradle
-            pkgs.jdk17
-          ];
-          shellHook = (old.shellHook or "") + ''
-            export JAVA_HOME=${pkgs.jdk17}
-          '';
-        });
-        checks = {
-          client-codegen = haskell-client-codegen;
-        };
-      }
-    );
+    };
 }

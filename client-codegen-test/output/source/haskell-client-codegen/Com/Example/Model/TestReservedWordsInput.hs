@@ -51,8 +51,9 @@ module Com.Example.Model.TestReservedWordsInput (
     then',
     where'
 ) where
+import qualified Com.Example.Utility
 import qualified Control.Applicative
-import qualified Control.Monad
+import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
@@ -61,6 +62,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Types.Method
 
 data TestReservedWordsInput = TestReservedWordsInput {
     type' :: Data.Text.Text,
@@ -122,6 +124,7 @@ instance Data.Aeson.ToJSON TestReservedWordsInput where
         ]
     
 
+instance Com.Example.Utility.SerializeBody TestReservedWordsInput
 
 instance Data.Aeson.FromJSON TestReservedWordsInput where
     parseJSON = Data.Aeson.withObject "TestReservedWordsInput" $ \v -> TestReservedWordsInput
@@ -210,126 +213,107 @@ defaultBuilderState = TestReservedWordsInputBuilderState {
     where'BuilderState = Data.Maybe.Nothing
 }
 
-newtype TestReservedWordsInputBuilder a = TestReservedWordsInputBuilder {
-    runTestReservedWordsInputBuilder :: TestReservedWordsInputBuilderState -> (TestReservedWordsInputBuilderState, a)
-}
-
-instance Data.Functor.Functor TestReservedWordsInputBuilder where
-    fmap f (TestReservedWordsInputBuilder g) =
-        TestReservedWordsInputBuilder (\s -> let (s', a) = g s in (s', f a))
-
-instance Control.Applicative.Applicative TestReservedWordsInputBuilder where
-    pure a = TestReservedWordsInputBuilder (\s -> (s, a))
-    (TestReservedWordsInputBuilder f) <*> (TestReservedWordsInputBuilder g) = TestReservedWordsInputBuilder (\s ->
-        let (s', h) = f s
-            (s'', a) = g s'
-        in (s'', h a))
-
-instance Control.Monad.Monad TestReservedWordsInputBuilder where
-    (TestReservedWordsInputBuilder f) >>= g = TestReservedWordsInputBuilder (\s ->
-        let (s', a) = f s
-            (TestReservedWordsInputBuilder h) = g a
-        in h s')
+type TestReservedWordsInputBuilder = Control.Monad.State.Strict.State TestReservedWordsInputBuilderState
 
 setType' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setType' value =
-   TestReservedWordsInputBuilder (\s -> (s { type'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { type'BuilderState = Data.Maybe.Just value }))
 
 setData' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setData' value =
-   TestReservedWordsInputBuilder (\s -> (s { data'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 setAs' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setAs' value =
-   TestReservedWordsInputBuilder (\s -> (s { as'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { as'BuilderState = Data.Maybe.Just value }))
 
 setCase' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setCase' value =
-   TestReservedWordsInputBuilder (\s -> (s { case'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { case'BuilderState = Data.Maybe.Just value }))
 
 setClass' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setClass' value =
-   TestReservedWordsInputBuilder (\s -> (s { class'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { class'BuilderState = Data.Maybe.Just value }))
 
 setDefault' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setDefault' value =
-   TestReservedWordsInputBuilder (\s -> (s { default'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { default'BuilderState = Data.Maybe.Just value }))
 
 setDeriving' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setDeriving' value =
-   TestReservedWordsInputBuilder (\s -> (s { deriving'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { deriving'BuilderState = Data.Maybe.Just value }))
 
 setDo' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setDo' value =
-   TestReservedWordsInputBuilder (\s -> (s { do'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { do'BuilderState = Data.Maybe.Just value }))
 
 setElse' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setElse' value =
-   TestReservedWordsInputBuilder (\s -> (s { else'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { else'BuilderState = Data.Maybe.Just value }))
 
 setHiding' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setHiding' value =
-   TestReservedWordsInputBuilder (\s -> (s { hiding'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { hiding'BuilderState = Data.Maybe.Just value }))
 
 setIf' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setIf' value =
-   TestReservedWordsInputBuilder (\s -> (s { if'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { if'BuilderState = Data.Maybe.Just value }))
 
 setImport' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setImport' value =
-   TestReservedWordsInputBuilder (\s -> (s { import'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { import'BuilderState = Data.Maybe.Just value }))
 
 setIn' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setIn' value =
-   TestReservedWordsInputBuilder (\s -> (s { in'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { in'BuilderState = Data.Maybe.Just value }))
 
 setInfix' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setInfix' value =
-   TestReservedWordsInputBuilder (\s -> (s { infix'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { infix'BuilderState = Data.Maybe.Just value }))
 
 setInfixl' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setInfixl' value =
-   TestReservedWordsInputBuilder (\s -> (s { infixl'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { infixl'BuilderState = Data.Maybe.Just value }))
 
 setInfixr' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setInfixr' value =
-   TestReservedWordsInputBuilder (\s -> (s { infixr'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { infixr'BuilderState = Data.Maybe.Just value }))
 
 setInstance' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setInstance' value =
-   TestReservedWordsInputBuilder (\s -> (s { instance'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { instance'BuilderState = Data.Maybe.Just value }))
 
 setLet' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setLet' value =
-   TestReservedWordsInputBuilder (\s -> (s { let'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { let'BuilderState = Data.Maybe.Just value }))
 
 setModule' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setModule' value =
-   TestReservedWordsInputBuilder (\s -> (s { module'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { module'BuilderState = Data.Maybe.Just value }))
 
 setNewtype' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setNewtype' value =
-   TestReservedWordsInputBuilder (\s -> (s { newtype'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { newtype'BuilderState = Data.Maybe.Just value }))
 
 setOf' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setOf' value =
-   TestReservedWordsInputBuilder (\s -> (s { of'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { of'BuilderState = Data.Maybe.Just value }))
 
 setQualified' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setQualified' value =
-   TestReservedWordsInputBuilder (\s -> (s { qualified'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { qualified'BuilderState = Data.Maybe.Just value }))
 
 setThen' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setThen' value =
-   TestReservedWordsInputBuilder (\s -> (s { then'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { then'BuilderState = Data.Maybe.Just value }))
 
 setWhere' :: Data.Text.Text -> TestReservedWordsInputBuilder ()
 setWhere' value =
-   TestReservedWordsInputBuilder (\s -> (s { where'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { where'BuilderState = Data.Maybe.Just value }))
 
 build :: TestReservedWordsInputBuilder () -> Data.Either.Either Data.Text.Text TestReservedWordsInput
 build builder = do
-    let (st, _) = runTestReservedWordsInputBuilder builder defaultBuilderState
+    let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     type'' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestReservedWordsInput.TestReservedWordsInput.type' is a required property.") Data.Either.Right (type'BuilderState st)
     data'' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestReservedWordsInput.TestReservedWordsInput.data' is a required property.") Data.Either.Right (data'BuilderState st)
     as'' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestReservedWordsInput.TestReservedWordsInput.as' is a required property.") Data.Either.Right (as'BuilderState st)
@@ -381,4 +365,37 @@ build builder = do
         where' = where''
     })
 
+
+instance Com.Example.Utility.IntoRequestBuilder TestReservedWordsInput where
+    intoRequestBuilder self = do
+        Com.Example.Utility.setMethod Network.HTTP.Types.Method.methodPost
+        Com.Example.Utility.setPath [
+            "reserved-words"
+            ]
+        
+        
+        Com.Example.Utility.serField "qualified" (qualified' self)
+        Com.Example.Utility.serField "instance" (instance' self)
+        Com.Example.Utility.serField "data" (data' self)
+        Com.Example.Utility.serField "import" (import' self)
+        Com.Example.Utility.serField "in" (in' self)
+        Com.Example.Utility.serField "module" (module' self)
+        Com.Example.Utility.serField "infixr" (infixr' self)
+        Com.Example.Utility.serField "do" (do' self)
+        Com.Example.Utility.serField "infix" (infix' self)
+        Com.Example.Utility.serField "then" (then' self)
+        Com.Example.Utility.serField "type" (type' self)
+        Com.Example.Utility.serField "newtype" (newtype' self)
+        Com.Example.Utility.serField "hiding" (hiding' self)
+        Com.Example.Utility.serField "as" (as' self)
+        Com.Example.Utility.serField "default" (default' self)
+        Com.Example.Utility.serField "deriving" (deriving' self)
+        Com.Example.Utility.serField "else" (else' self)
+        Com.Example.Utility.serField "infixl" (infixl' self)
+        Com.Example.Utility.serField "of" (of' self)
+        Com.Example.Utility.serField "let" (let' self)
+        Com.Example.Utility.serField "where" (where' self)
+        Com.Example.Utility.serField "class" (class' self)
+        Com.Example.Utility.serField "if" (if' self)
+        Com.Example.Utility.serField "case" (case' self)
 

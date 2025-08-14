@@ -3,7 +3,6 @@ module Com.Example.Model.CoffeeType (
 ) where
 import qualified Com.Example.Utility
 import qualified Data.Aeson
-import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Text
 import qualified Data.Text.Encoding
@@ -28,12 +27,6 @@ instance Data.Aeson.ToJSON CoffeeType where
     toJSON LATTE = Data.Aeson.String $ Data.Text.pack "LATTE"
     toJSON ESPRESSO = Data.Aeson.String $ Data.Text.pack "ESPRESSO"
 
-instance Com.Example.Utility.RequestSegment CoffeeType where
-    toRequestSegment DRIP = "Drip"
-    toRequestSegment POUR_OVER = "POUR_OVER"
-    toRequestSegment LATTE = "LATTE"
-    toRequestSegment ESPRESSO = "ESPRESSO"
-
 instance Data.Aeson.FromJSON CoffeeType where
     parseJSON = Data.Aeson.withText "CoffeeType" $ \v ->
         case v of
@@ -45,14 +38,17 @@ instance Data.Aeson.FromJSON CoffeeType where
         
     
 
-instance Com.Example.Utility.ResponseSegment CoffeeType where
-    fromResponseSegment b = case (Data.Text.Encoding.decodeUtf8' b) of
-        Data.Either.Right "Drip" -> Data.Either.Right DRIP
-        Data.Either.Right "POUR_OVER" -> Data.Either.Right POUR_OVER
-        Data.Either.Right "LATTE" -> Data.Either.Right LATTE
-        Data.Either.Right "ESPRESSO" -> Data.Either.Right ESPRESSO
-        Data.Either.Right s -> Data.Either.Left $ "Not a valid enum constructor: " <> s
-        Data.Either.Left err -> Data.Either.Left $ Data.Text.pack $ show err
+instance Com.Example.Utility.SerDe CoffeeType where
+    serializeElement DRIP = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "Drip"
+    serializeElement POUR_OVER = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "POUR_OVER"
+    serializeElement LATTE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "LATTE"
+    serializeElement ESPRESSO = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "ESPRESSO"
+    deSerializeElement bs = case Data.Text.Encoding.decodeUtf8 bs of
+        "Drip" -> Right DRIP
+        "POUR_OVER" -> Right POUR_OVER
+        "LATTE" -> Right LATTE
+        "ESPRESSO" -> Right ESPRESSO
+        e -> Left ("Failed to de-serialize CoffeeType, encountered unknown variant: " ++ (show bs))
     
 
 
