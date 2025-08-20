@@ -89,7 +89,7 @@ object HaskellSymbol {
         .dependencies(
             SymbolDependency.builder()
                 .packageName("aeson")
-                .version(CodegenUtils.depRange("2.0.0", "2.2.0"))
+                .version(CodegenUtils.depRange("2.0.0", "2.3.0"))
                 .build()
         )
         .build()
