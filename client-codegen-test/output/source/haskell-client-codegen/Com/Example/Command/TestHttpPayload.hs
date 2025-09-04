@@ -22,6 +22,7 @@ data TestHttpPayloadError =
 
 instance Data.Aeson.ToJSON TestHttpPayloadError
 instance Com.Example.Utility.OperationError TestHttpPayloadError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 

@@ -24,6 +24,7 @@ data TestErrorsError =
 
 instance Data.Aeson.ToJSON TestErrorsError
 instance Com.Example.Utility.OperationError TestErrorsError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 

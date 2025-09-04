@@ -22,6 +22,7 @@ data TestQueryError =
 
 instance Data.Aeson.ToJSON TestQueryError
 instance Com.Example.Utility.OperationError TestQueryError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 

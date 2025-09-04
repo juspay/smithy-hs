@@ -22,6 +22,7 @@ data TestReservedWordsError =
 
 instance Data.Aeson.ToJSON TestReservedWordsError
 instance Com.Example.Utility.OperationError TestReservedWordsError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 

@@ -22,6 +22,7 @@ data TestCustomStatusError =
 
 instance Data.Aeson.ToJSON TestCustomStatusError
 instance Com.Example.Utility.OperationError TestCustomStatusError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 
