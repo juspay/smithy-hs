@@ -22,6 +22,7 @@ data TestHttpDocumentError =
 
 instance Data.Aeson.ToJSON TestHttpDocumentError
 instance Com.Example.Utility.OperationError TestHttpDocumentError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 

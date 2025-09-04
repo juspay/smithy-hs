@@ -513,6 +513,7 @@ instance ToJSON HttpMetadata
 
 class OperationError e where
   getErrorParser :: HTTP.Status -> Maybe (HttpResponseParser e)
+  mkBuilderError :: Text -> e
   mkDeSerializationError :: HttpMetadata -> Text -> e
   mkUnexpectedError :: Maybe HttpMetadata -> Text -> e
 
@@ -529,7 +530,7 @@ runOperation ::
 runOperation _ _ _ (Left err) =
   pure $
     Left $
-      mkUnexpectedError Nothing err
+      mkBuilderError err
 runOperation endpoint manager setAuth (Right i) = do
   let rbuilder = intoRequestBuilder i >> setAuth >> setContentType
       (_, reqSt) = MTL.runState rbuilder newRequestBuilderSt

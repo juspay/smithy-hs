@@ -22,6 +22,7 @@ data TestHttpLabelsError =
 
 instance Data.Aeson.ToJSON TestHttpLabelsError
 instance Com.Example.Utility.OperationError TestHttpLabelsError where
+    mkBuilderError = BuilderError
     mkDeSerializationError = DeSerializationError
     mkUnexpectedError = UnexpectedError
 

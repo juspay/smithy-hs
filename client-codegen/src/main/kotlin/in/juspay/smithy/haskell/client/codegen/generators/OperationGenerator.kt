@@ -111,6 +111,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                 #{struct:C}
                 instance #{aeson:N}.ToJSON $operationErrorName
                 instance #{utility:N}.OperationError $operationErrorName where
+                    mkBuilderError = BuilderError
                     mkDeSerializationError = DeSerializationError
                     mkUnexpectedError = UnexpectedError
 
