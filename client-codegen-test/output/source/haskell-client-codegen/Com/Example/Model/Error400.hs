@@ -1,8 +1,8 @@
-module Com.Example.Model.TestQueryOutput (
+module Com.Example.Model.Error400 (
     setMessage,
     build,
-    TestQueryOutputBuilder,
-    TestQueryOutput,
+    Error400Builder,
+    Error400,
     message
 ) where
 import qualified Com.Example.Utility
@@ -17,7 +17,7 @@ import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Network.HTTP.Types
 
-data TestQueryOutput = TestQueryOutput {
+data Error400 = Error400 {
     message :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -25,53 +25,53 @@ data TestQueryOutput = TestQueryOutput {
   GHC.Generics.Generic
   )
 
-instance Data.Aeson.ToJSON TestQueryOutput where
+instance Data.Aeson.ToJSON Error400 where
     toJSON a = Data.Aeson.object [
         "message" Data.Aeson..= message a
         ]
     
 
-instance Com.Example.Utility.SerializeBody TestQueryOutput
+instance Com.Example.Utility.SerializeBody Error400
 
-instance Data.Aeson.FromJSON TestQueryOutput where
-    parseJSON = Data.Aeson.withObject "TestQueryOutput" $ \v -> TestQueryOutput
+instance Data.Aeson.FromJSON Error400 where
+    parseJSON = Data.Aeson.withObject "Error400" $ \v -> Error400
         Data.Functor.<$> (v Data.Aeson..: "message")
     
 
 
 
-data TestQueryOutputBuilderState = TestQueryOutputBuilderState {
+data Error400BuilderState = Error400BuilderState {
     messageBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
 
-defaultBuilderState :: TestQueryOutputBuilderState
-defaultBuilderState = TestQueryOutputBuilderState {
+defaultBuilderState :: Error400BuilderState
+defaultBuilderState = Error400BuilderState {
     messageBuilderState = Data.Maybe.Nothing
 }
 
-type TestQueryOutputBuilder = Control.Monad.State.Strict.State TestQueryOutputBuilderState
+type Error400Builder = Control.Monad.State.Strict.State Error400BuilderState
 
-setMessage :: Data.Text.Text -> TestQueryOutputBuilder ()
+setMessage :: Data.Text.Text -> Error400Builder ()
 setMessage value =
    Control.Monad.State.Strict.modify (\s -> (s { messageBuilderState = Data.Maybe.Just value }))
 
-build :: TestQueryOutputBuilder () -> Data.Either.Either Data.Text.Text TestQueryOutput
+build :: Error400Builder () -> Data.Either.Either Data.Text.Text Error400
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
-    message' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestQueryOutput.TestQueryOutput.message is a required property.") Data.Either.Right (messageBuilderState st)
-    Data.Either.Right (TestQueryOutput { 
+    message' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.Error400.Error400.message is a required property.") Data.Either.Right (messageBuilderState st)
+    Data.Either.Right (Error400 { 
         message = message'
     })
 
 
-instance Com.Example.Utility.FromResponseParser TestQueryOutput where
-    expectedStatus = Network.HTTP.Types.status200
+instance Com.Example.Utility.FromResponseParser Error400 where
+    expectedStatus = Network.HTTP.Types.status400
     responseParser = do
         
         var0 <- Com.Example.Utility.deSerField "message"
-        pure $ TestQueryOutput {
+        pure $ Error400 {
             message = var0
         }
 

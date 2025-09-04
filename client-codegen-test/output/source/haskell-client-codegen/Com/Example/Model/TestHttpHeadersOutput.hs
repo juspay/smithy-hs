@@ -5,8 +5,8 @@ module Com.Example.Model.TestHttpHeadersOutput (
     TestHttpHeadersOutput,
     message
 ) where
-import qualified Control.Applicative
-import qualified Control.Monad
+import qualified Com.Example.Utility
+import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
@@ -15,6 +15,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Types
 
 data TestHttpHeadersOutput = TestHttpHeadersOutput {
     message :: Data.Text.Text
@@ -30,6 +31,7 @@ instance Data.Aeson.ToJSON TestHttpHeadersOutput where
         ]
     
 
+instance Com.Example.Utility.SerializeBody TestHttpHeadersOutput
 
 instance Data.Aeson.FromJSON TestHttpHeadersOutput where
     parseJSON = Data.Aeson.withObject "TestHttpHeadersOutput" $ \v -> TestHttpHeadersOutput
@@ -49,37 +51,27 @@ defaultBuilderState = TestHttpHeadersOutputBuilderState {
     messageBuilderState = Data.Maybe.Nothing
 }
 
-newtype TestHttpHeadersOutputBuilder a = TestHttpHeadersOutputBuilder {
-    runTestHttpHeadersOutputBuilder :: TestHttpHeadersOutputBuilderState -> (TestHttpHeadersOutputBuilderState, a)
-}
-
-instance Data.Functor.Functor TestHttpHeadersOutputBuilder where
-    fmap f (TestHttpHeadersOutputBuilder g) =
-        TestHttpHeadersOutputBuilder (\s -> let (s', a) = g s in (s', f a))
-
-instance Control.Applicative.Applicative TestHttpHeadersOutputBuilder where
-    pure a = TestHttpHeadersOutputBuilder (\s -> (s, a))
-    (TestHttpHeadersOutputBuilder f) <*> (TestHttpHeadersOutputBuilder g) = TestHttpHeadersOutputBuilder (\s ->
-        let (s', h) = f s
-            (s'', a) = g s'
-        in (s'', h a))
-
-instance Control.Monad.Monad TestHttpHeadersOutputBuilder where
-    (TestHttpHeadersOutputBuilder f) >>= g = TestHttpHeadersOutputBuilder (\s ->
-        let (s', a) = f s
-            (TestHttpHeadersOutputBuilder h) = g a
-        in h s')
+type TestHttpHeadersOutputBuilder = Control.Monad.State.Strict.State TestHttpHeadersOutputBuilderState
 
 setMessage :: Data.Text.Text -> TestHttpHeadersOutputBuilder ()
 setMessage value =
-   TestHttpHeadersOutputBuilder (\s -> (s { messageBuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { messageBuilderState = Data.Maybe.Just value }))
 
 build :: TestHttpHeadersOutputBuilder () -> Data.Either.Either Data.Text.Text TestHttpHeadersOutput
 build builder = do
-    let (st, _) = runTestHttpHeadersOutputBuilder builder defaultBuilderState
+    let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     message' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestHttpHeadersOutput.TestHttpHeadersOutput.message is a required property.") Data.Either.Right (messageBuilderState st)
     Data.Either.Right (TestHttpHeadersOutput { 
         message = message'
     })
 
+
+instance Com.Example.Utility.FromResponseParser TestHttpHeadersOutput where
+    expectedStatus = Network.HTTP.Types.status200
+    responseParser = do
+        
+        var0 <- Com.Example.Utility.deSerField "message"
+        pure $ TestHttpHeadersOutput {
+            message = var0
+        }
 

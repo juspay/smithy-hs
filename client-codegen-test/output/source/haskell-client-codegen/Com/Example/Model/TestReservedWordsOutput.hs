@@ -51,8 +51,9 @@ module Com.Example.Model.TestReservedWordsOutput (
     then',
     where'
 ) where
+import qualified Com.Example.Utility
 import qualified Control.Applicative
-import qualified Control.Monad
+import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
@@ -61,6 +62,7 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Network.HTTP.Types
 
 data TestReservedWordsOutput = TestReservedWordsOutput {
     type' :: Data.Text.Text,
@@ -122,6 +124,7 @@ instance Data.Aeson.ToJSON TestReservedWordsOutput where
         ]
     
 
+instance Com.Example.Utility.SerializeBody TestReservedWordsOutput
 
 instance Data.Aeson.FromJSON TestReservedWordsOutput where
     parseJSON = Data.Aeson.withObject "TestReservedWordsOutput" $ \v -> TestReservedWordsOutput
@@ -210,126 +213,107 @@ defaultBuilderState = TestReservedWordsOutputBuilderState {
     where'BuilderState = Data.Maybe.Nothing
 }
 
-newtype TestReservedWordsOutputBuilder a = TestReservedWordsOutputBuilder {
-    runTestReservedWordsOutputBuilder :: TestReservedWordsOutputBuilderState -> (TestReservedWordsOutputBuilderState, a)
-}
-
-instance Data.Functor.Functor TestReservedWordsOutputBuilder where
-    fmap f (TestReservedWordsOutputBuilder g) =
-        TestReservedWordsOutputBuilder (\s -> let (s', a) = g s in (s', f a))
-
-instance Control.Applicative.Applicative TestReservedWordsOutputBuilder where
-    pure a = TestReservedWordsOutputBuilder (\s -> (s, a))
-    (TestReservedWordsOutputBuilder f) <*> (TestReservedWordsOutputBuilder g) = TestReservedWordsOutputBuilder (\s ->
-        let (s', h) = f s
-            (s'', a) = g s'
-        in (s'', h a))
-
-instance Control.Monad.Monad TestReservedWordsOutputBuilder where
-    (TestReservedWordsOutputBuilder f) >>= g = TestReservedWordsOutputBuilder (\s ->
-        let (s', a) = f s
-            (TestReservedWordsOutputBuilder h) = g a
-        in h s')
+type TestReservedWordsOutputBuilder = Control.Monad.State.Strict.State TestReservedWordsOutputBuilderState
 
 setType' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setType' value =
-   TestReservedWordsOutputBuilder (\s -> (s { type'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { type'BuilderState = Data.Maybe.Just value }))
 
 setData' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setData' value =
-   TestReservedWordsOutputBuilder (\s -> (s { data'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { data'BuilderState = Data.Maybe.Just value }))
 
 setAs' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setAs' value =
-   TestReservedWordsOutputBuilder (\s -> (s { as'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { as'BuilderState = Data.Maybe.Just value }))
 
 setCase' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setCase' value =
-   TestReservedWordsOutputBuilder (\s -> (s { case'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { case'BuilderState = Data.Maybe.Just value }))
 
 setClass' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setClass' value =
-   TestReservedWordsOutputBuilder (\s -> (s { class'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { class'BuilderState = Data.Maybe.Just value }))
 
 setDefault' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setDefault' value =
-   TestReservedWordsOutputBuilder (\s -> (s { default'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { default'BuilderState = Data.Maybe.Just value }))
 
 setDeriving' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setDeriving' value =
-   TestReservedWordsOutputBuilder (\s -> (s { deriving'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { deriving'BuilderState = Data.Maybe.Just value }))
 
 setDo' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setDo' value =
-   TestReservedWordsOutputBuilder (\s -> (s { do'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { do'BuilderState = Data.Maybe.Just value }))
 
 setElse' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setElse' value =
-   TestReservedWordsOutputBuilder (\s -> (s { else'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { else'BuilderState = Data.Maybe.Just value }))
 
 setHiding' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setHiding' value =
-   TestReservedWordsOutputBuilder (\s -> (s { hiding'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { hiding'BuilderState = Data.Maybe.Just value }))
 
 setIf' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setIf' value =
-   TestReservedWordsOutputBuilder (\s -> (s { if'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { if'BuilderState = Data.Maybe.Just value }))
 
 setImport' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setImport' value =
-   TestReservedWordsOutputBuilder (\s -> (s { import'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { import'BuilderState = Data.Maybe.Just value }))
 
 setIn' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setIn' value =
-   TestReservedWordsOutputBuilder (\s -> (s { in'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { in'BuilderState = Data.Maybe.Just value }))
 
 setInfix' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setInfix' value =
-   TestReservedWordsOutputBuilder (\s -> (s { infix'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { infix'BuilderState = Data.Maybe.Just value }))
 
 setInfixl' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setInfixl' value =
-   TestReservedWordsOutputBuilder (\s -> (s { infixl'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { infixl'BuilderState = Data.Maybe.Just value }))
 
 setInfixr' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setInfixr' value =
-   TestReservedWordsOutputBuilder (\s -> (s { infixr'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { infixr'BuilderState = Data.Maybe.Just value }))
 
 setInstance' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setInstance' value =
-   TestReservedWordsOutputBuilder (\s -> (s { instance'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { instance'BuilderState = Data.Maybe.Just value }))
 
 setLet' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setLet' value =
-   TestReservedWordsOutputBuilder (\s -> (s { let'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { let'BuilderState = Data.Maybe.Just value }))
 
 setModule' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setModule' value =
-   TestReservedWordsOutputBuilder (\s -> (s { module'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { module'BuilderState = Data.Maybe.Just value }))
 
 setNewtype' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setNewtype' value =
-   TestReservedWordsOutputBuilder (\s -> (s { newtype'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { newtype'BuilderState = Data.Maybe.Just value }))
 
 setOf' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setOf' value =
-   TestReservedWordsOutputBuilder (\s -> (s { of'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { of'BuilderState = Data.Maybe.Just value }))
 
 setQualified' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setQualified' value =
-   TestReservedWordsOutputBuilder (\s -> (s { qualified'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { qualified'BuilderState = Data.Maybe.Just value }))
 
 setThen' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setThen' value =
-   TestReservedWordsOutputBuilder (\s -> (s { then'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { then'BuilderState = Data.Maybe.Just value }))
 
 setWhere' :: Data.Text.Text -> TestReservedWordsOutputBuilder ()
 setWhere' value =
-   TestReservedWordsOutputBuilder (\s -> (s { where'BuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { where'BuilderState = Data.Maybe.Just value }))
 
 build :: TestReservedWordsOutputBuilder () -> Data.Either.Either Data.Text.Text TestReservedWordsOutput
 build builder = do
-    let (st, _) = runTestReservedWordsOutputBuilder builder defaultBuilderState
+    let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     type'' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestReservedWordsOutput.TestReservedWordsOutput.type' is a required property.") Data.Either.Right (type'BuilderState st)
     data'' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestReservedWordsOutput.TestReservedWordsOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
     as'' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.Model.TestReservedWordsOutput.TestReservedWordsOutput.as' is a required property.") Data.Either.Right (as'BuilderState st)
@@ -381,4 +365,59 @@ build builder = do
         where' = where''
     })
 
+
+instance Com.Example.Utility.FromResponseParser TestReservedWordsOutput where
+    expectedStatus = Network.HTTP.Types.status200
+    responseParser = do
+        
+        var0 <- Com.Example.Utility.deSerField "qualified"
+        var1 <- Com.Example.Utility.deSerField "instance"
+        var2 <- Com.Example.Utility.deSerField "data"
+        var3 <- Com.Example.Utility.deSerField "import"
+        var4 <- Com.Example.Utility.deSerField "in"
+        var5 <- Com.Example.Utility.deSerField "module"
+        var6 <- Com.Example.Utility.deSerField "infixr"
+        var7 <- Com.Example.Utility.deSerField "do"
+        var8 <- Com.Example.Utility.deSerField "infix"
+        var9 <- Com.Example.Utility.deSerField "then"
+        var10 <- Com.Example.Utility.deSerField "type"
+        var11 <- Com.Example.Utility.deSerField "newtype"
+        var12 <- Com.Example.Utility.deSerField "hiding"
+        var13 <- Com.Example.Utility.deSerField "as"
+        var14 <- Com.Example.Utility.deSerField "default"
+        var15 <- Com.Example.Utility.deSerField "deriving"
+        var16 <- Com.Example.Utility.deSerField "else"
+        var17 <- Com.Example.Utility.deSerField "infixl"
+        var18 <- Com.Example.Utility.deSerField "of"
+        var19 <- Com.Example.Utility.deSerField "let"
+        var20 <- Com.Example.Utility.deSerField "where"
+        var21 <- Com.Example.Utility.deSerField "class"
+        var22 <- Com.Example.Utility.deSerField "if"
+        var23 <- Com.Example.Utility.deSerField "case"
+        pure $ TestReservedWordsOutput {
+            type' = var10,
+            data' = var2,
+            as' = var13,
+            case' = var23,
+            class' = var21,
+            default' = var14,
+            deriving' = var15,
+            do' = var7,
+            else' = var16,
+            hiding' = var12,
+            if' = var22,
+            import' = var3,
+            in' = var4,
+            infix' = var8,
+            infixl' = var17,
+            infixr' = var6,
+            instance' = var1,
+            let' = var19,
+            module' = var5,
+            newtype' = var11,
+            of' = var18,
+            qualified' = var0,
+            then' = var9,
+            where' = var20
+        }
 

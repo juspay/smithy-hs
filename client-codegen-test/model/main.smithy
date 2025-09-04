@@ -18,7 +18,8 @@ service ExampleService {
         TestHttpPayloadDeserialization
         TestHttpDocumentDeserialization
         TestReservedWords
-        // TestAllFeaturesSer
+        TestCustomStatus
+        TestErrors
     ]
     errors: [
         InternalServerError
@@ -66,6 +67,11 @@ structure CoffeeItem {
     @timestampFormat("http-date")
     @required
     createdAt: Timestamp
+
+    @timestampFormat("date-time")
+    utc: Timestamp
+
+    posix: Timestamp
 }
 
 /// Represents different types of coffee customizations
@@ -100,7 +106,7 @@ structure InternalServerError {
     message: String
 }
 
-@http(method: "GET", uri: "/path_params/{identifier}/{enabled}/{name}/{time}")
+@http(method: "GET", uri: "/path_params/{identifier}/{enabled}/{name}/{time}/{utc}/{posix}")
 @readonly
 operation TestHttpLabels {
     input := {
@@ -120,6 +126,15 @@ operation TestHttpLabels {
         @required
         @timestampFormat("http-date")
         time: Timestamp
+
+        @httpLabel
+        @required
+        @timestampFormat("date-time")
+        utc: Timestamp
+
+        @httpLabel
+        @required
+        posix: Timestamp
     }
 }
 
@@ -138,6 +153,13 @@ operation TestQuery {
 
         @httpQuery("tags")
         tags: StringList
+
+        @httpQuery("utc")
+        @timestampFormat("date-time")
+        utc: Timestamp
+
+        @httpQuery("posix-ts")
+        posixTs: Timestamp
 
         @httpQuery("time")
         @timestampFormat("http-date")
@@ -173,6 +195,13 @@ operation TestHttpHeaders {
         @httpHeader("x-header-time")
         @timestampFormat("http-date")
         time: Timestamp
+
+        @httpHeader("x-header-utc")
+        @timestampFormat("date-time")
+        utc: Timestamp
+
+        @httpHeader("x-header-posix")
+        posix: Timestamp
 
         @httpPrefixHeaders("x-prefix-")
         prefixHeaders: MapOfString
@@ -256,6 +285,13 @@ operation TestHttpPayloadDeserialization {
         @httpHeader("x-output-header-time")
         @timestampFormat("http-date")
         time: Timestamp
+
+        @httpHeader("x-output-header-utc")
+        @timestampFormat("date-time")
+        utcHeader: Timestamp
+
+        @httpHeader("x-output-header-posix")
+        posixHeader: Timestamp
 
         @httpHeader("x-output-header-list")
         outputHeaderList: StringList
@@ -450,4 +486,30 @@ operation TestReservedWords {
         @required
         where: String
     }
+}
+
+@http(method: "POST", uri: "/custom-status", code: 201)
+operation TestCustomStatus {
+    input := {}
+
+    output := {
+        @required
+        message: String
+    }
+}
+
+@error("client")
+@httpError(400)
+structure Error400 {
+    @required
+    message: String
+}
+
+@http(method: "POST", uri: "/error-4xx")
+operation TestErrors {
+    input := {}
+    output := {}
+    errors: [
+        Error400
+    ]
 }

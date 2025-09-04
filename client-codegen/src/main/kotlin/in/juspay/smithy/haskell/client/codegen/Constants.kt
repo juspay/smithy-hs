@@ -22,6 +22,15 @@ object HaskellDependencies {
         .packageName("case-insensitive")
         .version(CodegenUtils.depRange("1.2.1", "1.3"))
         .build()
+    val MTL =
+        SymbolDependency.builder()
+            .packageName("mtl")
+            .version("== 2.3.1")
+            .build()
+    val MonadLogger =
+        SymbolDependency.builder()
+            .packageName("monad-logger")
+            .version(CodegenUtils.depRange("0.3.36", "0.4"))
 }
 
 object HaskellSymbol {
@@ -89,7 +98,7 @@ object HaskellSymbol {
         .dependencies(
             SymbolDependency.builder()
                 .packageName("aeson")
-                .version(CodegenUtils.depRange("2.0.0", "2.2.0"))
+                .version(CodegenUtils.depRange("2.0.0", "2.3.0"))
                 .build()
         )
         .build()
@@ -282,10 +291,6 @@ object Http {
         .name("Custom")
         .build()
 
-    val Request: Symbol = HttpClientModule.toBuilder()
-        .name("Request")
-        .namespace(CLIENT_MODULE, ".")
-        .build()
     val rqPath: Symbol = HttpClientModule.toBuilder()
         .name("path")
         .namespace(CLIENT_MODULE, ".")
@@ -311,6 +316,9 @@ object Http {
         .name("httpLbs")
         .namespace(CLIENT_MODULE, ".")
         .build()
+    val HttpTypes: Symbol = HttpTypesModule.toBuilder()
+        .name("##INVALID_SYMBOL##")
+        .build()
 
     val DefaultHttpManagerSettings: Symbol = HttpClientModule.toBuilder()
         .name("defaultManagerSettings")
@@ -331,6 +339,12 @@ object Http {
                 .version(CodegenUtils.depRange("1.9", "1.15"))
                 .build()
         )
+        .build()
+
+    val MTLState = Symbol.builder()
+        .name("State")
+        .namespace("Control.Monad.State.Strict", ".")
+        .dependencies(HaskellDependencies.MTL)
         .build()
 
     val UTCTime = POSIXTime.toBuilder()

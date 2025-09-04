@@ -15,10 +15,6 @@ gradlew
 
 .aider*
 
-# Ignore smithy output
-*/output/
-!*/output/**/haskell-client-codegen/**
-
 # Intellij
 .idea
 

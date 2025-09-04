@@ -17,13 +17,15 @@ module Com.Example.Model.TestHttpDocumentInput (
 ) where
 import qualified Com.Example.Model.CoffeeCustomization
 import qualified Com.Example.Model.CoffeeItem
+import qualified Com.Example.Utility
 import qualified Control.Applicative
-import qualified Control.Monad
+import qualified Control.Monad.State.Strict
 import qualified Data.Aeson
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Function
 import qualified Data.Functor
+import qualified Data.Int
 import qualified Data.Map
 import qualified Data.Maybe
 import qualified Data.Text
@@ -31,12 +33,13 @@ import qualified Data.Text.Encoding
 import qualified GHC.Generics
 import qualified GHC.Show
 import qualified Network.HTTP.Date
+import qualified Network.HTTP.Types.Method
 
 data TestHttpDocumentInput = TestHttpDocumentInput {
     payload :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
     customization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization,
     time :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
-    identifier :: Integer,
+    identifier :: Data.Int.Int32,
     stringHeader :: Data.Maybe.Maybe Data.Text.Text,
     prefixHeaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
@@ -56,6 +59,7 @@ instance Data.Aeson.ToJSON TestHttpDocumentInput where
         ]
     
 
+instance Com.Example.Utility.SerializeBody TestHttpDocumentInput
 
 instance Data.Aeson.FromJSON TestHttpDocumentInput where
     parseJSON = Data.Aeson.withObject "TestHttpDocumentInput" $ \v -> TestHttpDocumentInput
@@ -80,7 +84,7 @@ data TestHttpDocumentInputBuilderState = TestHttpDocumentInputBuilderState {
     payloadBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem,
     customizationBuilderState :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization,
     timeBuilderState :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate,
-    identifierBuilderState :: Data.Maybe.Maybe Integer,
+    identifierBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     stringHeaderBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixHeadersBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text)
 } deriving (
@@ -97,54 +101,35 @@ defaultBuilderState = TestHttpDocumentInputBuilderState {
     prefixHeadersBuilderState = Data.Maybe.Nothing
 }
 
-newtype TestHttpDocumentInputBuilder a = TestHttpDocumentInputBuilder {
-    runTestHttpDocumentInputBuilder :: TestHttpDocumentInputBuilderState -> (TestHttpDocumentInputBuilderState, a)
-}
-
-instance Data.Functor.Functor TestHttpDocumentInputBuilder where
-    fmap f (TestHttpDocumentInputBuilder g) =
-        TestHttpDocumentInputBuilder (\s -> let (s', a) = g s in (s', f a))
-
-instance Control.Applicative.Applicative TestHttpDocumentInputBuilder where
-    pure a = TestHttpDocumentInputBuilder (\s -> (s, a))
-    (TestHttpDocumentInputBuilder f) <*> (TestHttpDocumentInputBuilder g) = TestHttpDocumentInputBuilder (\s ->
-        let (s', h) = f s
-            (s'', a) = g s'
-        in (s'', h a))
-
-instance Control.Monad.Monad TestHttpDocumentInputBuilder where
-    (TestHttpDocumentInputBuilder f) >>= g = TestHttpDocumentInputBuilder (\s ->
-        let (s', a) = f s
-            (TestHttpDocumentInputBuilder h) = g a
-        in h s')
+type TestHttpDocumentInputBuilder = Control.Monad.State.Strict.State TestHttpDocumentInputBuilderState
 
 setPayload :: Data.Maybe.Maybe Com.Example.Model.CoffeeItem.CoffeeItem -> TestHttpDocumentInputBuilder ()
 setPayload value =
-   TestHttpDocumentInputBuilder (\s -> (s { payloadBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { payloadBuilderState = value }))
 
 setCustomization :: Data.Maybe.Maybe Com.Example.Model.CoffeeCustomization.CoffeeCustomization -> TestHttpDocumentInputBuilder ()
 setCustomization value =
-   TestHttpDocumentInputBuilder (\s -> (s { customizationBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { customizationBuilderState = value }))
 
 setTime :: Data.Maybe.Maybe Network.HTTP.Date.HTTPDate -> TestHttpDocumentInputBuilder ()
 setTime value =
-   TestHttpDocumentInputBuilder (\s -> (s { timeBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { timeBuilderState = value }))
 
-setIdentifier :: Integer -> TestHttpDocumentInputBuilder ()
+setIdentifier :: Data.Int.Int32 -> TestHttpDocumentInputBuilder ()
 setIdentifier value =
-   TestHttpDocumentInputBuilder (\s -> (s { identifierBuilderState = Data.Maybe.Just value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { identifierBuilderState = Data.Maybe.Just value }))
 
 setStringheader :: Data.Maybe.Maybe Data.Text.Text -> TestHttpDocumentInputBuilder ()
 setStringheader value =
-   TestHttpDocumentInputBuilder (\s -> (s { stringHeaderBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { stringHeaderBuilderState = value }))
 
 setPrefixheaders :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Text.Text) -> TestHttpDocumentInputBuilder ()
 setPrefixheaders value =
-   TestHttpDocumentInputBuilder (\s -> (s { prefixHeadersBuilderState = value }, ()))
+   Control.Monad.State.Strict.modify (\s -> (s { prefixHeadersBuilderState = value }))
 
 build :: TestHttpDocumentInputBuilder () -> Data.Either.Either Data.Text.Text TestHttpDocumentInput
 build builder = do
-    let (st, _) = runTestHttpDocumentInputBuilder builder defaultBuilderState
+    let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     payload' <- Data.Either.Right (payloadBuilderState st)
     customization' <- Data.Either.Right (customizationBuilderState st)
     time' <- Data.Either.Right (timeBuilderState st)
@@ -160,4 +145,18 @@ build builder = do
         prefixHeaders = prefixHeaders'
     })
 
+
+instance Com.Example.Utility.IntoRequestBuilder TestHttpDocumentInput where
+    intoRequestBuilder self = do
+        Com.Example.Utility.setMethod Network.HTTP.Types.Method.methodPost
+        Com.Example.Utility.setPath [
+            "document",
+            Com.Example.Utility.serializeElement (identifier self)
+            ]
+        
+        Com.Example.Utility.serHeaderMap "x-prefix-" (prefixHeaders self)
+        Com.Example.Utility.serHeader "x-header-string" (stringHeader self)
+        Com.Example.Utility.serField "payload" (payload self)
+        Com.Example.Utility.serField "customization" (customization self)
+        Com.Example.Utility.serField "time" (time self)
 

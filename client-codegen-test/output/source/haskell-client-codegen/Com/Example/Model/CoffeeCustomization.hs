@@ -3,6 +3,7 @@ module Com.Example.Model.CoffeeCustomization (
 ) where
 import qualified Com.Example.Model.MilkType
 import qualified Com.Example.Model.TemperaturePreference
+import qualified Com.Example.Utility
 import qualified Control.Applicative
 import qualified Data.Aeson
 import qualified Data.Eq
@@ -24,6 +25,7 @@ instance Data.Aeson.ToJSON CoffeeCustomization where
     toJSON (Milk a) = Data.Aeson.object [ "milk" Data.Aeson..= a ]
     toJSON (Temperature a) = Data.Aeson.object [ "temperature" Data.Aeson..= a ]
 
+instance Com.Example.Utility.SerializeBody CoffeeCustomization
 instance Data.Aeson.FromJSON CoffeeCustomization where
     parseJSON = Data.Aeson.withObject "CoffeeCustomization" $ \v ->
         (Milk Data.Functor.<$> v Data.Aeson..: "milk") Control.Applicative.<|>

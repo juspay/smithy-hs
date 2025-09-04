@@ -86,8 +86,7 @@ class HaskellSymbolProvider(
     }
 
     override fun integerShape(shape: IntegerShape): Symbol {
-        return Symbol.builder().name("Integer")
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
+        return Symbol.builder().name("Int32").namespace("Data.Int", ".").build()
     }
 
     override fun stringShape(shape: StringShape): Symbol {
@@ -120,11 +119,13 @@ class HaskellSymbolProvider(
     }
 
     override fun bigDecimalShape(shape: BigDecimalShape?): Symbol {
+        // TODO Add via `decimal` package.
         error("BigDecimalShape is not supported")
     }
 
     override fun bigIntegerShape(shape: BigIntegerShape?): Symbol {
-        error("BigInteger is not supported")
+        return Symbol.builder().name("Integer").namespace("Prelude", ".")
+            .putProperty(SymbolProperties.IS_PRIMITIVE, false).build()
     }
 
     override fun timestampShape(shape: TimestampShape): Symbol {

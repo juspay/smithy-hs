@@ -1,0 +1,3 @@
+packages:
+    ./client-codegen-test/output/source/haskell-client-codegen
+    ./hs-it

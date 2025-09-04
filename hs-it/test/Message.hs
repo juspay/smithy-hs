@@ -13,6 +13,7 @@ import qualified Test.HUnit as HUnit
 import Test.HUnit (Assertion)
 import qualified Data.Text as T
 import Network.HTTP.Types.Header (HeaderName)
+import Data.List (sort)
 
 data State = State
   { req :: Stm.TMVar Wai.Request,
@@ -38,9 +39,9 @@ defaultHeaderNames =
 assertEqRequest :: RequestInternal -> Wai.Request -> Assertion
 assertEqRequest a b = do
   HUnit.assertEqual "Raw path infos should be equal" (pathInfo a) (Wai.Request.pathInfo b)
-  HUnit.assertEqual "Raw query strings should be equal" (queryString a) (Wai.Request.queryString b)
+  HUnit.assertEqual "Raw query strings should be equal" (sort (queryString a)) (sort (Wai.Request.queryString b))
   HUnit.assertEqual "Request methods should be equal" (requestMethod a) (Wai.Request.requestMethod b)
-  HUnit.assertEqual "Request headers should be equal" (requestHeaders a) (filter (\(h, _) -> h `notElem` defaultHeaderNames) (Wai.Request.requestHeaders b))
+  HUnit.assertEqual "Request headers should be equal" (sort (requestHeaders a)) (sort (filter (\(h, _) -> h `notElem` defaultHeaderNames) (Wai.Request.requestHeaders b)))
 
 defaultResponse :: Wai.Response
 defaultResponse = Wai.responseLBS Http.ok200 [] "{ \"message\": \"Success\" }"

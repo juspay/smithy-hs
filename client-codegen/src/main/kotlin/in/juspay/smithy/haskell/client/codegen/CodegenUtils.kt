@@ -37,6 +37,9 @@ object CodegenUtils {
         }
     }
 
+    /** @param begin - Earliest usable version(>=)
+     * @param end - Lowest version which can't be used.(<)
+     * **/
     fun depRange(begin: String, end: String) = ">= $begin && < $end"
 
     fun toHaskellHttpMethod(method: String): Symbol {

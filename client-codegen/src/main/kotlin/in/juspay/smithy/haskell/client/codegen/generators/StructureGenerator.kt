@@ -21,6 +21,7 @@ class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
             #{record:C|}
 
             #{serializer:C|}
+            instance #{utility:N}.SerializeBody ${symbol.name}
 
             #{deserializer:C|}
 
@@ -49,6 +50,7 @@ class StructureGenerator<T : HaskellShapeDirective<StructureShape>>(
                 "deserializer",
                 StructureDeserializerGenerator(directive, writer)
             )
+            writer.putContext("utility", directive.context().utilitySymbol)
             writer.putContext("builder", BuilderGenerator(record, symbol, writer))
             writer.write(template)
             writer.addExport(symbol.name)
