@@ -16,11 +16,8 @@ build-type:         Simple
 common warnings
     ghc-options: -Wall
 
--- Dummy executable target to make `nix build` work.
-executable hs-it
-    main-is:          Main.hs
-    hs-source-dirs:   src
-    build-depends:    base
+-- Placeholder to make `nix build` work.
+library
 
 test-suite hs-it-test
     import:           warnings

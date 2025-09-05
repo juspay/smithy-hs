@@ -53,6 +53,7 @@
                 jdk
               ];
           };
+          packages.default = self'.packages.test-client-sdk;
         };
     };
 }
