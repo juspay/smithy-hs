@@ -7,7 +7,7 @@
     ]
   },
   "plugins": {
-    "haskell-client-codegen": {
+    "haskell-client-codegen::test-client-sdk": {
       "packageName": "test-client-sdk",
        "edition": "9",
        "service": "com.example#ExampleService",

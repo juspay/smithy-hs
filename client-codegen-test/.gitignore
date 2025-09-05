@@ -1,2 +1,2 @@
 output/source/*
-!output/source/haskell-client-codegen
+!output/source/test-client-sdk
