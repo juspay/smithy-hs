@@ -8,7 +8,8 @@ import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.Shape
 import java.util.function.Consumer
 
-class IntEnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> : Consumer<T> {
+class IntEnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> :
+    Consumer<T> {
     override fun accept(directive: T) {
         val shape = directive.shape()
 

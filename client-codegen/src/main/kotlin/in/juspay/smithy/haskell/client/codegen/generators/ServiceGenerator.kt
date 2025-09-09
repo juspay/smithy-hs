@@ -14,21 +14,23 @@ class ServiceGenerator<T : HaskellShapeDirective<ServiceShape>> : Consumer<T> {
         val context = directive.context()
         val service = directive.service()
         val symbol = directive.symbol()
-        val unsupportedAuthTrait = service.allTraits.toList().find {
-            it.first.name.contains("http", ignoreCase = true) &&
-                it.first.name.contains("auth", ignoreCase = true) &&
-                it.first != HttpBearerAuthTrait.ID
-        }
+        val unsupportedAuthTrait =
+            service.allTraits.toList().find {
+                it.first.name.contains("http", ignoreCase = true) &&
+                    it.first.name.contains("auth", ignoreCase = true) &&
+                    it.first != HttpBearerAuthTrait.ID
+            }
 
         unsupportedAuthTrait?.let {
             throw CodegenException("Unsupported HTTP Auth: ${it.first}")
         }
 
         context.writerDelegator().useShapeWriter(service) { writer ->
-            val record = ClientRecord(
-                service,
-                directive.symbolProvider()
-            ).toRecord()
+            val record =
+                ClientRecord(
+                    service,
+                    directive.symbolProvider(),
+                ).toRecord()
             writer.writeRecord(record)
             writer.addExport(symbol.name)
             writer.putContext("utils", context.utilitySymbol)

@@ -7,7 +7,7 @@ import software.amazon.smithy.model.shapes.StructureShape
 @Suppress("MaxLineLength")
 class StructureSerializerGenerator(
     private val directive: HaskellShapeDirective<StructureShape>,
-    private val writer: HaskellWriter
+    private val writer: HaskellWriter,
 ) : Runnable {
     override fun run() {
         writer.pushState()
@@ -27,7 +27,9 @@ class StructureSerializerGenerator(
                         } else {
                             sb.append("#{and:T} ")
                         }
-                        sb.append("(#{encoding:N}.decodeUtf8 . #{hdate:N}.formatHTTPDate))")
+                        sb.append(
+                            "(#{encoding:N}.decodeUtf8 . #{hdate:N}.formatHTTPDate))",
+                        )
                     } else {
                         sb.append("${it.fieldName} a")
                     }

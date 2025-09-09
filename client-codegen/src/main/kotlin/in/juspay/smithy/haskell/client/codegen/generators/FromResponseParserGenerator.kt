@@ -34,15 +34,15 @@ class FromResponseParserGenerator(
             writer.putContext("setFields", Runnable { setFields(writer) })
             writer.write(
                 """
-               instance #{utility:N}.FromResponseParser $name where
-                   expectedStatus = #{httpTypes:N}.status$status
-                   responseParser = do
-                       #{deSerHeaders:C|}
-                       #{deSerPayload:C|}
-                       pure $ $name {
-                           #{setFields:C|}
-                       }
-                """.trimIndent()
+                instance #{utility:N}.FromResponseParser $name where
+                    expectedStatus = #{httpTypes:N}.status$status
+                    responseParser = do
+                        #{deSerHeaders:C|}
+                        #{deSerPayload:C|}
+                        pure $ $name {
+                            #{setFields:C|}
+                        }
+                """.trimIndent(),
             )
             writer.popState()
         }
@@ -55,16 +55,23 @@ class FromResponseParserGenerator(
     }
 
     private fun getBindings(location: Location): Map<String, HttpBinding> =
-        httpBindings.filter { it.value.location == location }
+        httpBindings.filter {
+            it.value.location ==
+                location
+        }
 
     private fun deSerHeaders(writer: HaskellWriter) {
         getBindings(Location.PREFIX_HEADERS).forEach { (memberName, binding) ->
             val prefix = (binding.bindingTrait.get() as HttpPrefixHeadersTrait).value.dq
-            writer.write("${bindLocalVar(memberName)} <- #{utility:N}.deSerHeaderMap $prefix")
+            writer.write(
+                "${bindLocalVar(memberName)} <- #{utility:N}.deSerHeaderMap $prefix",
+            )
         }
         getBindings(Location.HEADER).forEach { (memberName, binding) ->
             val header = (binding.bindingTrait.get() as HttpHeaderTrait).value.dq
-            writer.write("${bindLocalVar(memberName)} <- #{utility:N}.deSerHeader $header")
+            writer.write(
+                "${bindLocalVar(memberName)} <- #{utility:N}.deSerHeader $header",
+            )
         }
     }
 
@@ -78,7 +85,9 @@ class FromResponseParserGenerator(
         } else {
             documentBindings.forEach { (memberName, binding) ->
                 val jsonName = binding.jsonName.dq
-                writer.write("${bindLocalVar(memberName)} <- #{utility:N}.deSerField $jsonName")
+                writer.write(
+                    "${bindLocalVar(memberName)} <- #{utility:N}.deSerField $jsonName",
+                )
             }
         }
     }

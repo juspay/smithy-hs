@@ -14,9 +14,8 @@ val MemberShape.enumValue: String
     get() = this.getTrait(EnumValueTrait::class.java).map { it.expectStringValue() }
         .orElse(this.memberName)
 
-fun MemberShape.isMemberListShape(model: Model): Boolean {
-    return model.expectShape(this.target).isListShape
-}
+fun MemberShape.isMemberListShape(model: Model): Boolean =
+    model.expectShape(this.target).isListShape
 
 val MemberShape.fieldName: String
     get() = SHAPE_ESCAPER.escape(this.memberName)

@@ -9,7 +9,7 @@ import software.amazon.smithy.model.traits.HttpBearerAuthTrait
 data class Record(
     val name: String,
     val fields: List<Field>,
-    val derives: List<Symbol> = listOf()
+    val derives: List<Symbol> = listOf(),
 ) {
     val defaultDerives = derives + listOf(HaskellSymbol.Generic)
 
@@ -21,11 +21,12 @@ class ClientRecord(service: ServiceShape, symbolProvider: SymbolProvider) {
     val uri = Record.Field("endpointUri", HaskellSymbol.Http.Uri)
     val httpManager =
         Record.Field("httpManager", HaskellSymbol.Http.Manager)
-    val token = if (service.hasTrait(HttpBearerAuthTrait.ID)) {
-        Record.Field("token", HaskellSymbol.Text)
-    } else {
-        null
-    }
+    val token =
+        if (service.hasTrait(HttpBearerAuthTrait.ID)) {
+            Record.Field("token", HaskellSymbol.Text)
+        } else {
+            null
+        }
 
     fun toRecord(): Record {
         val fields = mutableListOf(uri, httpManager)

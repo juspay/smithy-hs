@@ -1,4 +1,7 @@
-@file:Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
+@file:Suppress(
+    "FINITE_BOUNDS_VIOLATION_IN_JAVA",
+    "ktlint:standard:max-line-length",
+)
 
 package `in`.juspay.smithy.haskell.client.codegen.generators
 
@@ -12,7 +15,6 @@ import software.amazon.smithy.codegen.core.directed.ShapeDirective
 import software.amazon.smithy.model.shapes.Shape
 import java.util.function.Consumer
 
-@Suppress("MaxLineLength")
 class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> :
     Consumer<T> {
     private val defaultDerives = listOf(Generic, Eq, Show)
@@ -22,16 +24,17 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
         val symbol = directive.symbol()
 
         directive.context().writerDelegator().useShapeWriter(shape) { writer ->
-            val template = """
-            -- Enum implementation for #{shape:T}
-            data #{shape:T} =
-                #{constructors:C|}
-                #{derives:C|}
+            val template =
+                """
+                -- Enum implementation for #{shape:T}
+                data #{shape:T} =
+                    #{constructors:C|}
+                    #{derives:C|}
 
-            #{serializer:C|}
-            #{deserializer:C|}
-            #{serDe:C}
-            """.trimIndent()
+                #{serializer:C|}
+                #{deserializer:C|}
+                #{serDe:C}
+                """.trimIndent()
 
             writer.pushState()
             writer.putContext("shape", directive.symbol())
@@ -39,16 +42,16 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
             writer.putContext("encoding", HaskellSymbol.EncodingUtf8)
             writer.putContext(
                 "constructors",
-                Runnable { generateConstructors(writer, shape) }
+                Runnable { generateConstructors(writer, shape) },
             )
             writer.putContext("derives", Runnable { generateDerives(writer) })
             writer.putContext(
                 "serializer",
-                Runnable { serializerGenerator(writer, shape, directive.symbol()) }
+                Runnable { serializerGenerator(writer, shape, directive.symbol()) },
             )
             writer.putContext(
                 "deserializer",
-                Runnable { generateDeserializers(writer, shape, symbol) }
+                Runnable { generateDeserializers(writer, shape, symbol) },
             )
             writer.putContext("serDe", Runnable { serDeGenerator(writer, shape, symbol) })
             writer.write(template)
@@ -58,10 +61,7 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
         }
     }
 
-    private fun generateConstructors(
-        writer: HaskellWriter,
-        shape: Shape,
-    ) {
+    private fun generateConstructors(writer: HaskellWriter, shape: Shape) {
         for ((i, member) in shape.members().withIndex()) {
             if (i == 0) {
                 writer.write(member.fieldName)
@@ -88,13 +88,13 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
         writer.openBlock("instance #{aeson:N}.FromJSON ${symbol.name} where", "") {
             writer.openBlock(
                 "parseJSON = #{aeson:N}.withText ${symbol.name.dq} $ \\v ->",
-                ""
+                "",
             ) {
                 writer.openBlock("case v of", "") {
                     for (member in shape.members()) {
                         val constructor = member.fieldName
                         writer.write(
-                            "${member.enumValue.dq} -> pure $constructor"
+                            "${member.enumValue.dq} -> pure $constructor",
                         )
                     }
                     writer.write("_ -> fail $ $errMsg <> #{text:N}.unpack v")
@@ -112,29 +112,30 @@ class EnumGenerator<T : ShapeDirective<Shape, HaskellContext, HaskellSettings>> 
             for (member in shape.members()) {
                 val enumValue = member.enumValue.dq
                 writer.write(
-                    "toJSON ${member.fieldName} = #{aeson:N}.String $ #{text:N}.pack $enumValue"
+                    "toJSON ${member.fieldName} = #{aeson:N}.String $ #{text:N}.pack $enumValue",
                 )
             }
         }
     }
 
-    private fun serDeGenerator(
-        writer: HaskellWriter,
-        shape: Shape,
-        symbol: Symbol
-    ) {
+    private fun serDeGenerator(writer: HaskellWriter, shape: Shape, symbol: Symbol) {
         writer.openBlock("instance #{utility:N}.SerDe ${symbol.name} where", "") {
             for (member in shape.members()) {
                 val value = member.enumValue.dq
-                writer.write("serializeElement ${member.fieldName} = #{encoding:N}.encodeUtf8 $ #{text:N}.pack $value")
+                writer.write(
+                    "serializeElement ${member.fieldName} = #{encoding:N}.encodeUtf8 $ #{text:N}.pack $value",
+                )
             }
-            writer.openBlock("deSerializeElement bs = case #{encoding:N}.decodeUtf8 bs of", "") {
+            writer.openBlock(
+                "deSerializeElement bs = case #{encoding:N}.decodeUtf8 bs of",
+                "",
+            ) {
                 for (member in shape.members()) {
                     val value = member.enumValue.dq
                     writer.write("$value -> Right ${member.fieldName}")
                 }
                 writer.write(
-                    "e -> Left (${"Failed to de-serialize ${symbol.name}, encountered unknown variant: ".dq} ++ (show bs))"
+                    "e -> Left (${"Failed to de-serialize ${symbol.name}, encountered unknown variant: ".dq} ++ (show bs))",
                 )
             }
         }

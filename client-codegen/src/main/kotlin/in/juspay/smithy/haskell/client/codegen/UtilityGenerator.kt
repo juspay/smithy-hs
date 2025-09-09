@@ -5,16 +5,21 @@ package `in`.juspay.smithy.haskell.client.codegen
 import software.amazon.smithy.codegen.core.directed.CustomizeDirective
 
 class UtilityGenerator(
-    private val directive: CustomizeDirective<HaskellContext, HaskellSettings>
+    private val directive: CustomizeDirective<HaskellContext, HaskellSettings>,
 ) : Runnable {
-    private final val UTILITY_FILE =
-        this.javaClass.getResourceAsStream("/utility.hs")
+    companion object {
+        private val UTILITY_FILE =
+            this.javaClass.getResourceAsStream("/utility.hs")
+    }
 
     override fun run() {
-        directive.context().writerDelegator()
+        directive
+            .context()
+            .writerDelegator()
             .useSymbolWriter(directive.context().utilitySymbol) { writer ->
-                val contents = UTILITY_FILE?.bufferedReader()?.readText()
-                    ?: throw IllegalStateException("Utility file not found.")
+                val contents =
+                    UTILITY_FILE?.bufferedReader()?.readText()
+                        ?: throw IllegalStateException("Utility file not found.")
 
                 writer.addExport("SerDe (..)")
                 writer.addExport("setMethod")

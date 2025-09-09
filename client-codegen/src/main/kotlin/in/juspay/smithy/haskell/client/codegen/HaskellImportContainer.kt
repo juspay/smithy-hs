@@ -11,13 +11,14 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
 
     companion object {
-        private val expectionList = listOf(
-            "()",
-            "Integer",
-            "Bool",
-            "IO",
-            "[]"
-        )
+        private val expectionList =
+            listOf(
+                "()",
+                "Integer",
+                "Bool",
+                "IO",
+                "[]",
+            )
     }
 
     override fun importSymbol(symbol: Symbol, alias: String?) {
@@ -36,11 +37,12 @@ class HaskellImportContainer(private val modName: String) : ImportContainer {
     }
 
     override fun toString(): String {
-        val orderedImports = imports.values
-            .flatten()
-            .filter { s -> s.namespace != modName }
-            .map { s -> "import qualified ${s.namespace}" }
-            .toCollection(TreeSet())
+        val orderedImports =
+            imports.values
+                .flatten()
+                .filter { s -> s.namespace != modName }
+                .map { s -> "import qualified ${s.namespace}" }
+                .toCollection(TreeSet())
 
         return orderedImports.joinToString(System.lineSeparator())
     }

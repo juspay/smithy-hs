@@ -13,7 +13,8 @@ class HaskellClientCodegenPlugin : SmithyBuildPlugin {
         val model = pluginContext.model
 
         // Create the directed codegen implementation
-        val directedCodegen: DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> =
+        val directedCodegen:
+            DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> =
             DirectedCodegenImpl()
 
         // Use CodegenDirector to execute the code generation
@@ -21,7 +22,7 @@ class HaskellClientCodegenPlugin : SmithyBuildPlugin {
             HaskellWriter,
             HaskellIntegration,
             HaskellContext,
-            HaskellSettings
+            HaskellSettings,
             > = CodegenDirector()
         val settings = HaskellSettings.fromNode(pluginContext.settings)
         codegenDirector.model(model)

@@ -11,9 +11,10 @@ object CodegenUtils {
     // TODO Refer smithy-java for resource loading
     private final val RESERVED_WORDS_FILE: URL =
         this.javaClass.getResource("/reserved-words.txt")!!
-    final val SHAPE_ESCAPER: ReservedWords = ReservedWordsBuilder()
-        .loadCaseInsensitiveWords(RESERVED_WORDS_FILE) { word -> "$word'" }
-        .build()
+    final val SHAPE_ESCAPER: ReservedWords =
+        ReservedWordsBuilder()
+            .loadCaseInsensitiveWords(RESERVED_WORDS_FILE) { word -> "$word'" }
+            .build()
 
     fun getValidName(shape: Shape): String {
         val baseName: String = shape.id.name
@@ -26,9 +27,7 @@ object CodegenUtils {
      * @param shape The shape to check
      * @return true if the shape has the input trait, false otherwise
      */
-    fun isInputShape(shape: Shape): Boolean {
-        return shape.hasTrait("smithy.api#input")
-    }
+    fun isInputShape(shape: Shape): Boolean = shape.hasTrait("smithy.api#input")
 
     fun toModName(s: String): String {
         // split on . and then convert to pascal case and then join with .
@@ -42,24 +41,20 @@ object CodegenUtils {
      * **/
     fun depRange(begin: String, end: String) = ">= $begin && < $end"
 
-    fun toHaskellHttpMethod(method: String): Symbol {
-        return when (method) {
-            "GET" -> Http.Get
-            "POST" -> Http.Post
-            "PUT" -> Http.Put
-            "DELETE" -> Http.Delete
-            "PATCH" -> Http.Patch
-            "HEAD" -> Http.Head
-            "OPTIONS" -> Http.Options
-            "CONNECT" -> Http.Connect
-            "TRACE" -> Http.Trace
-            else -> Http.Custom
-        }
+    fun toHaskellHttpMethod(method: String): Symbol = when (method) {
+        "GET" -> Http.Get
+        "POST" -> Http.Post
+        "PUT" -> Http.Put
+        "DELETE" -> Http.Delete
+        "PATCH" -> Http.Patch
+        "HEAD" -> Http.Head
+        "OPTIONS" -> Http.Options
+        "CONNECT" -> Http.Connect
+        "TRACE" -> Http.Trace
+        else -> Http.Custom
     }
 
-    fun getSetterName(fieldName: String): String {
-        return CaseUtils.toCamelCase("set $fieldName")
-    }
+    fun getSetterName(fieldName: String): String = CaseUtils.toCamelCase("set $fieldName")
 
     val String.dq: String
         get() = "\"$this\""

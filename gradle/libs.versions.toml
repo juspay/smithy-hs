@@ -2,25 +2,22 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-commons-math3 = "3.6.1"
-guava = "33.3.1-jre"
-junit-jupiter-engine = "5.11.1"
 smithy = "1.55.0"
 smithy-plugin = "1.2.0"
 kotlin = "2.0.21"
-detekt = "1.23.4"
+spotless = "7.2.1"
+jreleaser = "1.20.0"
+dokka = "2.0.0"
 
 [libraries]
-commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-engine" }
 smithy-codegen-core = { module = "software.amazon.smithy:smithy-codegen-core", version.ref = "smithy" }
 smithy-model = { module = "software.amazon.smithy:smithy-model", version.ref = "smithy" }
 smithy-protocol-traits = { module = "software.amazon.smithy:smithy-protocol-traits", version.ref = "smithy" }
 smithy-aws-traits = { module = "software.amazon.smithy:smithy-aws-traits", version.ref = "smithy" }
-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 smithy-base = { id = "software.amazon.smithy.gradle.smithy-base", version.ref = "smithy-plugin"}
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser"}
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

@@ -1,60 +1,76 @@
-// In your root build.gradle.kts file
+import org.jreleaser.model.Active
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.detekt)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.jreleaser)
 }
 
-val detektV = libs.versions.detekt.get()
-val detektFormatter = libs.detekt.formatting
+spotless {
+    kotlin {
+        // Being specific w/ the `src` dir here as otherwise `spotless` starts breaking
+        // for `client-codegen-test`. Essentially `spotless` starts looking at files
+        // produced by `smithyBuild` & then gradle complains that there is an implicit
+        // dependency. Can be fixed in other-ways, but this is good enough for now.
+        target("**/src/**/*.kt")
+        // FIXME We should be able to do this .editorconfig as well, but it doesn't seem to be
+        // working...
+        ktlint().editorConfigOverride(
+            mapOf(
+                "ktlint_standard_package-name" to "disabled",
+                "ktlint_standard_no-wildcard-imports" to "disabled",
+            ),
+        )
+    }
+}
 
 allprojects {
+    group = "in.juspay.smithy.haskell"
     repositories {
         mavenCentral()
         google()
         gradlePluginPortal()
     }
+}
 
-    apply(plugin = "io.gitlab.arturbosch.detekt")
+jreleaser {
+    dryrun = false
 
-    detekt {
-        toolVersion = detektV
-        config.setFrom(files("$rootDir/detekt.yml"))
-        buildUponDefaultConfig = true // Adds default rules to your custom config
-        autoCorrect = true
-        parallel = true
-    }
-
-    dependencies {
-        detektPlugins(detektFormatter)
-    }
-
-    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-        config.setFrom(files("$rootDir/detekt.yml"))
-        reports {
-            html.required.set(false)
-            xml.required.set(false)
-            txt.required.set(false)
-            sarif.required.set(false)
+    // Used for creating a tagged release, uploading files and generating changelog.
+    // In the future we can set this up to push release tags to GitHub, but for now it's
+    // set up to do nothing.
+    // https://jreleaser.org/guide/latest/reference/release/index.html
+    release {
+        generic {
+            enabled = true
+            skipRelease = true
         }
-        // Ignoring errors as this will fail the build command.
-        ignoreFailures = true
     }
 
-    // Use this if you want to fail on errors.
-    tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektLint") {
-        setSource(files("src/main/kotlin", "src/test/kotlin"))
-        config.setFrom(files("$rootDir/detekt.yml"))
-        debug = false
-        ignoreFailures = false
-        reports {
-            html.required.set(false)
-            xml.required.set(false)
-            txt.required.set(false)
-            sarif.required.set(false)
+    announce {
+        active = Active.NEVER
+    }
+
+    signing {
+        active = Active.ALWAYS
+        armored = true
+    }
+
+    deploy {
+        maven {
+            mavenCentral {
+                create("maven-central") {
+                    active = Active.ALWAYS
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    snapshotSupported = true
+                    stagingRepository(
+                        rootProject.layout.buildDirectory
+                            .dir("m2")
+                            .get()
+                            .asFile.path,
+                    )
+                }
+            }
         }
-        include("**/*.kt")
-        include("**/*.kts")
-        exclude("resources/")
-        exclude("build/")
     }
 }

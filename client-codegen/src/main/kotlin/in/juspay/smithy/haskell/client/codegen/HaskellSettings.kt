@@ -12,11 +12,13 @@ data class HaskellSettings(
     companion object {
         fun fromNode(settings: ObjectNode): HaskellSettings {
             val builder = HaskellSettingsBuilder()
-            settings.expectStringMember("service", {
-                    id ->
-                builder.serviceShapeId = ShapeId.from(id)
-            })
-                .expectStringMember("packageName") { pname -> builder.packageName = pname }
+            settings
+                .expectStringMember("service", { id ->
+                    builder.serviceShapeId = ShapeId.from(id)
+                })
+                .expectStringMember("packageName") { pname ->
+                    builder.packageName = pname
+                }
                 .expectStringMember("edition") { e -> builder.edition = e }
                 .expectStringMember("version") { e -> builder.version = e }
 
@@ -24,7 +26,7 @@ data class HaskellSettings(
                 builder.serviceShapeId!!,
                 builder.packageName!!,
                 builder.edition!!,
-                builder.version!!
+                builder.version!!,
             )
         }
     }
@@ -34,5 +36,5 @@ private data class HaskellSettingsBuilder(
     var serviceShapeId: ShapeId? = null,
     var packageName: String? = null,
     var edition: String? = null,
-    var version: String? = null
+    var version: String? = null,
 )

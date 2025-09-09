@@ -10,15 +10,18 @@ import software.amazon.smithy.codegen.core.directed.CustomizeDirective
 class CabalGenerator(directive: CustomizeDirective<HaskellContext, HaskellSettings>) :
     Runnable {
     private val ctx = directive.context()
+
     override fun run() {
-        ctx.writerDelegator().useFileWriter("${ctx.settings.packageName}.cabal") { writer ->
+        ctx.writerDelegator().useFileWriter(
+            "${ctx.settings.packageName}.cabal",
+        ) { writer ->
             writer.putContext("dependencies", Runnable { dependencyWriter(writer) })
             // REVIEW Maybe we can use a list formatter for such cases.
             writer.putContext("publicModules", Runnable { moduleWriter(writer, PUBLIC) })
             if (HaskellWriter.MODULES.filter { it.value == PRIVATE }.isNotEmpty()) {
                 writer.putContext(
                     "privateModules",
-                    Runnable { moduleWriter(writer, PRIVATE) }
+                    Runnable { moduleWriter(writer, PRIVATE) },
                 )
             }
             writer.write(
@@ -48,18 +51,21 @@ class CabalGenerator(directive: CustomizeDirective<HaskellContext, HaskellSettin
                                         FlexibleInstances,
                                         TupleSections,
                                         UndecidableInstances
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }
 
     private fun dependencyWriter(writer: HaskellWriter) {
-        val base = SymbolDependency.builder()
-            .packageName("base")
-            .version(CodegenUtils.depRange("4.14", "4.19"))
-            .build()
-        val dependencies = (listOf(base) + ctx.writerDelegator().dependencies)
-            .distinctBy { Pair(it.packageName, it.version) }
+        val base =
+            SymbolDependency
+                .builder()
+                .packageName("base")
+                .version(CodegenUtils.depRange("4.14", "4.19"))
+                .build()
+        val dependencies =
+            (listOf(base) + ctx.writerDelegator().dependencies)
+                .distinctBy { Pair(it.packageName, it.version) }
         writer.writeList(dependencies) { writer.format("#D", it) }
     }
 

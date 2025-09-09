@@ -17,7 +17,7 @@ class ErrorGenerator<T : HaskellShapeDirective<StructureShape>> : Consumer<T> {
             directive.symbolProvider(),
             directive.context(),
             httpBindingIndex.getResponseCode(directive.shape()),
-            httpBindingIndex.getResponseBindings(directive.shape())
+            httpBindingIndex.getResponseBindings(directive.shape()),
         ).run()
     }
 }
