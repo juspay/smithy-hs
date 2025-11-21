@@ -81,7 +81,7 @@ createClient token = do
     Just uri -> pure $ Client.build $ do
       Client.setEndpointuri uri
       Client.setHttpmanager manager
-      Client.setToken token
+      Client.setBearerauth (Just $ Client.BearerAuth token)
 
 testClientCreation :: State -> HUnit.Test
 testClientCreation _ = HUnit.TestCase $ do

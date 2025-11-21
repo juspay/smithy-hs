@@ -7,6 +7,8 @@ use aws.protocols#restJson1
 @title("ExampleService")
 @restJson1
 @httpBearerAuth
+@httpBasicAuth
+@auth([httpBearerAuth, httpBasicAuth])
 service ExampleService {
     version: "2025-30-05"
     operations: [

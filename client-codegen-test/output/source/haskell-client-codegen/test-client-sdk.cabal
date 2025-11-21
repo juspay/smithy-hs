@@ -68,4 +68,5 @@ library
                         DefaultSignatures,
                         FlexibleInstances,
                         TupleSections,
-                        UndecidableInstances
+                        UndecidableInstances,
+                        ExistentialQuantification
