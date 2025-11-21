@@ -18,5 +18,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Run Gradle publish
         run: ./gradlew publish --info
+      # JReleaser 1.20.0 doesn't support Gradle configuration cache yet
+      # See: https://github.com/jreleaser/jreleaser/issues
       - name: Run JReleaser deploy
-        run: ./gradlew jreleaserDeploy --info
+        run: ./gradlew jreleaserDeploy --no-configuration-cache --info
