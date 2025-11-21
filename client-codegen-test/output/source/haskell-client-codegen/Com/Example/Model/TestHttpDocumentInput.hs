@@ -63,9 +63,9 @@ instance Com.Example.Utility.SerializeBody TestHttpDocumentInput
 
 instance Data.Aeson.FromJSON TestHttpDocumentInput where
     parseJSON = Data.Aeson.withObject "TestHttpDocumentInput" $ \v -> TestHttpDocumentInput
-        Data.Functor.<$> (v Data.Aeson..: "payload")
-        Control.Applicative.<*> (v Data.Aeson..: "customization")
-        Control.Applicative.<*> (v Data.Aeson..: "time"
+        Data.Functor.<$> (v Data.Aeson..:? "payload")
+        Control.Applicative.<*> (v Data.Aeson..:? "customization")
+        Control.Applicative.<*> (v Data.Aeson..:? "time"
              >>= \t -> t
                             Data.Functor.<&> Data.Text.Encoding.encodeUtf8
                             Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
@@ -74,8 +74,8 @@ instance Data.Aeson.FromJSON TestHttpDocumentInput where
             
             )
         Control.Applicative.<*> (v Data.Aeson..: "identifier")
-        Control.Applicative.<*> (v Data.Aeson..: "stringHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "prefixHeaders")
+        Control.Applicative.<*> (v Data.Aeson..:? "stringHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefixHeaders")
     
 
 

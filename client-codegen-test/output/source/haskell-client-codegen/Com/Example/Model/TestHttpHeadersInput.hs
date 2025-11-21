@@ -71,11 +71,11 @@ instance Com.Example.Utility.SerializeBody TestHttpHeadersInput
 
 instance Data.Aeson.FromJSON TestHttpHeadersInput where
     parseJSON = Data.Aeson.withObject "TestHttpHeadersInput" $ \v -> TestHttpHeadersInput
-        Data.Functor.<$> (v Data.Aeson..: "intHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "stringHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "boolHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "listHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "time"
+        Data.Functor.<$> (v Data.Aeson..:? "intHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "stringHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "boolHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "listHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "time"
              >>= \t -> t
                             Data.Functor.<&> Data.Text.Encoding.encodeUtf8
                             Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
@@ -83,9 +83,9 @@ instance Data.Aeson.FromJSON TestHttpHeadersInput where
                             Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
             
             )
-        Control.Applicative.<*> (v Data.Aeson..: "utc")
-        Control.Applicative.<*> (v Data.Aeson..: "posix")
-        Control.Applicative.<*> (v Data.Aeson..: "prefixHeaders")
+        Control.Applicative.<*> (v Data.Aeson..:? "utc")
+        Control.Applicative.<*> (v Data.Aeson..:? "posix")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefixHeaders")
     
 
 

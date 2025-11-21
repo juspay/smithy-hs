@@ -33,7 +33,10 @@ class StructureDeserializerGenerator(
                     }
                     val ms = directive.symbolProvider().toSymbol(member)
                     val isHDate = ms.isOrWrapped(Http.HTTPDate)
-                    writer.writeInline("(v #{aeson:N}..: ${member.jsonName.dq}")
+                    // Have to use ".:?" for optional fields:
+                    // https://hackage.haskell.org/package/aeson-2.2.3.0/docs/Data-Aeson.html#v:.:
+                    val op = if (ms.isMaybe()) ".:?" else ".:"
+                    writer.writeInline("(v #{aeson:N}.$op ${member.jsonName.dq}")
                     if (isHDate) {
                         val err = "Failed to parse $symbol.$ms as ${Http.HTTPDate}"
                         val chainFn = if (ms.isMaybe()) {

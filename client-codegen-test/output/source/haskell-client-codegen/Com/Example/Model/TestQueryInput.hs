@@ -71,13 +71,13 @@ instance Com.Example.Utility.SerializeBody TestQueryInput
 
 instance Data.Aeson.FromJSON TestQueryInput where
     parseJSON = Data.Aeson.withObject "TestQueryInput" $ \v -> TestQueryInput
-        Data.Functor.<$> (v Data.Aeson..: "page")
-        Control.Applicative.<*> (v Data.Aeson..: "coffeeType")
-        Control.Applicative.<*> (v Data.Aeson..: "enabled")
-        Control.Applicative.<*> (v Data.Aeson..: "tags")
-        Control.Applicative.<*> (v Data.Aeson..: "utc")
-        Control.Applicative.<*> (v Data.Aeson..: "posixTs")
-        Control.Applicative.<*> (v Data.Aeson..: "time"
+        Data.Functor.<$> (v Data.Aeson..:? "page")
+        Control.Applicative.<*> (v Data.Aeson..:? "coffeeType")
+        Control.Applicative.<*> (v Data.Aeson..:? "enabled")
+        Control.Applicative.<*> (v Data.Aeson..:? "tags")
+        Control.Applicative.<*> (v Data.Aeson..:? "utc")
+        Control.Applicative.<*> (v Data.Aeson..:? "posixTs")
+        Control.Applicative.<*> (v Data.Aeson..:? "time"
              >>= \t -> t
                             Data.Functor.<&> Data.Text.Encoding.encodeUtf8
                             Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
@@ -85,7 +85,7 @@ instance Data.Aeson.FromJSON TestQueryInput where
                             Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
             
             )
-        Control.Applicative.<*> (v Data.Aeson..: "mapQueryParams")
+        Control.Applicative.<*> (v Data.Aeson..:? "mapQueryParams")
     
 
 

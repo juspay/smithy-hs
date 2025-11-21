@@ -35,7 +35,7 @@ instance Com.Example.Utility.SerializeBody InternalServerError
 
 instance Data.Aeson.FromJSON InternalServerError where
     parseJSON = Data.Aeson.withObject "InternalServerError" $ \v -> InternalServerError
-        Data.Functor.<$> (v Data.Aeson..: "message")
+        Data.Functor.<$> (v Data.Aeson..:? "message")
     
 
 

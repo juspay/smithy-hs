@@ -76,10 +76,10 @@ instance Com.Example.Utility.SerializeBody TestHttpPayloadDeserializationOutput
 
 instance Data.Aeson.FromJSON TestHttpPayloadDeserializationOutput where
     parseJSON = Data.Aeson.withObject "TestHttpPayloadDeserializationOutput" $ \v -> TestHttpPayloadDeserializationOutput
-        Data.Functor.<$> (v Data.Aeson..: "outputHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "outputHeaderInt")
-        Control.Applicative.<*> (v Data.Aeson..: "outputHeaderBool")
-        Control.Applicative.<*> (v Data.Aeson..: "time"
+        Data.Functor.<$> (v Data.Aeson..:? "outputHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputHeaderInt")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputHeaderBool")
+        Control.Applicative.<*> (v Data.Aeson..:? "time"
              >>= \t -> t
                             Data.Functor.<&> Data.Text.Encoding.encodeUtf8
                             Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
@@ -87,11 +87,11 @@ instance Data.Aeson.FromJSON TestHttpPayloadDeserializationOutput where
                             Data.Function.& Data.Maybe.maybe (pure Data.Maybe.Nothing) pure
             
             )
-        Control.Applicative.<*> (v Data.Aeson..: "utcHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "posixHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "outputHeaderList")
-        Control.Applicative.<*> (v Data.Aeson..: "outputPrefixHeaders")
-        Control.Applicative.<*> (v Data.Aeson..: "item")
+        Control.Applicative.<*> (v Data.Aeson..:? "utcHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "posixHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputHeaderList")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputPrefixHeaders")
+        Control.Applicative.<*> (v Data.Aeson..:? "item")
     
 
 

@@ -53,8 +53,8 @@ instance Data.Aeson.FromJSON TestHttpPayloadInput where
     parseJSON = Data.Aeson.withObject "TestHttpPayloadInput" $ \v -> TestHttpPayloadInput
         Data.Functor.<$> (v Data.Aeson..: "payload")
         Control.Applicative.<*> (v Data.Aeson..: "identifier")
-        Control.Applicative.<*> (v Data.Aeson..: "stringHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "prefixHeaders")
+        Control.Applicative.<*> (v Data.Aeson..:? "stringHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "prefixHeaders")
     
 
 
