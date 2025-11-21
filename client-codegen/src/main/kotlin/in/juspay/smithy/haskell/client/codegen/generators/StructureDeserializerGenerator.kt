@@ -16,12 +16,14 @@ class StructureDeserializerGenerator(
         writer.putContext("hdate", Http.HTTPDate)
         writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {
             if (members.isEmpty()) {
-                writer.write("parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\_ -> pure $ $structName")
+                writer.write(
+                    "parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\_ -> pure $ $structName",
+                )
                 return@openBlock
             }
             writer.openBlock(
                 "parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\v -> $structName",
-                ""
+                "",
             ) {
                 for ((i, member) in members.withIndex()) {
                     if (i == 0) {

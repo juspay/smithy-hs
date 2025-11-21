@@ -22,7 +22,7 @@ class IntoRequestBuilderGenerator(
     private val context: HaskellContext,
     private val httpTrait: HttpTrait,
     private val contentType: String?,
-    private val httpBindings: Map<String, HttpBinding>
+    private val httpBindings: Map<String, HttpBinding>,
 ) {
     private val symbol = symbolProvider.toSymbol(shape)
     private val name = symbol.name
@@ -48,14 +48,17 @@ class IntoRequestBuilderGenerator(
                         #{setQuery:C|}
                         #{setHeaders:C|}
                         #{setPayload:C|}
-                """.trimIndent()
+                """.trimIndent(),
             )
             writer.popState()
         }
     }
 
     private fun getBindings(location: Location): Map<String, HttpBinding> =
-        httpBindings.filter { it.value.location == location }
+        httpBindings.filter {
+            it.value.location ==
+                location
+        }
 
     private fun setPath(writer: HaskellWriter) {
         writer.openBlock("#{utility:N}.setPath [", "    ]") {
@@ -64,7 +67,9 @@ class IntoRequestBuilderGenerator(
                 if (useg.isLiteral) {
                     writer.format(useg.content.dq)
                 } else {
-                    writer.format("#{utility:N}.serializeElement (${fieldMap[useg.content]} self)")
+                    writer.format(
+                        "#{utility:N}.serializeElement (${fieldMap[useg.content]} self)",
+                    )
                 }
             }
         }
@@ -73,21 +78,27 @@ class IntoRequestBuilderGenerator(
     private fun setQuery(writer: HaskellWriter) {
         // Query literals are lower in priority order than input.
         httpTrait.uri.queryLiterals.forEach {
-            writer.write("#{utility:N}.serQuery ${it.key.dq} (${it.value.dq} :: #{text:T})")
+            writer.write(
+                "#{utility:N}.serQuery ${it.key.dq} (${it.value.dq} :: #{text:T})",
+            )
         }
         getBindings(Location.QUERY_PARAMS).forEach { (memberName, _) ->
             writer.write("#{utility:N}.serQueryMap (${fieldMap[memberName]} self)")
         }
         getBindings(Location.QUERY).forEach { (memberName, binding) ->
             val queryName = (binding.bindingTrait.get() as HttpQueryTrait).value.dq
-            writer.write("#{utility:N}.serQuery $queryName (${fieldMap[memberName]} self)")
+            writer.write(
+                "#{utility:N}.serQuery $queryName (${fieldMap[memberName]} self)",
+            )
         }
     }
 
     private fun setHeaders(writer: HaskellWriter) {
         getBindings(Location.PREFIX_HEADERS).forEach { (memberName, binding) ->
             val prefix = (binding.bindingTrait.get() as HttpPrefixHeadersTrait).value.dq
-            writer.write("#{utility:N}.serHeaderMap $prefix (${fieldMap[memberName]} self)")
+            writer.write(
+                "#{utility:N}.serHeaderMap $prefix (${fieldMap[memberName]} self)",
+            )
         }
         getBindings(Location.HEADER).forEach { (memberName, binding) ->
             val header = (binding.bindingTrait.get() as HttpHeaderTrait).value.dq
@@ -101,11 +112,15 @@ class IntoRequestBuilderGenerator(
         if (payloadBinding.isNotEmpty()) {
             assert(payloadBinding.size == 1 && documentBindings.isEmpty()) // OK
             val (memberName, _) = payloadBinding.entries.first()
-            writer.write("#{utility:N}.serBody ${contentType!!.dq} (${fieldMap[memberName]} self)")
+            writer.write(
+                "#{utility:N}.serBody ${contentType!!.dq} (${fieldMap[memberName]} self)",
+            )
         } else {
             documentBindings.forEach { (memberName, binding) ->
                 val fieldName = binding.jsonName.dq
-                writer.write("#{utility:N}.serField $fieldName (${fieldMap[memberName]} self)")
+                writer.write(
+                    "#{utility:N}.serField $fieldName (${fieldMap[memberName]} self)",
+                )
             }
         }
     }

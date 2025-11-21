@@ -8,22 +8,23 @@ import software.amazon.smithy.codegen.core.Symbol
 class BuilderGenerator(
     val record: Record,
     val symbol: Symbol,
-    val writer: HaskellWriter
+    val writer: HaskellWriter,
 ) : Runnable {
     private data class BuilderStateMember(
         val name: String,
         val symbol: Symbol,
         val inputName: String,
-        val inputSymbol: Symbol
+        val inputSymbol: Symbol,
     )
 
     private val builderName = "${record.name}Builder"
     private val stateName = "${builderName}State"
-    private val builderStateMembers = record.fields.map {
-        val name = "${it.name}BuilderState"
-        val symbol = it.symbol.toMaybe()
-        return@map BuilderStateMember(name, symbol, it.name, it.symbol)
-    }
+    private val builderStateMembers =
+        record.fields.map {
+            val name = "${it.name}BuilderState"
+            val symbol = it.symbol.toMaybe()
+            return@map BuilderStateMember(name, symbol, it.name, it.symbol)
+        }
 
     override fun run() {
         writer.pushState()
@@ -37,30 +38,31 @@ class BuilderGenerator(
         writer.write(
             """
 
-           #{builderState:C}
+            #{builderState:C}
 
-           #{defaultBuilderState:C}
+            #{defaultBuilderState:C}
 
-           type $builderName = #{mtlState:T} $stateName
-           #{builderSetters:C}
+            type $builderName = #{mtlState:T} $stateName
+            #{builderSetters:C}
 
-           #{builderFunction:C}
-            """.trimIndent()
+            #{builderFunction:C}
+            """.trimIndent(),
         )
         writer.addExport(builderName)
         writer.popState()
     }
 
     private fun builderStateSection() {
-        val record = Record(
-            stateName,
-            builderStateMembers.map {
-                Record.Field(
-                    it.name,
-                    it.symbol
-                )
-            }
-        )
+        val record =
+            Record(
+                stateName,
+                builderStateMembers.map {
+                    Record.Field(
+                        it.name,
+                        it.symbol,
+                    )
+                },
+            )
         writer.writeRecord(record)
     }
 
@@ -87,12 +89,11 @@ class BuilderGenerator(
                 $fn value =
                    #{mtlModify:T} (\s -> (s { ${it.name} = #{^isMaybe}#{just:T} #{/isMaybe}value }))
                 """.trimIndent(),
-                it.inputSymbol
+                it.inputSymbol,
             )
         }
     }
 
-    @Suppress("MaxLineLength")
     private fun builderFunction() {
         val fn = "build"
         writer.addExport(fn)
@@ -106,7 +107,7 @@ class BuilderGenerator(
                     writer.write("$mn' <- #{right:T} (${it.name} st)")
                 } else {
                     writer.write(
-                        "$mn' <- Data.Maybe.maybe (#{left:T} $e) #{right:T} (${it.name} st)"
+                        "$mn' <- Data.Maybe.maybe (#{left:T} $e) #{right:T} (${it.name} st)",
                     )
                 }
             }

@@ -16,28 +16,15 @@ public data class HaskellContext(
     val integrations: List<HaskellIntegration>,
     val utilitySymbol: Symbol,
 ) : CodegenContext<HaskellSettings, HaskellWriter, HaskellIntegration> {
+    override fun model(): Model = model
 
-    override fun model(): Model {
-        return model
-    }
+    override fun settings(): HaskellSettings = settings
 
-    override fun settings(): HaskellSettings {
-        return settings
-    }
+    override fun symbolProvider(): SymbolProvider = symbolProvider
 
-    override fun symbolProvider(): SymbolProvider {
-        return symbolProvider
-    }
+    override fun fileManifest(): FileManifest = fileManifest
 
-    override fun fileManifest(): FileManifest {
-        return fileManifest
-    }
+    override fun writerDelegator(): WriterDelegator<HaskellWriter> = writerDelegator
 
-    override fun writerDelegator(): WriterDelegator<HaskellWriter> {
-        return writerDelegator
-    }
-
-    override fun integrations(): List<HaskellIntegration> {
-        return integrations
-    }
+    override fun integrations(): List<HaskellIntegration> = integrations
 }

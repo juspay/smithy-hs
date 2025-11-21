@@ -17,11 +17,8 @@ import java.util.function.Consumer
 class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSettings>> :
     Consumer<T> {
     companion object {
-        private fun getConstructorName(
-            member: MemberShape
-        ): String {
-            return CaseUtils.toPascalCase(member.fieldName)
-        }
+        private fun getConstructorName(member: MemberShape): String =
+            CaseUtils.toPascalCase(member.fieldName)
     }
 
     override fun accept(directive: T) {
@@ -47,21 +44,29 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
                     generateConstructor(
                         writer,
                         directive.symbolProvider(),
-                        union
+                        union,
                     )
-                }
+                },
             )
             writer.putContext(
                 "serializer",
-                Runnable { generateSerializer(writer, union, directive.symbol()) }
+                Runnable { generateSerializer(writer, union, directive.symbol()) },
             )
             writer.putContext(
                 "derives",
-                Runnable { writer.writeDerives(listOf(HaskellSymbol.Generic, HaskellSymbol.Show, HaskellSymbol.Eq)) }
+                Runnable {
+                    writer.writeDerives(
+                        listOf(
+                            HaskellSymbol.Generic,
+                            HaskellSymbol.Show,
+                            HaskellSymbol.Eq,
+                        ),
+                    )
+                },
             )
             writer.putContext(
                 "deserializer",
-                Runnable { generateDeserializer(writer, union, directive.symbol()) }
+                Runnable { generateDeserializer(writer, union, directive.symbol()) },
             )
             writer.write(template)
             writer.popState()
@@ -73,7 +78,7 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
     private fun generateConstructor(
         writer: HaskellWriter,
         symbolProvider: SymbolProvider,
-        shape: UnionShape
+        shape: UnionShape,
     ) {
         for ((i, member) in shape.members().withIndex()) {
             val memberSymbol = symbolProvider.toSymbol(member)
@@ -85,16 +90,14 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
         }
     }
 
-    private fun generateSerializer(
-        writer: HaskellWriter,
-        shape: Shape,
-        symbol: Symbol,
-    ) {
+    private fun generateSerializer(writer: HaskellWriter, shape: Shape, symbol: Symbol) {
         writer.openBlock("instance #{aeson:N}.ToJSON ${symbol.name} where", "") {
             for (member in shape.members()) {
                 val jsonName = member.jsonName
                 val constructor = getConstructorName(member)
-                writer.write("toJSON ($constructor a) = #{aeson:N}.object [ ${jsonName.dq} #{aeson:N}..= a ]")
+                writer.write(
+                    "toJSON ($constructor a) = #{aeson:N}.object [ ${jsonName.dq} #{aeson:N}..= a ]",
+                )
             }
         }
         writer.write("instance #{utility:N}.SerializeBody ${symbol.name}")
@@ -113,13 +116,13 @@ class UnionGenerator<T : ShapeDirective<UnionShape, HaskellContext, HaskellSetti
         writer.openBlock("instance #{aeson:N}.FromJSON $structName where", "") {
             writer.openBlock(
                 "parseJSON = #{aeson:N}.withObject ${structName.dq} $ \\v ->",
-                ""
+                "",
             ) {
                 for (member in shape.members()) {
                     val constructor = getConstructorName(member)
                     val jsonName = member.jsonName.dq
                     writer.write(
-                        "($constructor #{functor:N}.<$> v #{aeson:N}..: $jsonName) #{alternative:N}.<|>"
+                        "($constructor #{functor:N}.<$> v #{aeson:N}..: $jsonName) #{alternative:N}.<|>",
                     )
                 }
                 writer.write("fail $errMsg")

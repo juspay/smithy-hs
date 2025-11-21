@@ -10,12 +10,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
 @Suppress("TooManyFunctions")
-class HaskellWriter(
-    val fileName: String,
-    val modName: String
-) : SymbolWriter<HaskellWriter, HaskellImportContainer>(
-    HaskellImportContainer(modName)
-) {
+class HaskellWriter(val fileName: String, val modName: String) :
+    SymbolWriter<HaskellWriter, HaskellImportContainer>(
+        HaskellImportContainer(modName),
+    ) {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val exports: MutableList<String> = ArrayList()
     private val isSourceFile = fileName.endsWith(".hs")
@@ -75,13 +73,40 @@ class HaskellWriter(
         putContext("text", HaskellSymbol.Text)
         putContext(
             "textenc",
-            HaskellSymbol.Text.toBuilder().name("INVALID")
-                .namespace("Data.Text.Encoding", ".").build()
+            HaskellSymbol.Text
+                .toBuilder()
+                .name("INVALID")
+                .namespace("Data.Text.Encoding", ".")
+                .build(),
         )
-        putContext("just", HaskellSymbol.Maybe.toBuilder().name("Just").build())
-        putContext("nothing", HaskellSymbol.Maybe.toBuilder().name("Nothing").build())
-        putContext("right", HaskellSymbol.Either.toBuilder().name("Right").build())
-        putContext("left", HaskellSymbol.Either.toBuilder().name("Left").build())
+        putContext(
+            "just",
+            HaskellSymbol.Maybe
+                .toBuilder()
+                .name("Just")
+                .build(),
+        )
+        putContext(
+            "nothing",
+            HaskellSymbol.Maybe
+                .toBuilder()
+                .name("Nothing")
+                .build(),
+        )
+        putContext(
+            "right",
+            HaskellSymbol.Either
+                .toBuilder()
+                .name("Right")
+                .build(),
+        )
+        putContext(
+            "left",
+            HaskellSymbol.Either
+                .toBuilder()
+                .name("Left")
+                .build(),
+        )
         putContext("manager", HaskellSymbol.Http.Manager)
         putContext("list", HaskellSymbol.List)
         putContext("map", HaskellSymbol.Map)
@@ -134,14 +159,15 @@ class HaskellWriter(
         return when (sym.references.size) {
             0 -> listOf(sym.relativize(modName))
             else -> {
-                val refs = sym.references.map {
-                    var rendered = renderSymbol(it.symbol)
-                    if (rendered.size > 1) {
-                        return@map "(" + rendered.joinToString(" ") + ")"
-                    } else {
-                        return@map rendered.joinToString(" ")
+                val refs =
+                    sym.references.map {
+                        var rendered = renderSymbol(it.symbol)
+                        if (rendered.size > 1) {
+                            return@map "(" + rendered.joinToString(" ") + ")"
+                        } else {
+                            return@map rendered.joinToString(" ")
+                        }
                     }
-                }
                 listOf(sym.relativize(modName)) + refs
             }
         }
@@ -174,20 +200,21 @@ class HaskellWriter(
     fun newCallChain(
         template: String,
         chainFn: Symbol = HaskellSymbol.And,
-        vararg args: Any
+        vararg args: Any,
     ): CallChain {
-        val chainHead = if (args.isEmpty()) {
-            format(template)
-        } else {
-            format(template, args)
-        }
+        val chainHead =
+            if (args.isEmpty()) {
+                format(template)
+            } else {
+                format(template, args)
+            }
         return CallChain(chainHead, indentLevel + 1, chainFn)
     }
 
     inner class CallChain(
         private val chainHead: String,
         private val indentLevel: Int,
-        private var chainFn: Symbol
+        private var chainFn: Symbol,
     ) {
         private val buf: MutableList<String> = mutableListOf(chainHead)
         private var closed = false
@@ -239,9 +266,8 @@ class HaskellWriter(
     }
 
     class Factory(val settings: HaskellSettings) : SymbolWriter.Factory<HaskellWriter> {
-        override fun apply(fileName: String, modName: String): HaskellWriter {
-            return HaskellWriter(fileName, modName)
-        }
+        override fun apply(fileName: String, modName: String): HaskellWriter =
+            HaskellWriter(fileName, modName)
     }
 
     companion object {

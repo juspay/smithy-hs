@@ -14,9 +14,8 @@ import kotlin.jvm.optionals.getOrNull
 // TODO
 // Handle sparse lists.
 
-fun <T : Shape> T.toSymbolBuilder(): Symbol.Builder {
-    return Symbol.builder().name(this.toShapeId().name)
-}
+fun <T : Shape> T.toSymbolBuilder(): Symbol.Builder =
+    Symbol.builder().name(this.toShapeId().name)
 
 private fun Symbol.Builder.projectNamespace(namespace: String): Symbol.Builder {
     val path = namespace.replace(".", "/") + ".hs"
@@ -31,8 +30,9 @@ private fun <T : Trait> Shape.findTraitOrNull(id: ShapeId): T? =
 class HaskellSymbolProvider(
     private val model: Model,
     private val service: ServiceShape,
-    namespace: String
-) : SymbolProvider, ShapeVisitor<Symbol> {
+    namespace: String,
+) : SymbolProvider,
+    ShapeVisitor<Symbol> {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
     private val namespace: String = CodegenUtils.toModName(namespace)
 
@@ -80,66 +80,52 @@ class HaskellSymbolProvider(
         }
     }
 
-    override fun booleanShape(shape: BooleanShape): Symbol {
-        return Symbol.builder().name("Bool")
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
-    }
+    override fun booleanShape(shape: BooleanShape): Symbol = Symbol.builder().name("Bool")
+        .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
 
-    override fun integerShape(shape: IntegerShape): Symbol {
-        return Symbol.builder().name("Int32").namespace("Data.Int", ".").build()
-    }
+    override fun integerShape(shape: IntegerShape): Symbol =
+        Symbol.builder().name("Int32").namespace("Data.Int", ".").build()
 
-    override fun stringShape(shape: StringShape): Symbol {
-        return HaskellSymbol.Text
-    }
+    override fun stringShape(shape: StringShape): Symbol = HaskellSymbol.Text
 
-    override fun doubleShape(shape: DoubleShape): Symbol {
-        return Symbol.builder().name("Double")
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
-    }
+    override fun doubleShape(shape: DoubleShape): Symbol = Symbol.builder().name("Double")
+        .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
 
-    override fun floatShape(shape: FloatShape?): Symbol {
-        return Symbol.builder().name("Float")
-            .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
-    }
+    override fun floatShape(shape: FloatShape?): Symbol = Symbol.builder().name("Float")
+        .putProperty(SymbolProperties.IS_PRIMITIVE, true).build()
 
-    override fun longShape(shape: LongShape): Symbol {
-        return Symbol.builder().name("Int64").namespace("Data.Int", ".")
+    override fun longShape(shape: LongShape): Symbol =
+        Symbol.builder().name("Int64").namespace("Data.Int", ".")
             .putProperty(SymbolProperties.IS_PRIMITIVE, false).build()
-    }
 
-    override fun shortShape(shape: ShortShape?): Symbol {
-        return Symbol.builder().name("Int16").namespace("Data.Int", ".")
+    override fun shortShape(shape: ShortShape?): Symbol =
+        Symbol.builder().name("Int16").namespace("Data.Int", ".")
             .putProperty(SymbolProperties.IS_PRIMITIVE, false).build()
-    }
 
-    override fun byteShape(shape: ByteShape?): Symbol {
-        return Symbol.builder().name("Int8").namespace("Data.Int", ".")
+    override fun byteShape(shape: ByteShape?): Symbol =
+        Symbol.builder().name("Int8").namespace("Data.Int", ".")
             .putProperty(SymbolProperties.IS_PRIMITIVE, false).build()
-    }
 
     override fun bigDecimalShape(shape: BigDecimalShape?): Symbol {
         // TODO Add via `decimal` package.
         error("BigDecimalShape is not supported")
     }
 
-    override fun bigIntegerShape(shape: BigIntegerShape?): Symbol {
-        return Symbol.builder().name("Integer").namespace("Prelude", ".")
+    override fun bigIntegerShape(shape: BigIntegerShape?): Symbol =
+        Symbol.builder().name("Integer").namespace("Prelude", ".")
             .putProperty(SymbolProperties.IS_PRIMITIVE, false).build()
-    }
 
-    override fun timestampShape(shape: TimestampShape): Symbol {
-        return timestampShape(shape, null)
-    }
+    override fun timestampShape(shape: TimestampShape): Symbol =
+        timestampShape(shape, null)
 
     private fun timestampShape(
         shape: TimestampShape,
-        memberTrait: TimestampFormatTrait?
+        memberTrait: TimestampFormatTrait?,
     ): Symbol {
         val defaultTrait = TimestampFormatTrait(TimestampFormatTrait.EPOCH_SECONDS)
         val trait = memberTrait ?: (
             shape.findTraitOrNull<TimestampFormatTrait>(
-                TimestampFormatTrait.ID
+                TimestampFormatTrait.ID,
             ) ?: defaultTrait
             )
 
@@ -150,19 +136,14 @@ class HaskellSymbolProvider(
         }
     }
 
-    override fun documentShape(shape: DocumentShape): Symbol {
-        return HaskellSymbol.Value
-    }
+    override fun documentShape(shape: DocumentShape): Symbol = HaskellSymbol.Value
 
-    override fun mapShape(shape: MapShape): Symbol {
-        return Symbol.builder().name("Map").namespace("Data.Map", ".")
+    override fun mapShape(shape: MapShape): Symbol =
+        Symbol.builder().name("Map").namespace("Data.Map", ".")
             .addReference(shape.key.accept(this)).addReference(shape.value.accept(this))
             .build()
-    }
 
-    override fun blobShape(shape: BlobShape): Symbol {
-        return HaskellSymbol.ByteString
-    }
+    override fun blobShape(shape: BlobShape): Symbol = HaskellSymbol.ByteString
 
     override fun serviceShape(shape: ServiceShape): Symbol {
         val name = "${shape.id.name}Client"
@@ -198,8 +179,7 @@ class HaskellSymbolProvider(
             .projectNamespace("$namespace.Model.$name").build()
     }
 
-    override fun listShape(shape: ListShape): Symbol {
-        return Symbol.builder().putProperty(SymbolProperties.IS_PRIMITIVE, false)
+    override fun listShape(shape: ListShape): Symbol =
+        Symbol.builder().putProperty(SymbolProperties.IS_PRIMITIVE, false)
             .name("[]").addReference(shape.member.accept(this)).build()
-    }
 }

@@ -14,7 +14,7 @@ import kotlin.jvm.optionals.getOrNull
 
 @Suppress("MaxLineLength")
 class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
-    private val directive: T
+    private val directive: T,
 ) {
     private val opSymbol = directive.symbol()
     private val opShape = directive.shape()
@@ -37,7 +37,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
 
     private val client = ClientRecord(
         service,
-        directive.symbolProvider()
+        directive.symbolProvider(),
     )
     private val httpTrait = opShape.getTrait(HttpTrait::class.java).orElse(null)
 
@@ -68,11 +68,13 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             writer.putContext("utility", directive.context().utilitySymbol)
             writer.putContext(
                 "httpMetadata",
-                directive.context().utilitySymbol.toBuilder().name("HttpMetadata").build()
+                directive.context().utilitySymbol.toBuilder().name(
+                    "HttpMetadata",
+                ).build(),
             )
             writer.putContext(
                 "operationError",
-                OperationErrorGenerator(writer)
+                OperationErrorGenerator(writer),
             )
             writer.write(template)
             writer.addExport(functionName)
@@ -86,20 +88,18 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             httpTrait,
             httpBindingIndex.determineRequestContentType(opShape, "application/json")
                 .getOrNull(),
-            httpBindingIndex.getRequestBindings(opShape)
+            httpBindingIndex.getRequestBindings(opShape),
         ).run()
         FromResponseParserGenerator(
             model.expectShape(opShape.outputShape),
             symbolProvider,
             directive.context(),
             httpTrait.code,
-            httpBindingIndex.getResponseBindings(opShape)
+            httpBindingIndex.getResponseBindings(opShape),
         ).run()
     }
 
-    inner class OperationErrorGenerator(
-        val writer: HaskellWriter
-    ) : Runnable {
+    inner class OperationErrorGenerator(val writer: HaskellWriter) : Runnable {
         private val operationErrorName = "${opSymbol.name}Error"
 
         override fun run() {
@@ -116,7 +116,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                     mkUnexpectedError = UnexpectedError
 
                     #{getErrorParser:C|}
-                """.trimIndent()
+                """.trimIndent(),
             )
             writer.popState()
             writer.addExport("$operationErrorName (..)")
@@ -130,10 +130,12 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                     }
                     writer.write(
                         "${errorShape.name} #T",
-                        symbolProvider.toSymbol(model.expectShape(errorShape))
+                        symbolProvider.toSymbol(model.expectShape(errorShape)),
                     )
                 }
-                writer.write("${if (opShape.errors.isNotEmpty()) "| " else ""}BuilderError #{text:T}")
+                writer.write(
+                    "${if (opShape.errors.isNotEmpty()) "| " else ""}BuilderError #{text:T}",
+                )
                 writer.write("| DeSerializationError #{httpMetadata:T} #{text:T}")
                 writer.write("| UnexpectedError (#{maybe:T} #{httpMetadata:T}) #{text:T}")
                 // FIXME Not a good way to scale things out. We should be able to use `EnumGenerator` here
@@ -141,7 +143,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                 writer.write(
                     "   deriving (#T, #T)",
                     HaskellSymbol.Generic,
-                    HaskellSymbol.Show
+                    HaskellSymbol.Show,
                 )
             }
         }
@@ -153,7 +155,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
                     writer.write(
                         "| status == (#{utility:N}.expectedStatus @#T) = Just (fmap ${it.name} (#{utility:N}.responseParser @#T))",
                         symbol,
-                        symbol
+                        symbol,
                     )
                 }
                 writer.write("| otherwise = Nothing")

@@ -1,5 +1,3 @@
-@file:Suppress("all")
-
 package `in`.juspay.smithy.haskell.client.codegen
 
 import `in`.juspay.smithy.haskell.client.codegen.CodegenUtils.toModName
@@ -11,37 +9,39 @@ import software.amazon.smithy.codegen.core.directed.*
 
 class DirectedCodegenImpl :
     DirectedCodegen<HaskellContext, HaskellSettings, HaskellIntegration> {
-
-    override fun customizeBeforeIntegrations(directive: CustomizeDirective<HaskellContext, HaskellSettings>) {
+    override fun customizeBeforeIntegrations(
+        directive: CustomizeDirective<HaskellContext, HaskellSettings>,
+    ) {
         super.customizeBeforeIntegrations(directive)
     }
 
     override fun createSymbolProvider(
-        directive: CreateSymbolProviderDirective<HaskellSettings>
-    ): SymbolProvider {
-        return HaskellSymbolProvider(
-            directive.model(),
-            directive.service(),
-            directive.service().id.namespace
-        )
-    }
+        directive: CreateSymbolProviderDirective<HaskellSettings>,
+    ): SymbolProvider = HaskellSymbolProvider(
+        directive.model(),
+        directive.service(),
+        directive.service().id.namespace,
+    )
 
     override fun createContext(
-        directive: CreateContextDirective<HaskellSettings, HaskellIntegration>
+        directive: CreateContextDirective<HaskellSettings, HaskellIntegration>,
     ): HaskellContext {
         val sp = directive.symbolProvider()
         val writerDelegator =
             WriterDelegator(
                 directive.fileManifest(),
                 sp,
-                HaskellWriter.Factory(directive.settings())
+                HaskellWriter.Factory(directive.settings()),
             )
 
         val serviceModule = toModName(directive.service().id.namespace)
-        val utilitySymbol = Symbol.builder().name("Utility")
-            .definitionFile(serviceModule.replace(".", "/") + "/Utility.hs")
-            .namespace("$serviceModule.Utility", ".")
-            .build()
+        val utilitySymbol =
+            Symbol
+                .builder()
+                .name("Utility")
+                .definitionFile(serviceModule.replace(".", "/") + "/Utility.hs")
+                .namespace("$serviceModule.Utility", ".")
+                .build()
 
         return HaskellContext(
             model = directive.model(),
@@ -50,53 +50,69 @@ class DirectedCodegenImpl :
             fileManifest = directive.fileManifest(),
             writerDelegator = writerDelegator,
             integrations = directive.integrations(),
-            utilitySymbol = utilitySymbol
+            utilitySymbol = utilitySymbol,
         )
     }
 
     override fun generateService(
-        directive: GenerateServiceDirective<HaskellContext, HaskellSettings>
+        directive: GenerateServiceDirective<HaskellContext, HaskellSettings>,
     ) {
-        ServiceGenerator<GenerateServiceDirective<HaskellContext, HaskellSettings>>().accept(
-            directive
-        )
+        ServiceGenerator<GenerateServiceDirective<HaskellContext, HaskellSettings>>()
+            .accept(
+                directive,
+            )
     }
 
     override fun generateStructure(
-        directive: GenerateStructureDirective<HaskellContext, HaskellSettings>
+        directive: GenerateStructureDirective<HaskellContext, HaskellSettings>,
     ) {
-        StructureGenerator<GenerateStructureDirective<HaskellContext, HaskellSettings>>(directive).run()
+        StructureGenerator<GenerateStructureDirective<HaskellContext, HaskellSettings>>(
+            directive,
+        ).run()
     }
 
-    override fun generateOperation(directive: GenerateOperationDirective<HaskellContext, HaskellSettings>) {
+    override fun generateOperation(
+        directive: GenerateOperationDirective<HaskellContext, HaskellSettings>,
+    ) {
         OperationGenerator(directive).run()
     }
 
     override fun generateEnumShape(
-        directive: GenerateEnumDirective<HaskellContext, HaskellSettings>
+        directive: GenerateEnumDirective<HaskellContext, HaskellSettings>,
     ) {
-        EnumGenerator<GenerateEnumDirective<HaskellContext, HaskellSettings>>().accept(directive)
+        EnumGenerator<GenerateEnumDirective<HaskellContext, HaskellSettings>>().accept(
+            directive,
+        )
     }
 
-    override fun generateError(directive: GenerateErrorDirective<HaskellContext, HaskellSettings>) {
-        ErrorGenerator<GenerateErrorDirective<HaskellContext, HaskellSettings>>().accept(directive)
+    override fun generateError(
+        directive: GenerateErrorDirective<HaskellContext, HaskellSettings>,
+    ) {
+        ErrorGenerator<GenerateErrorDirective<HaskellContext, HaskellSettings>>().accept(
+            directive,
+        )
     }
 
-    override fun generateUnion(directive: GenerateUnionDirective<HaskellContext, HaskellSettings>) {
-        UnionGenerator<GenerateUnionDirective<HaskellContext, HaskellSettings>>().accept(directive)
+    override fun generateUnion(
+        directive: GenerateUnionDirective<HaskellContext, HaskellSettings>,
+    ) {
+        UnionGenerator<GenerateUnionDirective<HaskellContext, HaskellSettings>>().accept(
+            directive,
+        )
     }
 
     override fun generateIntEnumShape(
-        directive: GenerateIntEnumDirective<HaskellContext, HaskellSettings>
+        directive: GenerateIntEnumDirective<HaskellContext, HaskellSettings>,
     ) {
-        IntEnumGenerator<GenerateIntEnumDirective<HaskellContext, HaskellSettings>>().accept(
-            directive
-        )
+        IntEnumGenerator<GenerateIntEnumDirective<HaskellContext, HaskellSettings>>()
+            .accept(
+                directive,
+            )
     }
 
     // This where we are supposed to generate things like dependency manifests and README.
     override fun customizeAfterIntegrations(
-        directive: CustomizeDirective<HaskellContext, HaskellSettings>
+        directive: CustomizeDirective<HaskellContext, HaskellSettings>,
     ) {
         super.customizeAfterIntegrations(directive)
         UtilityGenerator(directive).run()
