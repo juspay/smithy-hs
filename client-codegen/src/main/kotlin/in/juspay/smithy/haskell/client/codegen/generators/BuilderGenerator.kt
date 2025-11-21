@@ -9,6 +9,8 @@ class BuilderGenerator(
     val record: Record,
     val symbol: Symbol,
     val writer: HaskellWriter,
+    val skipFields: List<String>? = null,
+    val extraSetters: List<String>? = null,
 ) : Runnable {
     private data class BuilderStateMember(
         val name: String,
@@ -28,6 +30,7 @@ class BuilderGenerator(
 
     override fun run() {
         writer.pushState()
+        writer.putContext("builderName", builderName)
         writer.putContext("builderState", Runnable(::builderStateSection))
         writer.putContext("defaultBuilderState", Runnable(::defaultBuilderState))
         writer.putContext("builderSetters", Runnable(::builderSetters))
@@ -79,6 +82,9 @@ class BuilderGenerator(
     @Suppress("MaxLineLength")
     private fun builderSetters() {
         builderStateMembers.forEach {
+            if (skipFields?.contains(it.inputName) ?: false) {
+                return@forEach
+            }
             val fn = CodegenUtils.getSetterName(it.inputName)
             writer.addExport(fn)
             writer.putContext("isMaybe", it.inputSymbol.isMaybe())
@@ -92,6 +98,7 @@ class BuilderGenerator(
                 it.inputSymbol,
             )
         }
+        extraSetters?.forEach { writer.write(it) }
     }
 
     private fun builderFunction() {

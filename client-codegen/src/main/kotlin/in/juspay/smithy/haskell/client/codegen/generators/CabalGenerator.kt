@@ -50,7 +50,8 @@ class CabalGenerator(directive: CustomizeDirective<HaskellContext, HaskellSettin
                                         DefaultSignatures,
                                         FlexibleInstances,
                                         TupleSections,
-                                        UndecidableInstances
+                                        UndecidableInstances,
+                                        ExistentialQuantification
                 """.trimIndent(),
             )
         }

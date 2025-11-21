@@ -57,6 +57,10 @@ class HaskellWriter(val fileName: String, val modName: String) :
         exports.add(export)
     }
 
+    fun hideExport(export: String) {
+        exports.remove(export)
+    }
+
     override fun pushState(): HaskellWriter {
         super.pushState()
         putDefaultContext()

@@ -35,7 +35,6 @@ testHttpLabels :: Com.Example.ExampleServiceClient.ExampleServiceClient -> Com.E
 testHttpLabels client builder =
     let endpoint = Com.Example.ExampleServiceClient.endpointUri client
         manager = Com.Example.ExampleServiceClient.httpManager client
-        token = Com.Example.ExampleServiceClient.token client
-        setAuth = Com.Example.Utility.serHeader "Authorization" ("Bearer " <> token)
-    in Com.Example.Utility.runOperation endpoint manager setAuth (Com.Example.Model.TestHttpLabelsInput.build builder)
+        auth = Com.Example.ExampleServiceClient.getAuth client
+    in Com.Example.Utility.runOperation endpoint manager auth (Com.Example.Model.TestHttpLabelsInput.build builder)
 

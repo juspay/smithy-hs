@@ -38,6 +38,7 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
     private val client = ClientRecord(
         service,
         directive.symbolProvider(),
+        directive.context(),
     )
     private val httpTrait = opShape.getTrait(HttpTrait::class.java).orElse(null)
 
@@ -51,9 +52,8 @@ class OperationGenerator<T : HaskellShapeDirective<OperationShape>>(
             $functionName client builder =
                 let endpoint = #{client:N}.endpointUri client
                     manager = #{client:N}.httpManager client
-                    token = #{client:N}.token client
-                    setAuth = #{utility:N}.serHeader "Authorization" ("Bearer " <> token)
-                in #{utility:N}.runOperation endpoint manager setAuth (#{input:N}.build builder)
+                    auth = #{client:N}.getAuth client
+                in #{utility:N}.runOperation endpoint manager auth (#{input:N}.build builder)
             """.trimIndent()
             // TODO Delete un-used context.
             writer.pushState()

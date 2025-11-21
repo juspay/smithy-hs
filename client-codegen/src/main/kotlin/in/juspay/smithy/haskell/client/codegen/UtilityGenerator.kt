@@ -40,6 +40,9 @@ class UtilityGenerator(
                 writer.addExport("RawRequest (..)")
                 writer.addExport("RawResponse (..)")
                 writer.addExport("HttpMetadata (..)")
+                writer.addExport("DynAuth (..)")
+                writer.addExport("BasicAuth (..)")
+                writer.addExport("BearerAuth (..)")
                 writer.addExport("runOperation")
 
                 writer.addDependency(HaskellSymbol.Map)

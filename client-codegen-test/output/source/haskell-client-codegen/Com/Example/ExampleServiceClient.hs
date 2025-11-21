@@ -13,16 +13,22 @@ module Com.Example.ExampleServiceClient (
     Com.Example.Utility.HttpMetadata,
     Com.Example.Utility.rawRequest,
     Com.Example.Utility.rawResponse,
+    Com.Example.Utility.BearerAuth(..),
+    Com.Example.Utility.BasicAuth(..),
     endpointUri,
     httpManager,
-    token,
+    bearerAuth,
+    basicAuth,
     setEndpointuri,
     setHttpmanager,
-    setToken,
+    setBearerauth,
+    setBasicauth,
     build,
-    ExampleServiceClientBuilder
+    ExampleServiceClientBuilder,
+    getAuth
 ) where
 import qualified Com.Example.Utility
+import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
 import qualified Data.Either
 import qualified Data.Maybe
@@ -34,7 +40,8 @@ import qualified Network.URI
 data ExampleServiceClient = ExampleServiceClient {
     endpointUri :: Network.URI.URI,
     httpManager :: Network.HTTP.Client.Manager,
-    token :: Data.Text.Text
+    bearerAuth :: Data.Maybe.Maybe Com.Example.Utility.BearerAuth,
+    basicAuth :: Data.Maybe.Maybe Com.Example.Utility.BasicAuth
 } deriving (
   GHC.Generics.Generic
   )
@@ -42,7 +49,8 @@ data ExampleServiceClient = ExampleServiceClient {
 data ExampleServiceClientBuilderState = ExampleServiceClientBuilderState {
     endpointUriBuilderState :: Data.Maybe.Maybe Network.URI.URI,
     httpManagerBuilderState :: Data.Maybe.Maybe Network.HTTP.Client.Manager,
-    tokenBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    bearerAuthBuilderState :: Data.Maybe.Maybe Com.Example.Utility.BearerAuth,
+    basicAuthBuilderState :: Data.Maybe.Maybe Com.Example.Utility.BasicAuth
 } deriving (
   GHC.Generics.Generic
   )
@@ -51,7 +59,8 @@ defaultBuilderState :: ExampleServiceClientBuilderState
 defaultBuilderState = ExampleServiceClientBuilderState {
     endpointUriBuilderState = Data.Maybe.Nothing,
     httpManagerBuilderState = Data.Maybe.Nothing,
-    tokenBuilderState = Data.Maybe.Nothing
+    bearerAuthBuilderState = Data.Maybe.Nothing,
+    basicAuthBuilderState = Data.Maybe.Nothing
 }
 
 type ExampleServiceClientBuilder = Control.Monad.State.Strict.State ExampleServiceClientBuilderState
@@ -64,20 +73,32 @@ setHttpmanager :: Network.HTTP.Client.Manager -> ExampleServiceClientBuilder ()
 setHttpmanager value =
    Control.Monad.State.Strict.modify (\s -> (s { httpManagerBuilderState = Data.Maybe.Just value }))
 
-setToken :: Data.Text.Text -> ExampleServiceClientBuilder ()
-setToken value =
-   Control.Monad.State.Strict.modify (\s -> (s { tokenBuilderState = Data.Maybe.Just value }))
+setBearerauth :: Data.Maybe.Maybe Com.Example.Utility.BearerAuth -> ExampleServiceClientBuilder ()
+setBearerauth value =
+   Control.Monad.State.Strict.modify (\s -> (s { bearerAuthBuilderState = value }))
+
+setBasicauth :: Data.Maybe.Maybe Com.Example.Utility.BasicAuth -> ExampleServiceClientBuilder ()
+setBasicauth value =
+   Control.Monad.State.Strict.modify (\s -> (s { basicAuthBuilderState = value }))
 
 build :: ExampleServiceClientBuilder () -> Data.Either.Either Data.Text.Text ExampleServiceClient
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     endpointUri' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.ExampleServiceClient.ExampleServiceClient.endpointUri is a required property.") Data.Either.Right (endpointUriBuilderState st)
     httpManager' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.ExampleServiceClient.ExampleServiceClient.httpManager is a required property.") Data.Either.Right (httpManagerBuilderState st)
-    token' <- Data.Maybe.maybe (Data.Either.Left "Com.Example.ExampleServiceClient.ExampleServiceClient.token is a required property.") Data.Either.Right (tokenBuilderState st)
+    bearerAuth' <- Data.Either.Right (bearerAuthBuilderState st)
+    basicAuth' <- Data.Either.Right (basicAuthBuilderState st)
     Data.Either.Right (ExampleServiceClient { 
         endpointUri = endpointUri',
         httpManager = httpManager',
-        token = token'
+        bearerAuth = bearerAuth',
+        basicAuth = basicAuth'
     })
+
+getAuth :: ExampleServiceClient -> Maybe Com.Example.Utility.DynAuth
+getAuth client = (Nothing
+    Control.Applicative.<|> (Com.Example.Utility.DynAuth <$> (bearerAuth client))
+    Control.Applicative.<|> (Com.Example.Utility.DynAuth <$> (basicAuth client))
+    )
 
 
