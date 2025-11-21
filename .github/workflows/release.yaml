@@ -1,11 +1,9 @@
 name: Release & Deploy
 permissions:
   contents: write
-
 on:
   push:
     tags: ['v*']
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -15,13 +13,10 @@ jobs:
       JRELEASER_GPG_PASSPHRASE: ""
       JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.SONATYPE_MAVEN_USERNAME }}
       JRELEASER_MAVENCENTRAL_TOKEN: ${{ secrets.SONATYPE_MAVEN_PASSWORD }}
-
-      steps:
-        - name: Checkout
-        - uses: actions/checkout@v4
-
-        - name: Run Gradle publish
-          run: ./gradlew publish --info
-
-        - name: Run JReleaser deploy
-          run: ./gradlew jreleaserDeploy --info
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run Gradle publish
+        run: ./gradlew publish --info
+      - name: Run JReleaser deploy
+        run: ./gradlew jreleaserDeploy --info
