@@ -66,8 +66,8 @@ instance Data.Aeson.FromJSON CoffeeItem where
                             Data.Function.& Data.Maybe.maybe (fail "Failed to parse Com.Example.Model.CoffeeItem.CoffeeItem.Network.HTTP.Date.HTTPDate as Network.HTTP.Date.HTTPDate") pure
             
             )
-        Control.Applicative.<*> (v Data.Aeson..: "utc")
-        Control.Applicative.<*> (v Data.Aeson..: "posix")
+        Control.Applicative.<*> (v Data.Aeson..:? "utc")
+        Control.Applicative.<*> (v Data.Aeson..:? "posix")
     
 
 

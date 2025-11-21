@@ -35,7 +35,7 @@ instance Com.Example.Utility.SerializeBody TestHttpDocumentDeserializationInput
 
 instance Data.Aeson.FromJSON TestHttpDocumentDeserializationInput where
     parseJSON = Data.Aeson.withObject "TestHttpDocumentDeserializationInput" $ \v -> TestHttpDocumentDeserializationInput
-        Data.Functor.<$> (v Data.Aeson..: "coffeeType")
+        Data.Functor.<$> (v Data.Aeson..:? "coffeeType")
     
 
 

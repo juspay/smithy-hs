@@ -71,14 +71,14 @@ instance Com.Example.Utility.SerializeBody TestHttpDocumentDeserializationOutput
 
 instance Data.Aeson.FromJSON TestHttpDocumentDeserializationOutput where
     parseJSON = Data.Aeson.withObject "TestHttpDocumentDeserializationOutput" $ \v -> TestHttpDocumentDeserializationOutput
-        Data.Functor.<$> (v Data.Aeson..: "outputHeader")
-        Control.Applicative.<*> (v Data.Aeson..: "outputHeaderInt")
-        Control.Applicative.<*> (v Data.Aeson..: "outputHeaderBool")
-        Control.Applicative.<*> (v Data.Aeson..: "outputHeaderList")
-        Control.Applicative.<*> (v Data.Aeson..: "outputPrefixHeaders")
-        Control.Applicative.<*> (v Data.Aeson..: "item")
-        Control.Applicative.<*> (v Data.Aeson..: "customization")
-        Control.Applicative.<*> (v Data.Aeson..: "time"
+        Data.Functor.<$> (v Data.Aeson..:? "outputHeader")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputHeaderInt")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputHeaderBool")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputHeaderList")
+        Control.Applicative.<*> (v Data.Aeson..:? "outputPrefixHeaders")
+        Control.Applicative.<*> (v Data.Aeson..:? "item")
+        Control.Applicative.<*> (v Data.Aeson..:? "customization")
+        Control.Applicative.<*> (v Data.Aeson..:? "time"
              >>= \t -> t
                             Data.Functor.<&> Data.Text.Encoding.encodeUtf8
                             Data.Functor.<&> Network.HTTP.Date.parseHTTPDate
