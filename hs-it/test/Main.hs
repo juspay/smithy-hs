@@ -1,67 +1,73 @@
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main (main) where
 
-import Com.Example.Command.TestErrors qualified as TestErrors
-import Com.Example.Command.TestHttpDocument qualified as TestHttpDocument
-import Com.Example.Command.TestHttpDocumentDeserialization qualified as TestHttpDocumentDeserialization
-import Com.Example.Command.TestHttpHeaders qualified as TestHttpHeaders
-import Com.Example.Command.TestHttpLabels qualified as TestHttpLabels
-import Com.Example.Command.TestHttpPayload qualified as TestHttpPayload
-import Com.Example.Command.TestHttpPayloadDeserialization qualified as TestHttpPayloadDeserialization
-import Com.Example.Command.TestQuery qualified as TestQuery
-import Com.Example.Command.TestReservedWords qualified as TestReservedWords
-import Com.Example.ExampleServiceClient qualified as Client
-import Com.Example.Model.CoffeeCustomization qualified as CoffeeCustomization
-import Com.Example.Model.CoffeeItem qualified as CoffeeItem
-import Com.Example.Model.CoffeeType qualified as CoffeeType
-import Com.Example.Model.Error400 qualified as Error400
-import Com.Example.Model.InternalServerError qualified as InternalServerError
-import Com.Example.Model.MilkType qualified as MilkType
-import Com.Example.Model.TemperaturePreference qualified as TemperaturePreference
-import Com.Example.Model.TestHttpDocumentDeserializationInput qualified as TestHttpDocumentDeserializationInput
-import Com.Example.Model.TestHttpDocumentDeserializationOutput qualified as TestHttpDocumentDeserializationOutput
-import Com.Example.Model.TestHttpDocumentInput qualified as TestHttpDocumentInput
-import Com.Example.Model.TestHttpHeadersInput qualified as TestHttpHeadersInput
-import Com.Example.Model.TestHttpLabelsInput qualified as TestHttpLabelsInput
-import Com.Example.Model.TestHttpPayloadDeserializationInput qualified as TestHttpPayloadDeserializationInput
-import Com.Example.Model.TestHttpPayloadDeserializationOutput qualified as TestHttpPayloadDeserializationOutput
-import Com.Example.Model.TestHttpPayloadInput qualified as TestHttpPayloadInput
-import Com.Example.Model.TestQueryInput qualified as TestQueryInput
-import Com.Example.Model.TestReservedWordsInput qualified as TestReservedWordsInput
-import Com.Example.Model.TestReservedWordsOutput qualified as TestReservedWordsOutput
-import Control.Concurrent (forkIO)
-import Control.Concurrent.MVar as MVar
-import Control.Concurrent.STM qualified as Stm
-import Control.Monad qualified
-import Data.Aeson qualified as Aeson
-import Data.ByteString qualified as BS
-import Data.Char (toLower)
-import Data.Either.Extra (fromRight')
-import Data.Function ((&))
-import Data.Functor
-import Data.Map qualified as Map
-import Data.Maybe (fromJust)
-import Data.Text qualified as T
-import Data.Text.Encoding qualified as T
-import GHC.Exts (fromString)
-import Message (RequestInternal (..), State (..), assertEqRequest, defaultResponse)
-import Message qualified as RI
-import Network.HTTP.Client.TLS qualified as TLS
-import Network.HTTP.Date (parseHTTPDate)
-import Network.HTTP.Types qualified as HTTP
-import Network.URI qualified as URI
-import Network.Wai qualified as Wai
-import Network.Wai.Handler.Warp qualified as Warp
-import System.Exit (exitFailure)
-import Test.HUnit qualified as HUnit
-import qualified Com.Example.Command.TestCustomStatus as TestCustomStatus
-import qualified Com.Example.Model.TestCustomStatusOutput as TestCustomStatusOutput
+import qualified Com.Example.Command.TestCustomStatus                    as TestCustomStatus
+import qualified Com.Example.Command.TestErrors                          as TestErrors
+import qualified Com.Example.Command.TestHttpDocument                    as TestHttpDocument
+import qualified Com.Example.Command.TestHttpDocumentDeserialization     as TestHttpDocumentDeserialization
+import qualified Com.Example.Command.TestHttpHeaders                     as TestHttpHeaders
+import qualified Com.Example.Command.TestHttpLabels                      as TestHttpLabels
+import qualified Com.Example.Command.TestHttpPayload                     as TestHttpPayload
+import qualified Com.Example.Command.TestHttpPayloadDeserialization      as TestHttpPayloadDeserialization
+import qualified Com.Example.Command.TestMaybe                           as TestMaybe
+import qualified Com.Example.Command.TestQuery                           as TestQuery
+import qualified Com.Example.Command.TestReservedWords                   as TestReservedWords
+import qualified Com.Example.ExampleServiceClient                        as Client
+import qualified Com.Example.Model.CoffeeCustomization                   as CoffeeCustomization
+import qualified Com.Example.Model.CoffeeItem                            as CoffeeItem
+import qualified Com.Example.Model.CoffeeType                            as CoffeeType
+import qualified Com.Example.Model.Error400                              as Error400
+import qualified Com.Example.Model.InternalServerError                   as InternalServerError
+import qualified Com.Example.Model.MilkType                              as MilkType
+import qualified Com.Example.Model.TemperaturePreference                 as TemperaturePreference
+import qualified Com.Example.Model.TestCustomStatusOutput                as TestCustomStatusOutput
+import qualified Com.Example.Model.TestHttpDocumentDeserializationInput  as TestHttpDocumentDeserializationInput
+import qualified Com.Example.Model.TestHttpDocumentDeserializationOutput as TestHttpDocumentDeserializationOutput
+import qualified Com.Example.Model.TestHttpDocumentInput                 as TestHttpDocumentInput
+import qualified Com.Example.Model.TestHttpHeadersInput                  as TestHttpHeadersInput
+import qualified Com.Example.Model.TestHttpLabelsInput                   as TestHttpLabelsInput
+import qualified Com.Example.Model.TestHttpPayloadDeserializationInput   as TestHttpPayloadDeserializationInput
+import qualified Com.Example.Model.TestHttpPayloadDeserializationOutput  as TestHttpPayloadDeserializationOutput
+import qualified Com.Example.Model.TestHttpPayloadInput                  as TestHttpPayloadInput
+import qualified Com.Example.Model.TestMaybeInput                        as TestMaybeInput
+import qualified Com.Example.Model.TestMaybeOutput                       as TestMaybeOutput
+import qualified Com.Example.Model.TestQueryInput                        as TestQueryInput
+import qualified Com.Example.Model.TestReservedWordsInput                as TestReservedWordsInput
+import qualified Com.Example.Model.TestReservedWordsOutput               as TestReservedWordsOutput
+import           Control.Concurrent                                      (forkIO)
+import           Control.Concurrent.MVar                                 as MVar
+import qualified Control.Concurrent.STM                                  as Stm
+import qualified Control.Monad
+import qualified Data.Aeson                                              as Aeson
+import qualified Data.ByteString                                         as BS
+import           Data.Char                                               (toLower)
+import           Data.Either.Extra                                       (fromRight')
+import           Data.Function                                           ((&))
+import           Data.Functor
+import qualified Data.Map                                                as Map
+import           Data.Maybe                                              (fromJust)
+import qualified Data.Text                                               as T
+import qualified Data.Text.Encoding                                      as T
+import           GHC.Exts                                                (fromString)
+import           Message                                                 (RequestInternal (..),
+                                                                          State (..),
+                                                                          assertEqRequest,
+                                                                          defaultResponse)
+import qualified Message                                                 as RI
+import qualified Network.HTTP.Client.TLS                                 as TLS
+import           Network.HTTP.Date                                       (parseHTTPDate)
+import qualified Network.HTTP.Types                                      as HTTP
+import qualified Network.URI                                             as URI
+import qualified Network.Wai                                             as Wai
+import qualified Network.Wai.Handler.Warp                                as Warp
+import           System.Exit                                             (exitFailure)
+import qualified Test.HUnit                                              as HUnit
 
 port :: Int
 port = 4321
@@ -103,6 +109,7 @@ tests state =
       HUnit.TestLabel "HttpDocumentDeserialization Operation" $ testHttpDocumentDeserialization state,
       HUnit.TestLabel "ReservedWords Operation" $ testReservedWords state,
       HUnit.TestLabel "CustomStatus Operation" $ testDeSerializationWithCustomStatus state,
+      HUnit.TestLabel "TestMaybe Operation" $ testMaybe state,
       HUnit.TestLabel "Error Parsing" $ testErrorParsing state
     ]
 
@@ -136,7 +143,7 @@ main = do
   rBody <- Stm.newEmptyTMVarIO @BS.ByteString
 
   client <-
-    (createClient "test-token") >>= \case
+    createClient "test-token" >>= \case
       Left err -> do
         putStrLn $ "Error creating client: " ++ T.unpack err
         exitFailure
@@ -713,6 +720,74 @@ testDeSerializationWithCustomStatus state = HUnit.TestCase $ do
       HUnit.assertFailure $ "Error: " <> show (Aeson.encode e)
     Right output -> do
       HUnit.assertEqual "Output should match" "Accepted Response" (TestCustomStatusOutput.message output)
+
+testMaybe :: State -> HUnit.Test
+testMaybe state = HUnit.TestCase $ do
+  -- Test with both required and optional fields set
+  let mockResponse1 = Wai.responseLBS HTTP.status200 [] "{\"testField\": \"required value\", \"testMaybeField\": \"optional value\"}"
+  _ <- Stm.atomically $ Stm.writeTMVar (res state) mockResponse1
+
+  result1 <- TestMaybe.testMaybe (client state) $ do
+    TestMaybeInput.setTestfield "required value"
+    TestMaybeInput.setTestmaybefield $ Just "optional value"
+
+  actualReq1 <- Stm.atomically $ Stm.takeTMVar (req state)
+  actualPayload1 <- Stm.atomically $ Stm.takeTMVar (rBody state)
+
+  -- Verify the request
+  let expectedRequest1 =
+        RequestInternal
+          { RI.queryString = [],
+            RI.pathInfo = ["test-maybe"],
+            RI.requestMethod = HTTP.methodPost,
+            RI.requestHeaders =
+              [ ("content-type", "application/json"),
+                ("Authorization", "Bearer test-token")
+              ]
+          }
+  assertEqRequest expectedRequest1 actualReq1
+
+  -- Verify the payload includes both fields
+  case Aeson.decodeStrict actualPayload1 of
+    Nothing -> HUnit.assertFailure "Failed to decode payload"
+    Just (payload :: Aeson.Value) -> do
+      let expectedPayload = Aeson.object [("testField", Aeson.String "required value"), ("testMaybeField", Aeson.String "optional value")]
+      HUnit.assertEqual "Payload should match" expectedPayload payload
+
+  -- Verify the result
+  case result1 of
+    Left e -> HUnit.assertFailure $ "Error: " <> show (Aeson.encode e)
+    Right output -> do
+      HUnit.assertEqual "testField should match" "required value" (TestMaybeOutput.testField output)
+      HUnit.assertEqual "testMaybeField should match" (Just "optional value") (TestMaybeOutput.testMaybeField output)
+
+  -- Test with Nothing for testMaybeField (but testField is required)
+  let mockResponse2 = Wai.responseLBS HTTP.status200 [] "{\"testField\": \"required value\"}"
+  _ <- Stm.atomically $ Stm.writeTMVar (res state) mockResponse2
+
+  result2 <- TestMaybe.testMaybe (client state) $ do
+    TestMaybeInput.setTestfield "required value"
+    TestMaybeInput.setTestmaybefield Nothing
+
+  actualReq2 <- Stm.atomically $ Stm.takeTMVar (req state)
+  actualPayload2 <- Stm.atomically $ Stm.takeTMVar (rBody state)
+
+  -- Verify the request
+  assertEqRequest expectedRequest1 actualReq2
+
+  -- Verify the payload includes only the required field
+  case Aeson.decodeStrict actualPayload2 of
+    Nothing -> HUnit.assertFailure "Failed to decode payload"
+    Just (payload :: Aeson.Value) -> do
+      let expectedPayload = Aeson.object [("testField", Aeson.String "required value")]
+      HUnit.assertEqual "Payload should include only required field" expectedPayload payload
+
+  -- Verify the result when response has no testMaybeField
+  case result2 of
+    Left e -> HUnit.assertFailure $ "Error: " <> show (Aeson.encode e)
+    Right output -> do
+      HUnit.assertEqual "testField should match" "required value" (TestMaybeOutput.testField output)
+      HUnit.assertEqual "testMaybeField should be Nothing" Nothing (TestMaybeOutput.testMaybeField output)
 
 testErrorParsing :: State -> HUnit.Test
 testErrorParsing state = HUnit.TestCase $ do

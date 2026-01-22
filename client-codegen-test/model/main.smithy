@@ -22,6 +22,7 @@ service ExampleService {
         TestReservedWords
         TestCustomStatus
         TestErrors
+        TestMaybe
     ]
     errors: [
         InternalServerError
@@ -514,4 +515,21 @@ operation TestErrors {
     errors: [
         Error400
     ]
+}
+
+@http(method: "POST", uri: "/test-maybe")
+operation TestMaybe {
+    input := {
+        @required
+        testField: String
+
+        testMaybeField: String
+    }
+
+    output := {
+        @required
+        testField: String
+
+        testMaybeField: String
+    }
 }

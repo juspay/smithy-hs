@@ -20,6 +20,7 @@ library
     exposed-modules:    Com.Example.Command.TestHttpDocumentDeserialization,
                         Com.Example.Model.TestQueryInput,
                         Com.Example.Model.InternalServerError,
+                        Com.Example.Model.TestMaybeOutput,
                         Com.Example.Command.TestHttpHeaders,
                         Com.Example.Model.TestHttpPayloadDeserializationInput,
                         Com.Example.Model.TestHttpLabelsInput,
@@ -53,7 +54,9 @@ library
                         Com.Example.Command.TestHttpPayloadDeserialization,
                         Com.Example.Command.TestHttpPayload,
                         Com.Example.Model.TestHttpDocumentDeserializationOutput,
+                        Com.Example.Model.TestMaybeInput,
                         Com.Example.Model.TestHttpPayloadInput,
+                        Com.Example.Command.TestMaybe,
                         Com.Example.ExampleServiceClient
     other-modules:      Com.Example.Utility
     default-language:   Haskell2010
