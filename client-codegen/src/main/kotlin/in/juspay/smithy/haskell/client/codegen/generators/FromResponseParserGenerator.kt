@@ -35,7 +35,7 @@ class FromResponseParserGenerator(
             writer.write(
                 """
                 instance #{utility:N}.FromResponseParser $name where
-                    expectedStatus = #{httpTypes:N}.status$status
+                    expectedStatus = (#{httpTypes:N}.mkStatus $status \"\")
                     responseParser = do
                         #{deSerHeaders:C|}
                         #{deSerPayload:C|}
