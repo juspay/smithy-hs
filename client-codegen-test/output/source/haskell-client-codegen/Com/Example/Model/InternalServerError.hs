@@ -67,7 +67,7 @@ build builder = do
 
 
 instance Com.Example.Utility.FromResponseParser InternalServerError where
-    expectedStatus = Network.HTTP.Types.status500
+    expectedStatus = (Network.HTTP.Types.mkStatus 500 "")
     responseParser = do
         
         var0 <- Com.Example.Utility.deSerField "message"

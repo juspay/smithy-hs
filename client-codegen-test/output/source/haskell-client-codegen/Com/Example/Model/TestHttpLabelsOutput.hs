@@ -52,7 +52,7 @@ build builder = do
 
 
 instance Com.Example.Utility.FromResponseParser TestHttpLabelsOutput where
-    expectedStatus = Network.HTTP.Types.status200
+    expectedStatus = (Network.HTTP.Types.mkStatus 200 "")
     responseParser = do
         
         
