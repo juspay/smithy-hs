@@ -67,7 +67,7 @@ build builder = do
 
 
 instance Com.Example.Utility.FromResponseParser Error400 where
-    expectedStatus = Network.HTTP.Types.status400
+    expectedStatus = (Network.HTTP.Types.mkStatus 400 "")
     responseParser = do
         
         var0 <- Com.Example.Utility.deSerField "message"

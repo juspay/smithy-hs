@@ -67,7 +67,7 @@ build builder = do
 
 
 instance Com.Example.Utility.FromResponseParser TestQueryOutput where
-    expectedStatus = Network.HTTP.Types.status200
+    expectedStatus = (Network.HTTP.Types.mkStatus 200 "")
     responseParser = do
         
         var0 <- Com.Example.Utility.deSerField "message"
